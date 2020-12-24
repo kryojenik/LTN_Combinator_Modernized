@@ -484,7 +484,4 @@ event.register({"ltnc-close", "ltnc-escape"}, function(e)
   ltnc_gui.Close(e.player_index)
 end)
 
-
-
-
 return ltnc_gui
