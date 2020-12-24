@@ -1,11 +1,10 @@
 local gui = require("__flib__.gui")
 local event = require("__flib__.event")
 --local migration = require("__flib__.migration")
+
 local config = require "config"
-
-MOD_STD_UI = false
-
 require("script.ltn-combinator")
+
 local ltnc_gui = {}
 
 -- Forward delcaration
@@ -31,7 +30,7 @@ local function update_signal_table(ltnc, slot, signal)
   end
 end -- update_signal_table()
 
-local function update_visible_parts(ltnc)
+local function update_visible_components(ltnc)
   local stop_type = ltnc.combinator:get_stop_type()
   dlog(stop_type)
   if stop_type == nil then stop_type = config.LTN_STOP_NONE end
@@ -47,7 +46,7 @@ local function update_visible_parts(ltnc)
   ltnc.ltn_req_fr.visible =  req
   ltnc.chk_provider.state = prov
   ltnc.ltn_prov_fr.visible = prov
-end -- update_visible_parts()
+end -- update_visible_components()
 
 local function set_new_output_value(ltnc, new_value)
   ltnc.combinator:set_slot_value(ltnc.selected_slot, new_value)
@@ -64,7 +63,7 @@ function ltnc_gui.Open(player_index, entity)
   --[[
       Check if player has an LTN Combinator open.
       If the player is trying to open the same LTN Combinator do nothing.
-      If a different LTN Combinator, first close the open one, then open a new one.
+      If a different LTN Combinator, first close the open one, then open the new one.
       If opening something else, close the open LTN Combinator.
   ]]
   local player = game.get_player(player_index)
@@ -74,7 +73,8 @@ function ltnc_gui.Open(player_index, entity)
       player.opened = rootgui["ltnc-main-window"]
       return
     end
-    rootgui["ltnc-main-window"].destroy()
+    ltnc_gui.Close(player_index)
+    --rootgui["ltnc-main-window"].destroy()
   end
   local ltnc = create_window(player_index, entity.unit_number)
   ltnc.ep.entity = entity
@@ -86,7 +86,7 @@ function ltnc_gui.Open(player_index, entity)
   end
 
   -- read stop type and set checkboxes
-  update_visible_parts(ltnc)
+  update_visible_components(ltnc)
 
   -- read and apply ltn signals
   for name, details in pairs(config.ltn_signals) do 
@@ -124,6 +124,7 @@ function ltnc_gui.Close(player_index)
   local rootgui = player.gui.screen
   if rootgui["ltnc-main-window"] then
     rootgui["ltnc-main-window"].destroy()
+    gui.update_filters("ltnc_handlers", player_index, nil, "remove")
   end
   -- TODO: Figuire out how to play close sound
 end -- Close()
@@ -279,7 +280,7 @@ function ltnc_gui.RegisterHandlers()
               end
             end
           end
-          update_visible_parts(ltnc)
+          update_visible_components(ltnc)
         end
       },
       ltn_signal_entries = {
@@ -481,85 +482,8 @@ end)
 
 event.register({"ltnc-close", "ltnc-escape"}, function(e)
   ltnc_gui.Close(e.player_index)
-  gui.update_filters("ltnc_handlers", e.player_index, nil, "remove")
 end)
 
-------------
--- Temporary place for remote stuff
-------------
-
--- ltnc.find_combinator_in_network_tree
--- TODO: find green or red
-local function find_combinator_in_network_tree(first_entity, max_depth, green_wire)
-  local id_stack     = {[first_entity.unit_number] = true}
-  local entity_stack = {[first_entity.unit_number] = first_entity}
-  
-  -- set the min. green connections to 1 if entity is input lamp
-  local min = first_entity.name == "logistic-train-stop-lamp-control" and 1 or 0
-
---  -- check if green or red cable is connected. default: green
---  local green_wire = g
---  if #first_entity.circuit_connected_entities.green > 1 then
---    green_wire = true
---    dlog("green children found #" .. tostring(#first_entity.circuit_connected_entities.green) .. "minimum: " .. min)
---  else
---    dlog("red children found #" .. tostring(#first_entity.circuit_connected_entities.red) .. "minimum: " .. min)
---    dlog("first child: " ..   tostring(first_entity.circuit_connected_entities.red[1].name))
---  end
-  
-  --dlog("Using wire: " .. tostring(green_wire == true and "green" or "red"))
-  local result = nil
-
-  for depth = 1, max_depth do
-    local _, entity = next(entity_stack)
-    if not entity then break end
-    
-    --dlog("-- checking entity: " .. entity.name)
-    if entity.name == "ltn-combinator" then 
-      result = entity
-      break
-    end
-    
-    id_stack[entity.unit_number] = true
-    
-    if entity.circuit_connected_entities ~= nil then
-      local children = green_wire == true and entity.circuit_connected_entities.green or entity.circuit_connected_entities.red
-      for _,child in pairs(children) do
-        if child ~= nil and not id_stack[child.unit_number] then
-          entity_stack[child.unit_number] = child
-          --dlog("---- putting to stack: " .. child.name)
-        end
-      end
-    end
-    
-    entity_stack[entity.unit_number] = nil
-  end
-  
-  return result
-end
-
-
--- ltnc.open_combinator
-ltnc_gui.open_combinator = function(player_index, entity, register)
-  if not entity or not entity.valid then return false end
-  if entity.type == "entity-ghost" then return false end
-  
-  local combinator = find_combinator_in_network_tree(entity, 10, true)
-  if not combinator then
-    combinator = find_combinator_in_network_tree(entity, 10, false)
-  end 
-  --local combinator = ltnc.find_combinator_in_area(entity, 5)
-  if not combinator then return false end
-  
-  ltnc_gui.Open(player_index, combinator)
-  
-  return true
-end
-
--- ltnc.close_combinator
-ltnc_gui.close_combinator = function(player_index)
-  ltnc_gui.Close(player_index)
-end
 
 
 
