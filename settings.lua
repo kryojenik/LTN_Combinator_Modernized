@@ -8,13 +8,6 @@ data:extend({
         default_value = false
     },
     {
-        type = "bool-setting",
-        name = "high-provide-threshold",
-        setting_type = "runtime-global",
-        order = "ab",
-        default_value = true
-    },
-    {
         type = "string-setting",
         name = "provide-type",
         setting_type = "runtime-global",
@@ -65,6 +58,13 @@ data:extend({
         default_value = true
     },
     ]]
+    {
+        type = "bool-setting",
+        name = "high-provide-threshold",
+        setting_type = "runtime-global",
+        order = "ab",
+        default_value = true
+    },
     {
         type = "bool-setting",
         name = "ltnc-upgradable",

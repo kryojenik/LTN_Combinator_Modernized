@@ -164,14 +164,14 @@ end -- sprite_button_click()
 
 function ltnc_gui.RegisterTemplates()
   gui.add_templates{
-    mouse_filter = {type="button", mouse_button_filter={"left"}},
     drag_handle = {type="empty-widget", style="flib_titlebar_drag_handle", elem_mods={ignored_by_interaction=true}},
-    frame_action_button = {template="mouse_filter", style="frame_action_button"},
+    frame_action_button = {type="sprite-button", style="frame_action_button", mouse_button_filter={"left"}},
     ltnc_entry_text = {
       type="textfield", style="short_number_textfield",
       style_mods={horizontal_align="right", horizontally_stretchable="off"}
     },
-    confirm_button = {template="mouse_filter", style="item_and_count_select_confirm"},
+    confirm_button = {template="frame_action_button", style="item_and_count_select_confirm", sprite="utility/check_mark"},
+    close_button = {template="frame_action_button", sprite="utility/close_white", hovered_sprite="utility/close_black"},
     checkbox = {type="checkbox", state=false, style_mods={top_margin=8}},
     chk_stoptype = {template="checkbox", handlers="ltnc_handlers.stop_type"},
   }
@@ -318,7 +318,7 @@ function create_window(player_index, unit_number)
       {type="flow", save_as="titlebar.flow", children={
         {type="label", style="frame_title", caption={"ltnc.window-title"}, elem_mods={ignored_by_interaction=true}},
         {template="drag_handle"},
-        {template="frame_action_button", handlers="ltnc_handlers.close_button"}
+        {template="close_button", handlers="ltnc_handlers.close_button"}
       }},
       {type="frame", style="inside_shallow_frame_with_padding", style_mods={padding=12}, children={
         -- Combinator Main Pane
