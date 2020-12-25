@@ -1,14 +1,15 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.9.1
 Date: 2020-12-24
-  Feature:
-    - GUI can be moved around on the screen by dragging the title bar
   Change:
-    - Slider increments by stack size of the selected outut signal
-    - Slider increments absolute value.  Actually applied value is negative
+    - Items marked with '[9.0]' should have been included in previous version notes
+    - [9.0] GUI can be moved around on the screen by dragging the title bar
+    - [9.0] Slider increments by stack size of the selected outut signal
+    - [9.0] Slider increments absolute value.  Actually applied value is negative
   Bugfix:
     - Missing 'x' on Close button, a missing '✓' on confirm button 
     - Normalize tab headings in Changelog
+    - Crash when combinator is destroyed while GUI is open
 ---------------------------------------------------------------------------------------------------
 Version: 0.9.0
 Date: 2020-12-23

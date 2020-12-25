@@ -129,14 +129,21 @@ function ltnc_gui.Close(player_index)
   -- TODO: Figuire out how to play close sound
 end -- Close()
 
-local function sprite_buttton_click(ltnc, button, value)
+local function sprite_buttton_click(ltnc, e)
   local slot = ltnc.selected_slot
+  local button = e.button
+  local value = e.element.number
   if button == defines.mouse_button_type.left then
     -- TODO: Get inteligent about this...  detect or setting for larger storage containers?
     -- Make display number of stacks?
     local stack_size = 25000 -- default fluid
     local max_slider = 1000000 -- Large default based on Angel's storage tanks?  Get smarter.
     local signal = ltnc.combinator:get_slot(slot)
+    if not signal or not signal.signal then
+      print("The combinator must have been destroyed!")
+      ltnc_gui.Close(e.player_index)
+      return
+    end
     if signal.signal.type == "item" then
       stack_size = game.item_prototypes[signal.signal.name].stack_size
       max_slider = stack_size * 256 -- More hard coded defaults to fix...
@@ -193,7 +200,7 @@ function ltnc_gui.RegisterHandlers()
           local _, _, slot =  string.find(e.element.name, "__(%d+)")
           slot = tonumber(slot)
           ltnc.selected_slot = slot
-          sprite_buttton_click(ltnc, e.button, e.element.number)
+          sprite_buttton_click(ltnc, e)
         end -- on_gui_click
       },
       slider = {
@@ -237,7 +244,9 @@ function ltnc_gui.RegisterHandlers()
           local signal = {signal=e.element.elem_value, count=0}
           ltnc.combinator:set_slot(slot, signal)
           update_signal_table(ltnc, slot, signal)
-          sprite_buttton_click(ltnc, defines.mouse_button_type.left, 0)
+          sprite_buttton_click(ltnc, {button=defines.mouse_button_type.left,
+                                      element={number=0},
+                                      player_index=e.player_index})
         end
       },
       on_off_switch = {
@@ -251,6 +260,11 @@ function ltnc_gui.RegisterHandlers()
         on_gui_click = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
           local stop_type = ltnc.combinator:get_stop_type()
+          if not stop_type then
+            print("The combinator must have been destroyed!")
+            ltnc_gui.Close(e.player_index)
+            return
+          end
           dlog("Current stop type: "..stop_type.." - shift: ".. (e.shift and "true" or "false"))
           if e.element.name == "chk-depot" then
             if e.element.state == true then
