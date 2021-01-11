@@ -409,6 +409,7 @@ function create_window(player_index, unit_number)
       }},
     }},
   })
+  -- TODO: Templatize this
   -- Create the slot bottons.  Empty slots will show the choose-elem-button
   -- Slots with a signal will show the sprite button.
   local signals = {}
