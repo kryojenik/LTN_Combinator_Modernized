@@ -169,6 +169,20 @@ function ltnc_gui.RegisterTemplates()
     close_button = {template="frame_action_button", sprite="utility/close_white", hovered_sprite="utility/close_black"},
     checkbox = {type="checkbox", state=false, style_mods={top_margin=8}},
     chk_stoptype = {template="checkbox", handlers="ltnc_handlers.stop_type"},
+    network_id_row = function(number)
+      return
+      {
+        {type="label", caption="Network "..number},
+        {type="checkbox", name=number},
+      }
+    end,
+    network_id_table = function(rows)
+      local t = {type="table", save_as="net_id_table", column_count=4, children={}}
+      for i=1,rows do
+        t.children[i] = {type="button", handlers="ltnc_handlers.net_id_toggle", name=i, style="ltnc_net_id_button", caption=i}
+      end
+      return t
+    end
   }
 end -- RegisterTemplates()
 
@@ -309,6 +323,11 @@ function ltnc_gui.RegisterHandlers()
           end
         end
       },
+      net_id_toggle = {
+        on_gui_click = function(e)
+          print("net_id_toggle: "..e.element.name)
+        end
+      },
     },
   }
   gui.register_handlers()
@@ -327,40 +346,48 @@ function create_window(player_index, unit_number)
         {template="close_button", handlers="ltnc_handlers.close_button"}
       }},
       {type="frame", style="inside_shallow_frame_with_padding", style_mods={padding=12}, children={
+        -- Network ID Configurator pane
+        {type="flow", direction="vertical", visible=true, style_mods={horizontal_align="center", right_padding=12}, children={
+          --{type="frame", direction="vertical", style="container_inside_shallow_frame", style_mods={padding=8}, children={
+            gui.templates.network_id_table(32)
+          --}},
+        }},
         -- Combinator Main Pane
-        {type="flow", direction="vertical", children={
-          {type="flow", direction="vertical", style_mods={horizontal_align="center"}, children={
-            {type="table", save_as="ltn_signals_network", column_count=3,
-              style_mods={cell_padding=2, horizontally_stretchable=true},
-            },
-            {type="frame", style="container_inside_shallow_frame", style_mods={top_margin=8}, children={
-              {type="entity-preview", save_as="ep", style_mods={
-                width=280, height=140, horizontally_stretchable=true
-              }},
+        {type="flow", direction="vertical", style_mods={horizontal_align="center"}, children={
+          -- Netowrk ID 
+          {type="table", save_as="ltn_signals_network", column_count=3,
+            style_mods={cell_padding=2, horizontally_stretchable=true},
+          },
+          -- Entity preview
+          {type="frame", style="container_inside_shallow_frame", style_mods={top_margin=8}, children={
+            {type="entity-preview", save_as="ep", style_mods={
+              width=280, height=140, horizontally_stretchable=true
             }},
-            {type="table", column_count=3, style_mods={right_cell_padding=10, left_cell_padding=10}, children={
-              {type="flow", style_mods={horizontal_align="left"}, direction="vertical", children={
-                {type="label", style_mods={top_margin=8}, caption={"ltnc.output"}},
-                {type="switch", save_as="on_off", handlers="ltnc_handlers.on_off_switch",
-                left_label_caption={"ltnc.off"}, right_label_caption={"ltnc.on"}
-                },
-              }},
-              {type="flow", direction="vertical", children={
-                {template="chk_stoptype", save_as="chk_provider", name="chk-provider",
-                caption={"ltnc.provider"}, elem_mods={tooltip={"ltnc.provider-tip"}
-                }},
-                {template="chk_stoptype", save_as="chk_requester", name="chk-requester",
-                caption={"ltnc.requester"}, elem_mods={tooltip={"ltnc.requester-tip"}}
-                }},
-              },
-              {type="flow", direction="vertical", children={
-                {template="chk_stoptype", save_as="chk_depot", name="chk-depot",
-                caption={"ltnc.depot"}, elem_mods={tooltip={"ltnc.depot-tip"}}
-                }},
-              },
-            }},
-            {type="line", style_mods={top_margin=5}},
           }},
+          -- On/Off siwtch and Stop Type
+          {type="table", column_count=3, style_mods={right_cell_padding=10, left_cell_padding=10}, children={
+            {type="flow", style_mods={horizontal_align="left"}, direction="vertical", children={
+              {type="label", style_mods={top_margin=8}, caption={"ltnc.output"}},
+              {type="switch", save_as="on_off", handlers="ltnc_handlers.on_off_switch",
+              left_label_caption={"ltnc.off"}, right_label_caption={"ltnc.on"}
+              },
+            }},
+            {type="flow", direction="vertical", children={
+              {template="chk_stoptype", save_as="chk_provider", name="chk-provider",
+              caption={"ltnc.provider"}, elem_mods={tooltip={"ltnc.provider-tip"}
+              }},
+              {template="chk_stoptype", save_as="chk_requester", name="chk-requester",
+              caption={"ltnc.requester"}, elem_mods={tooltip={"ltnc.requester-tip"}}
+              }},
+            },
+            {type="flow", direction="vertical", children={
+              {template="chk_stoptype", save_as="chk_depot", name="chk-depot",
+              caption={"ltnc.depot"}, elem_mods={tooltip={"ltnc.depot-tip"}}
+              }},
+            },
+          }},
+          {type="line", style_mods={top_margin=5}},
+          -- Signal Table
           {type="label", style_mods={top_margin=5}, caption={"ltnc.output-signals"}},
           {type="flow", direction="vertical", style_mods={horizontal_align="center"}, children={
             {type="frame", direction="vertical", style="slot_button_deep_frame",
@@ -448,6 +475,10 @@ function create_window(player_index, unit_number)
   -- Depot signal should not be visible
   for _, part in pairs{"sprite", "label", "element"} do
     ltnc.ltn_signals_common["ltnc-"..part.."__ltn-depot"].visible = false
+  end
+
+  for i=1,32 do
+    ltnc.net_id_table[tostring(i)].style="ltnc_net_id_button_pressed"
   end
 
   gui.update_filters("ltnc_handlers.choose_button", player_index, {"ltnc-signal-button"}, "add")

@@ -1,3 +1,4 @@
+--require("__flib__.gui")
 local styles = data.raw["gui-style"].default
 
 styles["ltnc_entry_sprite"] = {
@@ -36,4 +37,18 @@ styles["ltnc_entry_sprite"] = {
     parent = "checkbox",
     left_margin = 34,
     horizontally_stretchable = "off",
+  }
+
+  styles["ltnc_net_id_button"] = {
+    type = "button_style",
+    parent = "flib_standalone_slot_button_grey",
+    size = 28,
+    font = "default-small",
+  }
+  
+  styles["ltnc_net_id_button_pressed"] = {
+    type = "button_style",
+    parent = "flib_selected_standalone_slot_button_grey",
+    size = 28,
+    font = "default-small",
   }
