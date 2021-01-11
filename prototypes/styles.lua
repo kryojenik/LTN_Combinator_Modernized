@@ -1,4 +1,6 @@
-data.raw["gui-style"].default["ltnc_entry_sprite"] = {
+local styles = data.raw["gui-style"].default
+
+styles["ltnc_entry_sprite"] = {
     type   = "image_style",
     parent = "image",
     size = 32,
@@ -6,20 +8,30 @@ data.raw["gui-style"].default["ltnc_entry_sprite"] = {
     stretch_image_to_widget_size = true,
   }
   
-  data.raw["gui-style"].default["ltnc_entry_label"] = {
+  styles["ltnc_entry_label"] = {
     type   = "label_style",
     parent = "caption_label",
     horizontally_stretchable = "on",
   }
   
-  data.raw["gui-style"].default["ltnc_entry_text"] = {
+    styles["signal_count"] = {
+    type = "label_style",
+    parent = "count_label",
+    size = 36,
+    width = 36,
+    horizontal_align = "right",
+    vertical_align = "bottom",
+    right_padding = 2,
+  }
+  
+  styles["ltnc_entry_text"] = {
     type   = "textbox_style",
     parent = "short_number_textfield",
     horizontal_align = "right",
     horizontally_stretchable = "off",
   }
   
-  data.raw["gui-style"].default["ltnc_entry_checkbox"] = {
+  styles["ltnc_entry_checkbox"] = {
     type   = "checkbox_style",
     parent = "checkbox",
     left_margin = 34,

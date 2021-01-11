@@ -3,6 +3,7 @@ local event = require("__flib__.event")
 --local migration = require("__flib__.migration")
 
 local config = require "config"
+local ltnc_util = require("script.util")
 require("script.ltn-combinator")
 
 local ltnc_gui = {}
@@ -18,15 +19,10 @@ local function update_signal_table(ltnc, slot, signal)
   dlog("update_signal_table")
   if signal and signal.signal then
     local b = ltnc.signals[slot].button
-    local s = ltnc.signals[slot].sprite
     local type = signal.signal.type == "virtual" and "virtual-signal" or signal.signal.type
-
-    b.elem_value = nil
-    b.visible = false
-
-    s.sprite = type .. "/" .. signal.signal.name
-    s.number = signal.count
-    s.visible = true
+    b.elem_value = signal.signal
+    b.children[1].caption = ltnc_util.format_number(signal.count, true)
+    b.locked = true
   end
 end -- update_signal_table()
 
@@ -50,10 +46,10 @@ end -- update_visible_components()
 
 local function set_new_output_value(ltnc, new_value)
   ltnc.combinator:set_slot_value(ltnc.selected_slot, new_value)
-  ltnc.signals[ltnc.selected_slot].sprite.number = new_value
   ltnc.signal_value_slider.enabled = false
   ltnc.signal_value_text.enabled = false
   ltnc.signal_value_confirm.enabled = false
+  ltnc.signals[ltnc.selected_slot].button.children[1].caption = ltnc_util.format_number(new_value, true)
   ltnc.selected_slot = nil
 end -- set_new_output_value()
 
@@ -74,12 +70,11 @@ function ltnc_gui.Open(player_index, entity)
       return
     end
     ltnc_gui.Close(player_index)
-    --rootgui["ltnc-main-window"].destroy()
   end
   local ltnc = create_window(player_index, entity.unit_number)
   ltnc.ep.entity = entity
 
-  -- Create an object to hold and interface with conbinator entity
+  -- Create an object to hold an interface with conbinator entity
   ltnc.combinator = ltn_combinator:new(entity)
   if not ltnc.combinator then
     dlog("Failed to create LTN-C object")
@@ -110,7 +105,7 @@ function ltnc_gui.Open(player_index, entity)
     update_signal_table(ltnc, slot, signal)
   end
 
-  local pd = get_player_data(player_index)
+  local pd = ltnc_util.get_player_data(player_index)
   pd.ltnc = ltnc
 
   if MOD_STD_UI then return end
@@ -129,46 +124,38 @@ function ltnc_gui.Close(player_index)
   -- TODO: Figuire out how to play close sound
 end -- Close()
 
-local function sprite_buttton_click(ltnc, e)
+local function change_signal_count(ltnc, e)
   local slot = ltnc.selected_slot
-  local button = e.button
-  local value = e.element.number
-  if button == defines.mouse_button_type.left then
-    -- TODO: Get inteligent about this...  detect or setting for larger storage containers?
-    -- Make display number of stacks?
-    local stack_size = 25000 -- default fluid
-    local max_slider = 1000000 -- Large default based on Angel's storage tanks?  Get smarter.
-    local signal = ltnc.combinator:get_slot(slot)
-    if not signal or not signal.signal then
-      print("The combinator must have been destroyed!")
-      ltnc_gui.Close(e.player_index)
-      return
-    end
-    if signal.signal.type == "item" then
-      stack_size = game.item_prototypes[signal.signal.name].stack_size
-      max_slider = stack_size * 256 -- More hard coded defaults to fix...
-    end
-    dlog(signal.signal.type .. " " .. stack_size)
-    ltnc.signal_value_slider.set_slider_minimum_maximum(0,max_slider)
-    ltnc.signal_value_slider.set_slider_value_step(stack_size)
-    ltnc.signal_value_slider.slider_value = value * -1
-    ltnc.signal_value_slider.enabled = true
 
-    ltnc.signal_value_text.text = tostring(value)
-    ltnc.signal_value_text.enabled = true
-    ltnc.signal_value_text.focus()
-
-    ltnc.signal_value_confirm.visible = true
-    ltnc.signal_value_confirm.enabled = false
-  elseif button == defines.mouse_button_type.right then
-    ltnc.combinator:remove_slot(slot)
-    ltnc.signals[slot].sprite.sprite = nil
-    ltnc.signals[slot].sprite.number = nil
-    ltnc.signals[slot].sprite.visible = false
-    ltnc.signals[slot].button.visible = true
-
+  local signal = ltnc.combinator:get_slot(slot)
+  if not signal or not signal.signal then
+    print("The combinator must have been destroyed!")
+    ltnc_gui.Close(e.player_index)
+    return
   end
-end -- sprite_button_click()
+
+  local value = signal.count
+  -- TODO: Get inteligent about this...  detect or setting for larger storage containers?
+  -- Make display number of stacks?
+  local stack_size = 25000 -- default fluid
+  local max_slider = 1000000 -- Large default based on Angel's storage tanks?  Get smarter.
+  if signal.signal.type == "item" then
+    stack_size = game.item_prototypes[signal.signal.name].stack_size
+    max_slider = stack_size * 256 -- More hard coded defaults to fix...
+  end
+  dlog(signal.signal.type .. " " .. stack_size)
+  ltnc.signal_value_slider.set_slider_minimum_maximum(0,max_slider)
+  ltnc.signal_value_slider.set_slider_value_step(stack_size)
+  ltnc.signal_value_slider.slider_value = value * -1
+  ltnc.signal_value_slider.enabled = true
+
+  ltnc.signal_value_text.text = tostring(value)
+  ltnc.signal_value_text.enabled = true
+  ltnc.signal_value_text.focus()
+
+  ltnc.signal_value_confirm.visible = true
+  ltnc.signal_value_confirm.enabled = false
+end -- change_signal_count()
 
 function ltnc_gui.RegisterTemplates()
   gui.add_templates{
@@ -191,16 +178,6 @@ function ltnc_gui.RegisterHandlers()
       close_button = {
         on_gui_click = function(e)
           ltnc_gui.Close(e.player_index)
-        end -- on_gui_click
-      },
-      sprite_button = {
-        on_gui_click = function(e)
-          dlog("sprite_button - on_gui_click: "..e.button)
-          local ltnc = global.player_data[e.player_index].ltnc
-          local _, _, slot =  string.find(e.element.name, "__(%d+)")
-          slot = tonumber(slot)
-          ltnc.selected_slot = slot
-          sprite_buttton_click(ltnc, e)
         end -- on_gui_click
       },
       slider = {
@@ -243,10 +220,24 @@ function ltnc_gui.RegisterHandlers()
           ltnc.selected_slot = slot
           local signal = {signal=e.element.elem_value, count=0}
           ltnc.combinator:set_slot(slot, signal)
-          update_signal_table(ltnc, slot, signal)
-          sprite_buttton_click(ltnc, {button=defines.mouse_button_type.left,
+          change_signal_count(ltnc, {button=defines.mouse_button_type.left,
                                       element={number=0},
                                       player_index=e.player_index})
+        end,
+        on_gui_click = function(e)
+          dlog("choose_button - on_gui_click: "..e.button)
+          local ltnc = global.player_data[e.player_index].ltnc
+          local _, _, slot =  string.find(e.element.name, "__(%d+)")
+          slot = tonumber(slot)
+          if e.button == defines.mouse_button_type.right then
+            ltnc.combinator:remove_slot(slot)
+            e.element.locked = false
+            e.element.elem_value = nil
+            e.element.children[1].caption = ""
+          elseif e.button == defines.mouse_button_type.left and e.element.elem_value then
+            ltnc.selected_slot = slot
+            change_signal_count(ltnc, e)
+          end
         end
       },
       on_off_switch = {
@@ -422,18 +413,18 @@ function create_window(player_index, unit_number)
   -- Slots with a signal will show the sprite button.
   local signals = {}
   for i=1, config.ltnc_misc_slot_count do
-    signals[i] = {sprite = nil, button = nil}
-    signals[i].sprite = ltnc.signal_table.add({
-      name = "ltnc-signal-sprite__"..i,
-      type = "sprite-button",
-      style = "flib_slot_button_default",
-      visible = false,
-    })
+    signals[i] = {button = nil}
     signals[i].button = ltnc.signal_table.add({
       name = "ltnc-signal-button__"..i,
       type = "choose-elem-button",
       style = "flib_slot_button_default",
       elem_type = "signal",
+    })
+    signals[i].button.add({
+      type = "label",
+      style = "signal_count",
+      ignored_by_interaction = true,
+      caption = "",
     })
   end
 
@@ -458,7 +449,6 @@ function create_window(player_index, unit_number)
     ltnc.ltn_signals_common["ltnc-"..part.."__ltn-depot"].visible = false
   end
 
-  gui.update_filters("ltnc_handlers.sprite_button", player_index, {"ltnc-signal-sprite"}, "add")
   gui.update_filters("ltnc_handlers.choose_button", player_index, {"ltnc-signal-button"}, "add")
   gui.update_filters("ltnc_handlers.ltn_signal_entries", player_index, {"ltnc-element"}, "add")
   ltnc.titlebar.flow.drag_target = ltnc.main_window
