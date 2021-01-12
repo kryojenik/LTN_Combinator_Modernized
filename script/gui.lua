@@ -105,12 +105,19 @@ function ltnc_gui.Open(player_index, entity)
     update_signal_table(ltnc, slot, signal)
   end
 
+  -- read and setup the network ID Configurator
+  local networkid = ltnc.combinator:get("ltn-network-id")
+  for i=1,32 do
+    local bit = 2^(i-1)
+    ltnc.net_id_table.children[i].style = (bit32.btest(networkid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
+  end
+
   local pd = ltnc_util.get_player_data(player_index)
   pd.ltnc = ltnc
 
   if MOD_STD_UI then return end
   player.opened = pd.ltnc.main_window
-  
+
 end -- Open()
 
 function ltnc_gui.Close(player_index)
@@ -437,8 +444,7 @@ function create_window(player_index, unit_number)
     }},
   })
   -- TODO: Templatize this
-  -- Create the slot bottons.  Empty slots will show the choose-elem-button
-  -- Slots with a signal will show the sprite button.
+  -- Create the slot buttons.
   local signals = {}
   for i=1, config.ltnc_misc_slot_count do
     signals[i] = {button = nil}
@@ -477,9 +483,10 @@ function create_window(player_index, unit_number)
     ltnc.ltn_signals_common["ltnc-"..part.."__ltn-depot"].visible = false
   end
 
-  for i=1,32 do
+--[[  for i=1,32 do
     ltnc.net_id_table[tostring(i)].style="ltnc_net_id_button_pressed"
   end
+  ]]
 
   gui.update_filters("ltnc_handlers.choose_button", player_index, {"ltnc-signal-button"}, "add")
   gui.update_filters("ltnc_handlers.ltn_signal_entries", player_index, {"ltnc-element"}, "add")
