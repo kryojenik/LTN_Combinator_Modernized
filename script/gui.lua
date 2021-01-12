@@ -361,16 +361,16 @@ function create_window(player_index, unit_number)
         }},
         -- Combinator Main Pane
         {type="flow", direction="vertical", style_mods={horizontal_align="center"}, children={
+          -- Entity preview
+          {type="frame", style="container_inside_shallow_frame", style_mods={bottom_margin=8}, children={
+            {type="entity-preview", save_as="ep", style_mods={
+              width=280, height=128, horizontally_stretchable=true
+            }},
+          }},
           -- Netowrk ID 
           {type="table", save_as="ltn_signals_network", column_count=3,
             style_mods={cell_padding=2, horizontally_stretchable=true},
           },
-          -- Entity preview
-          {type="frame", style="container_inside_shallow_frame", style_mods={top_margin=8}, children={
-            {type="entity-preview", save_as="ep", style_mods={
-              width=280, height=140, horizontally_stretchable=true
-            }},
-          }},
           -- On/Off siwtch and Stop Type
           {type="table", column_count=3, style_mods={right_cell_padding=10, left_cell_padding=10}, children={
             {type="flow", style_mods={horizontal_align="left"}, direction="vertical", children={
