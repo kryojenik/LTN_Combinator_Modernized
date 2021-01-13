@@ -6,6 +6,9 @@ Date: 2021-1-10
     - Added description to the "Upgrade constant combinator" setting
   Change:
     - Reodered Entity Preview and Network ID.  Looks better...
+    - Hid the integer value of the encoded network.  Must use the encoder panel
+  Bugfix:
+    - Fix some crashes on invalid data entry
 ---------------------------------------------------------------------------------------------------
 Version: 0.9.1
 Date: 2020-12-24

@@ -26,6 +26,13 @@ local function update_signal_table(ltnc, slot, signal)
   end
 end -- update_signal_table()
 
+local function update_net_id_buttons(ltnc, networkid)
+  for i=1,32 do
+    local bit = 2^(i-1)
+    ltnc.net_id_table.children[i].style = (bit32.btest(networkid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
+  end
+end -- update_net_id_buttons()
+
 local function update_visible_components(ltnc)
   local stop_type = ltnc.combinator:get_stop_type()
   dlog(stop_type)
@@ -86,7 +93,12 @@ function ltnc_gui.Open(player_index, entity)
   -- read and apply ltn signals
   for name, details in pairs(config.ltn_signals) do 
     local value = ltnc.combinator:get(name)
-    local elem = ltnc["ltn_signals_"..details.stop_type]["ltnc-element__"..name]
+    local elem = nil
+    if name == "ltn-network-id" then
+      elem = ltnc["net_id_flow"]["ltnc-element__"..name]
+    else
+      elem = ltnc["ltn_signals_"..details.stop_type]["ltnc-element__"..name]
+    end
     if  elem then
       if elem.type == "checkbox" then
         elem.state = (value > 0 and true or false)
@@ -107,10 +119,7 @@ function ltnc_gui.Open(player_index, entity)
 
   -- read and setup the network ID Configurator
   local networkid = ltnc.combinator:get("ltn-network-id")
-  for i=1,32 do
-    local bit = 2^(i-1)
-    ltnc.net_id_table.children[i].style = (bit32.btest(networkid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
-  end
+  update_net_id_buttons(ltnc, networkid)
 
   local pd = ltnc_util.get_player_data(player_index)
   pd.ltnc = ltnc
@@ -212,14 +221,20 @@ function ltnc_gui.RegisterHandlers()
       signal_text = {
         --TODO: validate signal type for negativity
         on_gui_text_changed = function(e)
+          if not tonumber(e.element.text) then return end
           local ltnc = global.player_data[e.player_index].ltnc
+          local value = tonumber(e.element.text)
+          local min = -2^31
+          local max = 2^31-1
+          value = math.min(value, max)
+          value = math.max(value, min)
+          e.element.text = tostring(value)
           ltnc.signal_value_confirm.enabled = true
-          if tonumber(e.element.text) then
-            ltnc.signal_value_slider.slider_value = tonumber(e.element.text) * -1
-          end
+          ltnc.signal_value_slider.slider_value = math.abs(value)
         end,
         on_gui_confirmed = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
+          if not tonumber(ltnc.signal_value_text.text) then return end
           local new_value = ltnc.signal_value_text.text
           set_new_output_value(ltnc, new_value)
         end
@@ -227,6 +242,7 @@ function ltnc_gui.RegisterHandlers()
       confirm_button = {
         on_gui_click = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
+          if not tonumber(ltnc.signal_value_text.text) then return end
           local new_value = ltnc.signal_value_text.text
           set_new_output_value(ltnc, new_value)
         end
@@ -312,11 +328,26 @@ function ltnc_gui.RegisterHandlers()
       ltn_signal_entries = {
         on_gui_text_changed = function(e)
           dlog(e.element.name)
+          if not tonumber(e.element.text) then return end
           local ltnc = global.player_data[e.player_index].ltnc
           local _, _, signal = string.find(e.element.name, "__(.*)")
           dlog(signal)
-          if tonumber(e.element.text) then
-           ltnc.combinator:set(signal, tonumber(e.element.text)) 
+          local value = tonumber(e.element.text)
+
+          -- Make sure input is within bounds
+          local min = -2000000000
+          local max = 2000000000
+          if config.ltn_signals[signal] ~= nil then
+            min = config.ltn_signals[signal].bounds.min
+            max = config.ltn_signals[signal].bounds.max
+          end
+          value = math.min(value, max)
+          value = math.max(value, min)
+          e.element.text = tostring(value)
+
+          ltnc.combinator:set(signal, value) 
+          if signal == "ltn-network-id" then
+            update_net_id_buttons(ltnc, value)
           end
         end,
         on_gui_checked_state_changed = function(e)
@@ -332,7 +363,30 @@ function ltnc_gui.RegisterHandlers()
       },
       net_id_toggle = {
         on_gui_click = function(e)
-          print("net_id_toggle: "..e.element.name)
+          dlog("net_id_toggle: on_gui_click "..e.element.name)
+          local ltnc = global.player_data[e.player_index].ltnc
+          local netid_textbox = ltnc.net_id_flow["ltnc-element__ltn-network-id"]
+          local networkid = tonumber(netid_textbox.text)
+          local new_netid = nil
+          if e.element.name == "net_id_all" then
+            new_netid = -1
+          elseif e.element.name == "net_id_none" then
+            new_netid = 0
+          else
+            --  can make number larger than signed 32-bit...  need to handle....
+            local bit = 2^(tonumber(e.element.name)-1)
+            new_netid = bit32.bxor(networkid, bit)
+            -- If bit 31 (0-indexed) is set, need to make the number negative.  bit32 only returns values that are 32 bits wide
+            -- as expected.   Then underlying data field is bigger, so the negativity isn't mananage the same.
+            -- constant combiner will only take an signed, 32-bit int.  Get a bit hacky here...
+            if bit32.btest(new_netid, 2^31) then
+              new_netid = new_netid - 2^32
+            end
+          end
+          netid_textbox.text = tostring(new_netid)
+          ltnc.combinator:set("ltn-network-id", new_netid)
+          update_net_id_buttons(ltnc, new_netid)
+          -- e.element.style = (bit32.btest(new_netid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
         end
       },
     },
@@ -352,12 +406,13 @@ function create_window(player_index, unit_number)
         {template="drag_handle"},
         {template="close_button", handlers="ltnc_handlers.close_button"}
       }},
-      {type="frame", style="inside_shallow_frame_with_padding", style_mods={padding=12}, children={
+      {type="frame", style="inside_shallow_frame_with_padding", style_mods={padding=8}, children={
         -- Network ID Configurator pane
-        {type="flow", direction="vertical", visible=true, style_mods={horizontal_align="center", right_padding=12}, children={
-          --{type="frame", direction="vertical", style="container_inside_shallow_frame", style_mods={padding=8}, children={
-            gui.templates.network_id_table(32)
-          --}},
+        {type="flow", direction="vertical", save_as="net_id_flow", visible=true, style_mods={horizontal_align="center", padding=2, right_padding=6}, children={
+            gui.templates.network_id_table(32),
+            {type="line", style_mods={top_margin=5}},
+            {type="button", name="net_id_all", handlers="ltnc_handlers.net_id_toggle", caption={"ltnc.btn-all"}},
+            {type="button", name="net_id_none", handlers="ltnc_handlers.net_id_toggle", caption={"ltnc.btn-none"}},
         }},
         -- Combinator Main Pane
         {type="flow", direction="vertical", style_mods={horizontal_align="center"}, children={
@@ -367,7 +422,7 @@ function create_window(player_index, unit_number)
               width=280, height=128, horizontally_stretchable=true
             }},
           }},
-          -- Netowrk ID 
+          -- Netowrk ID
           {type="table", save_as="ltn_signals_network", column_count=3,
             style_mods={cell_padding=2, horizontally_stretchable=true},
           },
@@ -465,28 +520,31 @@ function create_window(player_index, unit_number)
   -- Add LTN signals
   for name, details in pairs(config.ltn_signals) do
     local table = "ltn_signals_"..details.stop_type
-    ltnc[table].add({type="sprite", name="ltnc-sprite__"..name, style="ltnc_entry_sprite", sprite="virtual-signal/"..name})
-    ltnc[table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"virtual-signal-name."..name}})
-    if name == "ltn-disable-warnings" then
-        ltnc[table].add({type="checkbox", name="ltnc-element__"..name, style="ltnc_entry_checkbox", state=details.default})
+    if name == "ltn-network-id" then
+      ltnc[table].add({type="sprite-button", name="ltnc-sprite__"..name, style="ltnc_net_net_button", sprite="virtual-signal/"..name})
+      ltnc[table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"ltnc.encode-net-id"}})
+      ltnc["net_id_flow"].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"virtual-signal-name."..name}})
+      ltnc["net_id_flow"].add({type="textfield", name="ltnc-element__"..name, style="ltnc_netid_text",
+                        text=details.default, numeric=true, allow_decimal=false, allow_negative=true})
     else
-      local elem = ltnc[table].add({type="textfield", name="ltnc-element__"..name, style="ltnc_entry_text",
-                                    text=details.default, numeric=true, allow_decimal=false, allow_negative=false})
-      if details.bounds.min < 0 then
-          elem.allow_negative = true
+      ltnc[table].add({type="sprite", name="ltnc-sprite__"..name, style="ltnc_entry_sprite", sprite="virtual-signal/"..name})
+      ltnc[table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"virtual-signal-name."..name}})
+      if name == "ltn-disable-warnings" then
+          ltnc[table].add({type="checkbox", name="ltnc-element__"..name, style="ltnc_entry_checkbox", state=details.default})
+      else
+        local elem = ltnc[table].add({type="textfield", name="ltnc-element__"..name, style="ltnc_entry_text",
+                                      text=details.default, numeric=true, allow_decimal=false, allow_negative=false})
+        if details.bounds.min < 0 then
+            elem.allow_negative = true
+        end
       end
     end
   end
-  
+
   -- Depot signal should not be visible
   for _, part in pairs{"sprite", "label", "element"} do
     ltnc.ltn_signals_common["ltnc-"..part.."__ltn-depot"].visible = false
   end
-
---[[  for i=1,32 do
-    ltnc.net_id_table[tostring(i)].style="ltnc_net_id_button_pressed"
-  end
-  ]]
 
   gui.update_filters("ltnc_handlers.choose_button", player_index, {"ltnc-signal-button"}, "add")
   gui.update_filters("ltnc_handlers.ltn_signal_entries", player_index, {"ltnc-element"}, "add")
