@@ -389,6 +389,22 @@ function ltnc_gui.RegisterHandlers()
           -- e.element.style = (bit32.btest(new_netid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
         end
       },
+      encode_net_id ={
+        on_gui_click = function(e)
+          dlog("encode_net_id: on_gui_click "..e.element.name)
+          local ltnc = global.player_data[e.player_index].ltnc
+          local x = ltnc.main_window.location.x
+          local y = ltnc.main_window.location.y
+          if ltnc.net_id_flow.visible then
+            ltnc.net_id_flow.visible = false
+            ltnc.main_window.location = {x + 101, y}
+          else
+            ltnc.net_id_flow.visible = true
+            ltnc.main_window.location = {x - 101, y}
+            --ltnc.main_window.location.x = ltnc.main_window.location.x - 128
+          end
+        end
+      },
     },
   }
   gui.register_handlers()
@@ -408,7 +424,7 @@ function create_window(player_index, unit_number)
       }},
       {type="frame", style="inside_shallow_frame_with_padding", style_mods={padding=8}, children={
         -- Network ID Configurator pane
-        {type="flow", direction="vertical", save_as="net_id_flow", visible=true, style_mods={horizontal_align="center", padding=2, right_padding=6}, children={
+        {type="flow", direction="vertical", save_as="net_id_flow", visible=false, style_mods={horizontal_align="center", padding=2, right_padding=6}, children={
             gui.templates.network_id_table(32),
             {type="line", style_mods={top_margin=5}},
             {type="button", name="net_id_all", handlers="ltnc_handlers.net_id_toggle", caption={"ltnc.btn-all"}},
@@ -521,7 +537,7 @@ function create_window(player_index, unit_number)
   for name, details in pairs(config.ltn_signals) do
     local table = "ltn_signals_"..details.stop_type
     if name == "ltn-network-id" then
-      ltnc[table].add({type="sprite-button", name="ltnc-sprite__"..name, style="ltnc_net_net_button", sprite="virtual-signal/"..name})
+      ltnc[table].add({type="sprite-button", name="ltnc-encode-net-id", style="ltnc_net_net_button", sprite="virtual-signal/"..name})
       ltnc[table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"ltnc.encode-net-id"}})
       ltnc["net_id_flow"].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"virtual-signal-name."..name}})
       ltnc["net_id_flow"].add({type="textfield", name="ltnc-element__"..name, style="ltnc_netid_text",
@@ -548,6 +564,7 @@ function create_window(player_index, unit_number)
 
   gui.update_filters("ltnc_handlers.choose_button", player_index, {"ltnc-signal-button"}, "add")
   gui.update_filters("ltnc_handlers.ltn_signal_entries", player_index, {"ltnc-element"}, "add")
+  gui.update_filters("ltnc_handlers.encode_net_id.on_gui_click", player_index, {"ltnc-encode-net-id"}, "add")
   ltnc.titlebar.flow.drag_target = ltnc.main_window
   ltnc.main_window.force_auto_center()
   ltnc.signals = signals
