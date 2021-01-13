@@ -257,6 +257,7 @@ function ltnc_gui.RegisterHandlers()
           ltnc.selected_slot = slot
           local signal = {signal=e.element.elem_value, count=0}
           ltnc.combinator:set_slot(slot, signal)
+          e.element.locked = true
           change_signal_count(ltnc, {button=defines.mouse_button_type.left,
                                       element={number=0},
                                       player_index=e.player_index})
