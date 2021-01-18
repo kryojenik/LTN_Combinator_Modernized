@@ -52,7 +52,7 @@ local function update_net_id_buttons(ltnc, networkid)
   end
 end -- update_net_id_buttons()
 
-local function update_visible_components(ltnc)
+local function update_visible_components(ltnc, pi)
   local stop_type = ltnc.combinator:get_stop_type()
   dlog(stop_type)
   if stop_type == nil then stop_type = config.LTN_STOP_NONE end
@@ -65,9 +65,14 @@ local function update_visible_components(ltnc)
   local req = bit32.btest(stop_type, config.LTN_STOP_REQUESTER)
   ltnc.chk_depot.state = bit32.btest(stop_type, config.LTN_STOP_DEPOT)
   ltnc.chk_requester.state = req
-  ltnc.ltn_req_fr.visible =  req
   ltnc.chk_provider.state = prov
-  ltnc.ltn_prov_fr.visible = prov
+  if settings.get_player_settings(pi)["show-all-panels"].value then
+    ltnc.ltn_req_fr.visible = true
+    ltnc.ltn_prov_fr.visible = true
+  else
+    ltnc.ltn_req_fr.visible =  req
+    ltnc.ltn_prov_fr.visible = prov
+  end
 end -- update_visible_components()
 
 local function set_new_output_value(ltnc, new_value)
@@ -107,7 +112,7 @@ function ltnc_gui.Open(player_index, entity)
   end
 
   -- read stop type and set checkboxes
-  update_visible_components(ltnc)
+  update_visible_components(ltnc, player_index)
 
   -- read and apply ltn signals
   update_ltn_signals(ltnc)
@@ -329,7 +334,7 @@ function ltnc_gui.RegisterHandlers()
               end
             end
           end
-          update_visible_components(ltnc)
+          update_visible_components(ltnc, e.player_index)
           update_ltn_signals(ltnc)
         end
       },
