@@ -154,7 +154,7 @@ local function change_signal_count(ltnc, e)
 
   local signal = ltnc.combinator:get_slot(slot)
   if not signal or not signal.signal then
-    print("The combinator must have been destroyed!")
+    print({"ltnc.combinator-gone"})
     ltnc_gui.Close(e.player_index)
     return
   end
@@ -194,13 +194,6 @@ function ltnc_gui.RegisterTemplates()
     close_button = {template="frame_action_button", sprite="utility/close_white", hovered_sprite="utility/close_black"},
     checkbox = {type="checkbox", state=false, style_mods={top_margin=8}},
     chk_stoptype = {template="checkbox", handlers="ltnc_handlers.stop_type"},
-    network_id_row = function(number)
-      return
-      {
-        {type="label", caption="Network "..number},
-        {type="checkbox", name=number},
-      }
-    end,
     network_id_table = function(rows)
       local t = {type="table", save_as="net_id_table", column_count=4, children={}}
       for i=1,rows do
@@ -299,7 +292,7 @@ function ltnc_gui.RegisterHandlers()
           local ltnc = global.player_data[e.player_index].ltnc
           local stop_type = ltnc.combinator:get_stop_type()
           if not stop_type then
-            print("The combinator must have been destroyed!")
+            print({"ltnc.combinator-gone"})
             ltnc_gui.Close(e.player_index)
             return
           end
