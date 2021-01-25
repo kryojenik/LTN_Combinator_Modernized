@@ -10,6 +10,7 @@ local ltnc_gui = {}
 
 -- Forward delcaration
 local create_window
+local create_net_config
 
 -------------------------
 --  Handlers
@@ -84,6 +85,20 @@ local function set_new_output_value(ltnc, new_value)
   ltnc.selected_slot = nil
 end -- set_new_output_value()
 
+-- Display the Net Config UI
+function ltnc_gui.Open_Netconfig(player_index)
+  dlog("gui.lua Netconfig")
+  local player = game.get_player(player_index)
+  local rootgui = player.gui.screen
+  if rootgui["ltnc-net-config"] then
+    ltnc_gui.Close(player_index, "ltnc-net-config")
+  end
+  
+  local netconfig = create_net_config(player_index)
+  local pd = ltnc_util.get_player_data(player_index)
+  pd.netconfig = netconfig
+end -- Open_Netconfig()
+
 -- Display the GUI for the player
 function ltnc_gui.Open(player_index, entity)
   dlog("gui.lua: Open")
@@ -138,13 +153,18 @@ function ltnc_gui.Open(player_index, entity)
 
 end -- Open()
 
-function ltnc_gui.Close(player_index)
+function ltnc_gui.Close(player_index, name)
   dlog("gui.lua: Close")
+  local window = name or "ltnc-main-window"
   local player = game.get_player(player_index)
   local rootgui = player.gui.screen
-  if rootgui["ltnc-main-window"] then
-    rootgui["ltnc-main-window"].destroy()
-    gui.update_filters("ltnc_handlers", player_index, nil, "remove")
+  if window and rootgui[window] then
+    rootgui[window].destroy()
+    if window == "ltnc-main-window" then
+      gui.update_filters("ltnc_handlers", player_index, nil, "remove")
+    elseif window == "ltnc-net-config" then
+      gui.update_filters("netconfig_handlers", player_index, nil, "remove")
+    end
   end
   -- TODO: Figuire out how to play close sound
 end -- Close()
@@ -197,7 +217,7 @@ function ltnc_gui.RegisterTemplates()
     network_id_table = function(rows)
       local t = {type="table", save_as="net_id_table", column_count=4, children={}}
       for i=1,rows do
-        t.children[i] = {type="button", handlers="ltnc_handlers.net_id_toggle", name=i, style="ltnc_net_id_button", caption=i}
+        t.children[i] = {type="sprite-button", handlers="ltnc_handlers.net_id_toggle", name=i, style="ltnc_net_id_button", elem_type = "signal", caption=i}
       end
       return t
     end
@@ -395,28 +415,61 @@ function ltnc_gui.RegisterHandlers()
           -- e.element.style = (bit32.btest(new_netid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
         end
       },
-      encode_net_id ={
+      encode_net_id = {
         on_gui_click = function(e)
           dlog("encode_net_id: on_gui_click "..e.element.name)
           local ltnc = global.player_data[e.player_index].ltnc
           local x = ltnc.main_window.location.x
           local y = ltnc.main_window.location.y
-          if ltnc.net_id_flow.visible then
-            ltnc.net_id_flow.visible = false
-            ltnc.main_window.location = {x + 101, y}
-          else
-            ltnc.net_id_flow.visible = true
-            ltnc.main_window.location = {x - 101, y}
-            --ltnc.main_window.location.x = ltnc.main_window.location.x - 128
+          if e.button == defines.mouse_button_type.left then
+            if e.shift then
+              ltnc_gui.Open_Netconfig(e.player_index)
+            else
+              if ltnc.net_id_flow.visible then
+                ltnc.net_id_flow.visible = false
+                ltnc.main_window.location = {x + 110, y}
+              else
+                ltnc.net_id_flow.visible = true
+                ltnc.main_window.location = {x - 110, y}
+                --ltnc.main_window.location.x = ltnc.main_window.location.x - 128
+              end
+            end
           end
         end
       },
+    },
+    netconfig_handlers = {
+      close_button = { 
+        on_gui_click = function(e)
+          ltnc_gui.Close(e.player_index, e.element.name)
+        end
+      }
     },
   }
   gui.register_handlers()
 end -- RegisterHandlers()
 
 -- Define the GUIs
+-- Net Config
+function create_net_config(player_index)
+  print("here")
+  local rootgui = game.get_player(player_index).gui.screen
+  local netconfig = gui.build(rootgui, {
+    {type="frame", direction="vertical", save_as="net_config", name="ltnc-net-config", children={
+      -- Title Bar
+      {type="flow", save_as="titlebar.flow", children={
+        {type="label", style="frame_title", caption={"ltnc.netconfig-title"}, elem_mods={ignored_by_interaction=true}},
+        {template="drag_handle"},
+        {template="close_button", name="ltnc-net-config", handlers="netconfig_handlers.close_button"},
+      }},
+    }},
+  })
+  local pd = ltnc_util.get_player_data(player_index)
+  netconfig.net_config.force_auto_center()
+  netconfig.titlebar.flow.drag_target = netconfig.net_config
+  pd.netconfig = netconfig
+end
+
 -- Main Window
 function create_window(player_index, unit_number)
   local rootgui = game.get_player(player_index).gui.screen
@@ -426,7 +479,7 @@ function create_window(player_index, unit_number)
       {type="flow", save_as="titlebar.flow", children={
         {type="label", style="frame_title", caption={"ltnc.window-title"}, elem_mods={ignored_by_interaction=true}},
         {template="drag_handle"},
-        {template="close_button", handlers="ltnc_handlers.close_button"}
+        {template="close_button", name="ltnc-main-window", handlers="ltnc_handlers.close_button"}
       }},
       {type="frame", style="inside_shallow_frame_with_padding", style_mods={padding=8}, children={
         -- Network ID Configurator pane
@@ -434,8 +487,8 @@ function create_window(player_index, unit_number)
           {type="frame", direction="vertical", style="inside_shallow_frame_with_padding", style_mods={padding=8}, children={
             gui.templates.network_id_table(32),
           }},
-            {type="button", name="net_id_all", handlers="ltnc_handlers.net_id_toggle", style_mods={top_margin=8}, caption={"ltnc.btn-all"}},
-            {type="button", name="net_id_none", handlers="ltnc_handlers.net_id_toggle", caption={"ltnc.btn-none"}},
+          {type="button", name="net_id_all", handlers="ltnc_handlers.net_id_toggle", style_mods={top_margin=8}, caption={"ltnc.btn-all"}},
+          {type="button", name="net_id_none", handlers="ltnc_handlers.net_id_toggle", caption={"ltnc.btn-none"}},
         }},
         -- Combinator Main Pane
         {type="flow", direction="vertical", style_mods={horizontal_align="center"}, children={
@@ -448,6 +501,7 @@ function create_window(player_index, unit_number)
           -- Netowrk ID
           {type="table", save_as="ltn_signals_network", column_count=3,
             style_mods={cell_padding=2, horizontally_stretchable=true},
+            -- Content added later with Add LTN signals
           },
           -- On/Off siwtch and Stop Type
           {type="table", column_count=3, style_mods={right_cell_padding=10, left_cell_padding=10}, children={
