@@ -1,6 +1,15 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.9.x
-Date: 2021-1-xx
+Version: 0.9.5
+Date: 2021-1-25
+  Feature:
+    - Added ability to chose an item as a label / identifier for an LTN network
+  Change:
+    - Add per-user setting to unconditionally show all LTN signals when not a Depot
+---------------------------------------------------------------------------------------------------
+Version: 0.8.5
+Date: 2021-1-25
+  Feature:
+    - Added ability to chose an item as a label / identifier for an LTN network
   Change:
     - Add per-user setting to unconditionally show all LTN signals when not a Depot
 ---------------------------------------------------------------------------------------------------
