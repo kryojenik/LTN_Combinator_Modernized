@@ -41,7 +41,8 @@ ltnc.sprites = make_4way_animation_from_spritesheet(
                 },
             },
         },
-    })
+    }
+)
 
 local ltnc_item = flib.copy_prototype(data.raw["item"]["constant-combinator"], "ltn-combinator")
 ltnc_item.icon = "__LTN_Combinator_Modernized__/graphics/ltn-combinator-item.png"

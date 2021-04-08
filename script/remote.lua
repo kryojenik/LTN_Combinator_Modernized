@@ -25,7 +25,7 @@ local function find_combinator_in_network_tree(first_entity, max_depth, green_wi
     if not entity then break end
 
     --dlog("-- checking entity: " .. entity.name)
-    if entity.name == "ltn-combinator" then 
+    if entity.name == "ltn-combinator" then
       result = entity
       break
     end
@@ -88,7 +88,7 @@ remote.add_interface("ltn-combinator", {
       entity = game.players[event.player_index].selected
     end
 
-    if entity == nil or entity.valid ~= true then return end 
+    if entity == nil or entity.valid ~= true then return end
     remote.call("ltn-combinator", "open_ltn_combinator", event.player_index, entity, true)
   end
 

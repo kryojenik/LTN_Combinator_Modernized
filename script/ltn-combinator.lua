@@ -63,7 +63,7 @@ function ltn_combinator:_parse_entity()
     end
   end
 
-  if need_sorting == true then 
+  if need_sorting == true then
     --dlog("ltnc::_parse_entity: combinator needs sorting of signals")
     self:_sort_signal_slots()
   end
@@ -214,13 +214,13 @@ end
 -- ltn_combinator:set_enabled
 function ltn_combinator:set_enabled(enable)
   if not self.entity or not self.entity.valid then return end
-  self.entity.get_or_create_control_behavior().enabled = enable 
+  self.entity.get_or_create_control_behavior().enabled = enable
 end
 
 -- ltn_combinator:is_enabled
 function ltn_combinator:is_enabled()
   if not self.entity or not self.entity.valid then return false end
-  return self.entity.get_or_create_control_behavior().enabled 
+  return self.entity.get_or_create_control_behavior().enabled
 end
 
 -- ltn_combinator:set

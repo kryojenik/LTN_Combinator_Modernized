@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.9.9
+Date: 2021-3-8
+  Bugfix:
+    - Resolved the misplacement of the text caret when editing values
+---------------------------------------------------------------------------------------------------
 Version: 0.9.8
 Date: 2021-1-30
   Bugfix:
@@ -32,7 +37,7 @@ Date: 2021-1-17
     - Doesn't reliably detect combined Requester/Provider condfiguration
       It will still show up as a provider only if no requests are configured and all the requester
       signals are still default.
-    - Fixed some LTN signal values not updating in UI as they are changed. 
+    - Fixed some LTN signal values not updating in UI as they are changed.
 ---------------------------------------------------------------------------------------------------
 Version: 0.8.4
 Date: 2021-1-17
@@ -42,7 +47,7 @@ Date: 2021-1-17
     - Doesn't reliably detect combined Requester/Provider condfiguration
       It will still show up as a provider only if no requests are configured and all the requester
       signals are still default.
-    - Fixed some LTN signal values not updating in UI as they are changed. 
+    - Fixed some LTN signal values not updating in UI as they are changed.
 ---------------------------------------------------------------------------------------------------
 Version: 0.9.3
 Date: 2021-1-15
@@ -85,7 +90,7 @@ Date: 2020-12-24
     - [9.0] Slider increments by stack size of the selected outut signal
     - [9.0] Slider increments absolute value.  Actually applied value is negative
   Bugfix:
-    - Missing 'x' on Close button, a missing '✓' on confirm button 
+    - Missing 'x' on Close button, a missing '✓' on confirm button
     - Normalize tab headings in Changelog
     - Crash when combinator is destroyed while GUI is open
 ---------------------------------------------------------------------------------------------------
@@ -144,7 +149,7 @@ Date: 2019-08-18
 Version: 0.5.0
 Date: 2019-08-10
   Feature:
-    - Added assistant for LTNs Encoded Network ID. 
+    - Added assistant for LTNs Encoded Network ID.
     - Added more localization options
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.1
@@ -166,7 +171,7 @@ Version: 0.3.3
 Date: 2019-04-28
   Bugfix:
     - Fixed: depot input fields are now hidden properly
-    - Fixed: provider threshold will no longer show high provide threshold, if not necessary  
+    - Fixed: provider threshold will no longer show high provide threshold, if not necessary
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.2
 Date: 2019-04-06

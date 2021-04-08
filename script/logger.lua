@@ -1,6 +1,6 @@
 MOD_LOG_RELEASE = 0
 MOD_LOG_DEBUG   = 1
-  
+
 local log_level = MOD_LOG_RELEASE
 
 global.messages = {}
@@ -15,7 +15,7 @@ end
 
 local logger = function(message) end
 if log_level > MOD_LOG_RELEASE then
-  logger = function(message) 
+  logger = function(message)
     mod_print(" -- Debug: " .. message)
   end
 end

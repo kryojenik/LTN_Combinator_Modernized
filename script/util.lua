@@ -48,4 +48,8 @@ function M.format_number(n, append_suffix)
   return formatted..suffix
 end
 
+function M.clamp(value, min, max)
+  return math.max(min, math.min(max, tonumber(value)))
+end
+
 return M

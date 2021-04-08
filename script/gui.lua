@@ -16,6 +16,7 @@ local create_net_config
 --  Handlers
 -------------------------
 
+--- Update the non-LTN signals emited by the combinator.
 local function update_signal_table(ltnc, slot, signal)
   dlog("update_signal_table")
   if signal and signal.signal then
@@ -27,8 +28,9 @@ local function update_signal_table(ltnc, slot, signal)
   end
 end -- update_signal_table()
 
+--- Update the LTN signals emited by the combinator
 local function update_ltn_signals(ltnc)
-  for name, details in pairs(config.ltn_signals) do 
+  for name, details in pairs(config.ltn_signals) do
     local value = ltnc.combinator:get(name)
     local elem = nil
     if name == "ltn-network-id" then
@@ -82,14 +84,15 @@ local function update_visible_components(ltnc, pi)
   end
 end -- update_visible_components()
 
-local function set_new_output_value(ltnc, new_value)
+local function set_new_signal_value(ltnc, value, min, max)
+  local new_value = ltnc_util.clamp(value, min, max)
   ltnc.combinator:set_slot_value(ltnc.selected_slot, new_value)
   ltnc.signal_value_slider.enabled = false
   ltnc.signal_value_text.enabled = false
   ltnc.signal_value_confirm.enabled = false
   ltnc.signals[ltnc.selected_slot].button.children[1].caption = ltnc_util.format_number(new_value, true)
   ltnc.selected_slot = nil
-end -- set_new_output_value()
+end -- set_new_signal_value()
 
 -- Display the Net Config UI
 function ltnc_gui.Open_Netconfig(player_index)
@@ -227,7 +230,8 @@ function ltnc_gui.RegisterTemplates()
     frame_action_button = {type="sprite-button", style="frame_action_button", mouse_button_filter={"left"}},
     ltnc_entry_text = {
       type="textfield", style="short_number_textfield",
-      style_mods={horizontal_align="right", horizontally_stretchable="off"}
+      style_mods={horizontal_align="right", horizontally_stretchable="off"},
+      elem_mods={selectable=true, loose_foucus_on_confirm=true}
     },
     confirm_button = {template="frame_action_button", style="item_and_count_select_confirm", sprite="utility/check_mark"},
     close_button = {template="frame_action_button", sprite="utility/close_white", hovered_sprite="utility/close_black"},
@@ -273,30 +277,29 @@ function ltnc_gui.RegisterHandlers()
       signal_text = {
         --TODO: validate signal type for negativity
         on_gui_text_changed = function(e)
-          if not tonumber(e.element.text) then return end
-          local ltnc = global.player_data[e.player_index].ltnc
           local value = tonumber(e.element.text)
-          local min = -2^31
-          local max = 2^31-1
-          value = math.min(value, max)
-          value = math.max(value, min)
-          e.element.text = tostring(value)
+          if not value then return end
+          local ltnc = global.player_data[e.player_index].ltnc
           ltnc.signal_value_confirm.enabled = true
           ltnc.signal_value_slider.slider_value = math.abs(value)
         end,
         on_gui_confirmed = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
-          if not tonumber(ltnc.signal_value_text.text) then return end
-          local new_value = ltnc.signal_value_text.text
-          set_new_output_value(ltnc, new_value)
+          local value = tonumber(ltnc.signal_value_text.text)
+          if not value then return end
+          local min = -2^31
+          local max = 2^31-1
+          set_new_signal_value(ltnc, value, min, max)
         end
       },
       confirm_button = {
         on_gui_click = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
-          if not tonumber(ltnc.signal_value_text.text) then return end
-          local new_value = ltnc.signal_value_text.text
-          set_new_output_value(ltnc, new_value)
+          local value = tonumber(ltnc.signal_value_text.text)
+          if not value then return end
+          local min = -2^31
+          local max = 2^31-1
+          set_new_signal_value(ltnc, value, min, max)
         end
       },
       choose_button = {
@@ -397,11 +400,7 @@ function ltnc_gui.RegisterHandlers()
             min = config.ltn_signals[signal].bounds.min
             max = config.ltn_signals[signal].bounds.max
           end
-          value = math.min(value, max)
-          value = math.max(value, min)
-          e.element.text = tostring(value)
-
-          ltnc.combinator:set(signal, value) 
+          ltnc.combinator:set(signal, ltnc_util.clamp(value, min, max))
           if signal == "ltn-network-id" then
             update_net_id_buttons(ltnc, value)
           end

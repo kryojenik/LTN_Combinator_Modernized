@@ -1,11 +1,11 @@
--- check if LogisticTrainNetwork added 
+-- check if LogisticTrainNetwork added
 if mods["LogisticTrainNetwork"] and data.raw["technology"]["logistic-train-network"] then
-  table.insert( 
+  table.insert(
     data.raw["technology"]["logistic-train-network"].effects,
     {type = "unlock-recipe", recipe = "ltn-combinator"}
   )
 else
-  table.insert( 
+  table.insert(
     data.raw["technology"]["circuit-network"].effects,
     {type = "unlock-recipe", recipe = "ltn-combinator"}
   )
