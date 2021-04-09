@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.9.10
+Date: 2021-4-8
+  Bugfix:
+  Feature:
+    - Added per-user setting to allow always showing the Network ID panel.
+  Change:
+    - Set the default value to "upgrade" constant combinator to false.  It can still fast replace,
+      but will not auto upgrade from a default upgrade planner.  It serves a different purpose than
+      a standard constant combinator.
+---------------------------------------------------------------------------------------------------
 Version: 0.9.9
 Date: 2021-3-8
   Bugfix:

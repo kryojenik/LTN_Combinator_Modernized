@@ -82,6 +82,9 @@ local function update_visible_components(ltnc, pi)
     ltnc.ltn_req_fr.visible =  req
     ltnc.ltn_prov_fr.visible = prov
   end
+  if settings.get_player_settings(pi)["show-net-panel"].value then
+    ltnc.net_id_flow.visible = true
+  end
 end -- update_visible_components()
 
 local function set_new_signal_value(ltnc, value, min, max)
