@@ -6,6 +6,7 @@ Date: 2021-4-8
     - Update icon with higher resolution graphic - thanks kingarthur1991 for the tutorial!
   Feature:
     - Added per-user setting to allow always showing the Network ID panel.
+    - Added default values to setting tool-tips
   Change:
     - Set the default value to "upgrade" constant combinator to false.  It can still fast replace,
       but will not auto upgrade from a default upgrade planner.  It serves a different purpose than
