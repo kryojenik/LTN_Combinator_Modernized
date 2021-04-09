@@ -1,7 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.9.10
+Version: 1.0.0
 Date: 2021-4-8
   Bugfix:
+    - Trap for possible crash when multiple users edit combinators simultaneously.
+    - Update icon with higher resolution graphic - thanks kingarthur1991 for the tutorial!
   Feature:
     - Added per-user setting to allow always showing the Network ID panel.
   Change:
