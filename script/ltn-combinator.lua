@@ -314,6 +314,7 @@ function ltn_combinator:remove_slot(slot)
 end
 
 function ltn_combinator:_validate_slot(slot)
+  if not slot then return -1 end
   slot = slot + config.ltnc_ltn_slot_count
 
   -- make sure slot is a valid number for an non-ltn signal
