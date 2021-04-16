@@ -23,3 +23,16 @@ if settings.global["ltn-stop-default-network"] then
 local default_networkid = settings.global["ltn-stop-default-network"].value
 config.ltn_signals["ltn-network-id"].default = default_networkid
 end
+
+script.on_event(defines.events.on_runtime_mod_setting_changed, function(e) 
+	if e.setting == "ltn-dispatcher-requester-threshold" then
+		local threshold = settings.global["ltn-dispatcher-requester-threshold"].value
+		config.ltn_signals["ltn-requester-threshold"].default = threshold
+	elseif e.setting == "ltn-dispatcher-provider-threshold" then
+		local threshold = settings.global["ltn-dispatcher-provider-threshold"].value
+		config.ltn_signals["ltn-provider-threshold"].default = threshold
+	elseif e.setting == "ltn-stop-default-network" then
+		local default_networkid = settings.global["ltn-stop-default-network"].value
+		config.ltn_signals["ltn-network-id"].default = default_networkid
+	end
+end)
