@@ -3,6 +3,7 @@ Version: 1.0.1
 Date: 2021-04-25
   Bugfixes:
     - Crash on quick double click.
+    - Crash when other mod removed and signals were used as net IDs.
   Changes:
     - Change the changelog headings to the more common plurals.
 ---------------------------------------------------------------------------------------------------

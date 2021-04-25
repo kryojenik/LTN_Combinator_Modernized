@@ -55,8 +55,13 @@ local function update_net_id_buttons(ltnc, networkid)
     ltnc.net_id_table.children[i].style = (bit32.btest(networkid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
     if global.network_icons[i] ~= nil then
       dlog(string.format("%s/%s", global.network_icons[i].type, global.network_icons[i].name))
-      ltnc.net_id_table.children[i].sprite = global.network_icons[i].type .. "/" .. global.network_icons[i].name
-      ltnc.net_id_table.children[i].caption = ""
+      local path = global.network_icons[i].type .. "/" .. global.network_icons[i].name
+      if ltnc.net_id_table.gui.is_valid_sprite_path(path) then
+        ltnc.net_id_table.children[i].sprite = path
+        ltnc.net_id_table.children[i].caption = ""
+      else
+        global.network_icons[i] = nil
+      end
     end
   end
 end -- update_net_id_buttons()
@@ -111,11 +116,14 @@ function ltnc_gui.Open_Netconfig(player_index)
     if global.network_icons[i] ~= nil then
       local type = global.network_icons[i].type
       local name = global.network_icons[i].name
-      local signal = {
-        type = type == "virtual-signal" and "virtual" or type,
-        name = name
-      }
-      netconfig.netconfig_table.children[i].children[2].elem_value = signal
+      local path = (type .. "/" .. name)
+      if netconfig.netconfig_table.gui.is_valid_sprite_path(path) then
+        local signal = {
+          type = type == "virtual-signal" and "virtual" or type,
+          name = name
+        }
+        netconfig.netconfig_table.children[i].children[2].elem_value = signal
+      end
     end
   end
 
