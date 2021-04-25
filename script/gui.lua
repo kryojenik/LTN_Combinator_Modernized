@@ -298,6 +298,7 @@ function ltnc_gui.RegisterHandlers()
       confirm_button = {
         on_gui_click = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
+          if not ltnc.selected_slot then return end
           local value = tonumber(ltnc.signal_value_text.text)
           if not value then return end
           local min = -2^31
