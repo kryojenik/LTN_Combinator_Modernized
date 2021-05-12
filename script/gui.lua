@@ -296,6 +296,7 @@ function ltnc_gui.RegisterHandlers()
         end,
         on_gui_confirmed = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
+          if not ltnc.selected_slot then return end
           local value = tonumber(ltnc.signal_value_text.text)
           if not value then return end
           local min = -2^31
@@ -704,6 +705,11 @@ end)
 
 event.on_load(function()
   gui.build_lookup_tables()
+  for _, pd in pairs(global.player_data) do
+   if pd.ltnc.ep.valid then
+     pd.ltnc.combinator = ltn_combinator:new(pd.ltnc.ep.entity)
+   end
+  end
 end)
 
 event.register(defines.events.on_gui_opened, function(e)
