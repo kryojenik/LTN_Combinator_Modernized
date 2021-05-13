@@ -181,7 +181,6 @@ function ltnc_gui.Open(player_index, entity)
   local pd = ltnc_util.get_player_data(player_index)
   pd.ltnc = ltnc
 
-  if MOD_STD_UI then return end
   player.opened = pd.ltnc.main_window
 
 end -- Open()
