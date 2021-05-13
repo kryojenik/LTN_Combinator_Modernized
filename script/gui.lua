@@ -48,19 +48,23 @@ local function update_ltn_signals(ltnc)
   end
 end -- update_ltn_signals()
 
+--[[
+  Set the display state of the individual bits in the network ID.
+  Apply an icon or tool tip id one is specified in global.  Clear the icon if it is no longer
+  a valid sprite.
+]]
 local function update_net_id_buttons(ltnc, networkid)
   dlog("gui.lua: update_net_id_buttons")
   for i=1,32 do
     local bit = 2^(i-1)
+    local gni = global.network_icons[i]
     ltnc.net_id_table.children[i].style = (bit32.btest(networkid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
-    if global.network_icons[i] ~= nil then
-      dlog(string.format("%s/%s", global.network_icons[i].type, global.network_icons[i].name))
-      local path = global.network_icons[i].type .. "/" .. global.network_icons[i].name
+    if gni ~= nil then
+      dlog(string.format("%s/%s", gni.type, gni.name))
+      local path = gni.type .. "/" .. gni.name
       if ltnc.net_id_table.gui.is_valid_sprite_path(path) then
         ltnc.net_id_table.children[i].sprite = path
         ltnc.net_id_table.children[i].caption = ""
-      else
-        global.network_icons[i] = nil
       end
     end
   end
