@@ -11,6 +11,7 @@ local ltnc_gui = {}
 -- Forward delcaration
 local create_window
 local create_net_config
+local set_net_description
 
 -------------------------
 --  Handlers
@@ -57,16 +58,20 @@ local function update_net_id_buttons(ltnc, networkid)
   dlog("gui.lua: update_net_id_buttons")
   for i=1,32 do
     local bit = 2^(i-1)
-    local gni = global.network_icons[i]
+    local gnd = global.network_description[i]
+    local gni = gnd.icon
     ltnc.net_id_table.children[i].style = (bit32.btest(networkid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
-    if gni ~= nil then
-      dlog(string.format("%s/%s", gni.type, gni.name))
-      local path = gni.type .. "/" .. gni.name
-      if ltnc.net_id_table.gui.is_valid_sprite_path(path) then
-        ltnc.net_id_table.children[i].sprite = path
-        ltnc.net_id_table.children[i].caption = ""
+    if gni then
+      if gni.type and gni.name then
+        dlog(string.format("%s/%s", gni.type, gni.name))
+        local path = gni.type .. "/" .. gni.name
+        if ltnc.net_id_table.gui.is_valid_sprite_path(path) then
+          ltnc.net_id_table.children[i].sprite = path
+          ltnc.net_id_table.children[i].caption = ""
+        end
       end
     end
+    ltnc.net_id_table.children[i].tooltip = {"", gnd.tip and gnd.tip .. "\n\n", {"ltnc.net-description-tip"}}
   end
 end -- update_net_id_buttons()
 
@@ -117,17 +122,26 @@ function ltnc_gui.Open_Netconfig(player_index)
   
   local netconfig = create_net_config(player_index)
   for i = 1, 32 do
-    if global.network_icons[i] ~= nil then
-      local type = global.network_icons[i].type
-      local name = global.network_icons[i].name
-      local path = (type .. "/" .. name)
-      if netconfig.netconfig_table.gui.is_valid_sprite_path(path) then
-        local signal = {
-          type = type == "virtual-signal" and "virtual" or type,
-          name = name
-        }
-        netconfig.netconfig_table.children[i].children[2].elem_value = signal
+    local gnd = global.network_description[i]
+    local gni = gnd.icon
+    if gni ~= nil then
+      if gni.type ~= nil and gni.name ~= nil then
+        local type = gni.type
+        local name = gni.name
+        local path = (type .. "/" .. name)
+        if netconfig.netconfig_table.gui.is_valid_sprite_path(path) then
+          local signal = {
+            type = type == "virtual-signal" and "virtual" or type,
+            name = name
+          }
+          netconfig.netconfig_table.children[i].children[2].elem_value = signal
+        end
       end
+      --[[
+      if gnd.tip then
+        netconfig.netconfig_table.children[i].children[2].tooltip = gnd.tip
+      end
+      ]]
     end
   end
 
@@ -198,6 +212,8 @@ function ltnc_gui.Close(player_index, name)
     rootgui[window].destroy()
     if window == "ltnc-main-window" then
       gui.update_filters("ltnc_handlers", player_index, nil, "remove")
+      ltnc_gui.Close(player_index, "ltnc-net-config")
+      ltnc_gui.Close(player_index, "ltnc-net-dialog")
     elseif window == "ltnc-net-config" then
       gui.update_filters("netconfig_handlers", player_index, nil, "remove")
     end
@@ -248,6 +264,7 @@ function ltnc_gui.RegisterTemplates()
       elem_mods={selectable=true, loose_foucus_on_confirm=true}
     },
     confirm_button = {template="frame_action_button", style="item_and_count_select_confirm", sprite="utility/check_mark"},
+    cancel_button = {template="frame_action_button", style="red_button", style_mods={size=28, padding=0, top_margin=1}, sprite="utility/close_white"},
     close_button = {template="frame_action_button", sprite="utility/close_white", hovered_sprite="utility/close_black"},
     checkbox = {type="checkbox", state=false, style_mods={top_margin=8}},
     chk_stoptype = {template="checkbox", handlers="ltnc_handlers.stop_type"},
@@ -443,6 +460,9 @@ function ltnc_gui.RegisterHandlers()
             new_netid = -1
           elseif e.element.name == "net_id_none" then
             new_netid = 0
+          elseif e.shift then
+            set_net_description(e)
+            return
           else
             --  can make number larger than signed 32-bit...  need to handle....
             local bit = 2^(tonumber(e.element.name)-1)
@@ -457,7 +477,6 @@ function ltnc_gui.RegisterHandlers()
           netid_textbox.text = tostring(new_netid)
           ltnc.combinator:set("ltn-network-id", new_netid)
           update_net_id_buttons(ltnc, new_netid)
-          -- e.element.style = (bit32.btest(new_netid, bit) and "ltnc_net_id_button_pressed" or "ltnc_net_id_button")
         end
       },
       encode_net_id = {
@@ -469,7 +488,6 @@ function ltnc_gui.RegisterHandlers()
           if e.button == defines.mouse_button_type.left then
             if e.shift then
               ltnc_gui.Open_Netconfig(e.player_index)
-              ltnc_gui.Close(e.player_index)
             else
               if ltnc.net_id_flow.visible then
                 ltnc.net_id_flow.visible = false
@@ -477,7 +495,6 @@ function ltnc_gui.RegisterHandlers()
               else
                 ltnc.net_id_flow.visible = true
                 ltnc.main_window.location = {x - 110, y}
-                --ltnc.main_window.location.x = ltnc.main_window.location.x - 128
               end
             end
           end
@@ -493,14 +510,45 @@ function ltnc_gui.RegisterHandlers()
       choose_button = {
         on_gui_elem_changed = function(e)
           local net = tonumber(e.element.name)
+          local ltnc = global.player_data[e.player_index].ltnc
+          local gni = global.network_description[net].icon or {}
           if e.element.elem_value == nil then
-            global.network_icons[net] = nil
+            global.network_description[net].icon = nil
+            ltnc.net_id_table.children[net].sprite = nil
+            ltnc.net_id_table.children[net].caption = e.element.name
           else
-            local type = e.element.elem_value.type
-            local name = e.element.elem_value.name
-            type =  type == "virtual" and "virtual-signal" or type
-            global.network_icons[net] = {type=type, name=name}
+            local path = e.element.elem_value.type .. "/" .. e.element.elem_value.name
+            if ltnc.net_id_table.gui.is_valid_sprite_path(path) then
+              ltnc.net_id_table.children[net].sprite = path
+              ltnc.net_id_table.children[net].caption = ""
+            end
+            local type =  e.element.elem_value.type == "virtual" and "virtual-signal" or e.element.elem_value.type
+            gni.type = type
+            gni.name = e.element.elem_value.name
+            global.network_description[net].icon = gni
           end
+        end
+      }
+    },
+    net_desc_handlers = {
+      confirm_button = {
+        on_gui_click = function(e)
+          local dlg = global.player_data[e.player_index].netdesc
+          local ltnc = global.player_data[e.player_index].ltnc
+          local txt = dlg.description.text
+          if txt ~= "" then
+            global.network_description[dlg.network].tip = txt
+            ltnc.net_id_table.children[dlg.network].tooltip = {"", txt .. "\n\n", {"ltnc.net-description-tip"}}
+          else
+            global.network_description[dlg.network].tip = nil
+            ltnc.net_id_table.children[dlg.network].tooltip = {"ltnc.net-description-tip"}
+          end
+          ltnc_gui.Close(e.player_index, "ltnc-net-dialog")
+        end
+      },
+      cancel_button = {
+        on_gui_click = function(e)
+          ltnc_gui.Close(e.player_index, "ltnc-net-dialog")
         end
       }
     },
@@ -611,24 +659,24 @@ function create_window(player_index, unit_number)
             }}
           }},
         }},
-       -- LTN Signal Pane,
+        -- LTN Signal Pane,
         {type="flow", direction="vertical", save_as="signal_pane", style_mods={left_padding=8, width=300, horizontal_align="center"}, children={
           {type="frame", direction="vertical", style="container_inside_shallow_frame",
           style_mods={padding=8}, children={
             {type="table", save_as="ltn_signals_common", column_count=3,
-             style_mods={cell_padding=2, horizontally_stretchable=true},
+              style_mods={cell_padding=2, horizontally_stretchable=true},
             },
           }},
           {type="frame", direction="vertical", save_as="ltn_prov_fr", style="container_inside_shallow_frame",
-           style_mods={top_margin=12, padding=8}, elem_mods={visible=false}, children={
+            style_mods={top_margin=12, padding=8}, elem_mods={visible=false}, children={
             {type="table", save_as="ltn_signals_provider", column_count=3,
-             style_mods={cell_padding=2, horizontally_stretchable=true},
+              style_mods={cell_padding=2, horizontally_stretchable=true},
             },
           }},
           {type="frame", direction="vertical", save_as="ltn_req_fr", style="container_inside_shallow_frame",
-           style_mods={top_margin=12, padding=8}, elem_mods={visible=false}, children={
+            style_mods={top_margin=12, padding=8}, elem_mods={visible=false}, children={
             {type="table", save_as="ltn_signals_requester", column_count=3,
-             style_mods={cell_padding=2, horizontally_stretchable=true},
+              style_mods={cell_padding=2, horizontally_stretchable=true},
             },
           }},
         }},
@@ -659,7 +707,7 @@ function create_window(player_index, unit_number)
     local table = "ltn_signals_"..details.stop_type
     if name == "ltn-network-id" then
       ltnc[table].add({type="sprite-button", name="ltnc-encode-net-id", style="ltnc_net_net_button", sprite="virtual-signal/"..name,
-                       tooltip={"ltnc.net-config-tip"}})
+                        tooltip={"ltnc.net-config-tip"}})
       ltnc[table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"ltnc.encode-net-id"}})
       ltnc["net_id_flow"].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"virtual-signal-name."..name}})
       ltnc["net_id_flow"].add({type="textfield", name="ltnc-element__"..name, style="ltnc_netid_text",
@@ -693,6 +741,48 @@ function create_window(player_index, unit_number)
   return ltnc
 end -- create_window()
 
+
+-- Enter network description text
+function set_net_description(event)
+  local rootgui = game.get_player(event.player_index).gui.screen
+  if rootgui["ltnc-net-dialog"] then
+    ltnc_gui.Close(event.player_index, "ltnc-net-dialog")
+  end
+  local dialog = gui.build(rootgui, {
+    {type="frame", direction="vertical", save_as="net_dialog", name="ltnc-net-dialog",
+      caption={"ltnc.net-description-title", event.element.name}, children={
+        {type="flow", direction="vertical", children={
+          {type="frame", direction="vertical", style="container_inside_shallow_frame",
+            style_mods={minimal_height=60, minimal_width=300},
+            children={
+              {type="table", column_count=1, children={
+                {type="text-box", save_as="description",
+                  style_mods={vertically_stretchable=true, width=0, horizontally_stretchable=true},
+                  elem_mods={word_wrap=true, clear_and_focus_on_right_click=true},
+                },
+              }},
+            },
+          },
+        }},
+        {type="flow", horizontal_align="right", style_mods={horizontally_stretchable=true}, children={
+          {template="cancel_button", handlers="net_desc_handlers.cancel_button"},
+          {type="empty-widget", style="flib_horizontal_pusher"},
+          {template="confirm_button", handlers="net_desc_handlers.confirm_button"},
+        }}
+      },
+    },
+  })
+  dialog.network = tonumber(event.element.name)
+  if global.network_description[dialog.network].tip then
+    dialog.description.text = global.network_description[dialog.network].tip
+  end
+  dialog.net_dialog.force_auto_center()
+  --dialog.titlebar.flow.drag_target = dialog.net_dialog
+  local pd = ltnc_util.get_player_data(event.player_index)
+  pd.netdesc = dialog
+  return dialog
+end -- set_net_description()
+
 --------------------------
 -- Event registration
 --------------------------
@@ -703,15 +793,18 @@ ltnc_gui.RegisterTemplates()
 event.on_init(function()
   gui.init()
   gui.build_lookup_tables()
-  global.network_icons = global.network_icons or {}
+  global.network_description = {}
+  for i=1,32 do
+    global.network_description[i] = {}
+  end
 end)
 
 event.on_load(function()
   gui.build_lookup_tables()
   for _, pd in pairs(global.player_data) do
-   if pd.ltnc.ep.valid then
-     pd.ltnc.combinator = ltn_combinator:new(pd.ltnc.ep.entity)
-   end
+    if pd.ltnc.ep.valid then
+      pd.ltnc.combinator = ltn_combinator:new(pd.ltnc.ep.entity)
+    end
   end
 end)
 
