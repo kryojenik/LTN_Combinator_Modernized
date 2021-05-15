@@ -801,9 +801,11 @@ end)
 
 event.on_load(function()
   gui.build_lookup_tables()
-  for _, pd in pairs(global.player_data) do
-    if pd.ltnc.ep.valid then
-      pd.ltnc.combinator = ltn_combinator:new(pd.ltnc.ep.entity)
+  if global.player_data then
+    for _, pd in pairs(global.player_data) do
+      if pd and pd.ltnc and pd.ltnc.ep.valid then
+        pd.ltnc.combinator = ltn_combinator:new(pd.ltnc.ep.entity)
+      end
     end
   end
 end)
