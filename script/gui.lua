@@ -643,19 +643,28 @@ function create_window(player_index, unit_number)
                 style_mods={width=280, minimal_height=80}, column_count=7}
               },
             },
-            {type="flow", style_mods={vertical_align="center", top_padding=10}, children={
+            --{type="flow", style_mods={vertical_align="center", top_padding=10}, children={
+            {type="flow", direction="vertical", children={
               {type="slider", save_as="signal_value_slider",
               elem_mods={enabled=false},
-              style_mods={horizontally_stretchable=true, right_padding=10},
+              style_mods={horizontally_stretchable=true},
               minimum_value=-1, maximum_value=50,
               handlers="ltnc_handlers.slider",
               },
-              {template="ltnc_entry_text", save_as="signal_value_text", enabled=false,
-              elem_mods={numeric=true, text="0", allow_negative=true},
-              handlers="ltnc_handlers.signal_text",
-              },
-              {template="confirm_button", style_mods={left_padding=5}, enabled=false,
-              save_as="signal_value_confirm", handlers="ltnc_handlers.confirm_button"}
+              {type="flow", direction="horizontal", children={
+                {type="label", caption="Stacks: "},
+                {template="ltnc_entry_text", name="signal_stack", save_as="signal_value_stack", enabled=false,
+                elem_mods={numeric=true, text="0", allow_negative=true},
+                handlers="ltnc_handlers.signal_text",
+                },
+                {type="label", caption="Items: "},
+                {template="ltnc_entry_text", name="signal_value", save_as="signal_value_text", enabled=false,
+                elem_mods={numeric=true, text="0", allow_negative=true},
+                handlers="ltnc_handlers.signal_text",
+                },
+                {template="confirm_button", style_mods={left_padding=5}, enabled=false,
+                save_as="signal_value_confirm", handlers="ltnc_handlers.confirm_button"}
+              }},
             }}
           }},
         }},
