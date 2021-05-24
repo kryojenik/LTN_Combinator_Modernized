@@ -21,6 +21,31 @@ data:extend({
         default_value = false
     },
     {
+        type = "int-setting",
+        name = "slider-max-items",
+        setting_type = "runtime-per-user",
+        order = "uc",
+        default_value = 256,
+        minimum_value = 0,
+        maximum_value = 2147483647 --prevent overflow
+    },
+    {
+        type = "bool-setting",
+        name = "use-stacks",
+        setting_type = "runtime-per-user",
+        order = "ud",
+        default_value = true
+    },
+    {
+        type = "int-setting",
+        name = "slider-max-fluid",
+        setting_type = "runtime-per-user",
+        order = "ue",
+        default_value = 500000,
+        minimum_value = 0,
+        maximum_value = 2147483647 --prevent overflow
+    },
+    {
         type = "bool-setting",
         name = "ltnc-upgradable",
         order = "sa",

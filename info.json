@@ -1,6 +1,6 @@
 {
     "name": "LTN_Combinator_Modernized",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "title": "LTN Combinator Modernized",
     "author": "kryojenik, Dockmeister",
     "homepage": "",
@@ -9,10 +9,7 @@
         "base",
         "flib >= 0.6.0",
         "LogisticTrainNetwork >= 1.15.0",
-        "!LTN_Combinator",
-        "!LTN_Combinator_Fix",
-        "!LTN_Combinator_redux",
-        "!LTN_Helper"
+        "!LTN_Combinator_Fix"
     ],
     "description": "Adds a new type of Constant Combinator to the game. It has a custom GUI to ease the control of LTN signals."
 }
