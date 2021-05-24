@@ -106,9 +106,11 @@ local function set_new_signal_value(ltnc, value, min, max)
   ltnc.combinator:set_slot_value(ltnc.selected_slot, new_value)
   ltnc.signal_value_slider.enabled = false
   ltnc.signal_value_text.enabled = false
+  ltnc.signal_value_stack.enabled = false
   ltnc.signal_value_confirm.enabled = false
   ltnc.signals[ltnc.selected_slot].button.children[1].caption = ltnc_util.format_number(new_value, true)
   ltnc.selected_slot = nil
+  ltnc.stack_size = nil
 end -- set_new_signal_value()
 
 -- Display the Net Config UI
@@ -223,7 +225,6 @@ end -- Close()
 
 local function change_signal_count(ltnc, e)
   local slot = ltnc.selected_slot
-
   local signal = ltnc.combinator:get_slot(slot)
   if not signal or not signal.signal then
     print({"ltnc.combinator-gone"})
@@ -232,26 +233,38 @@ local function change_signal_count(ltnc, e)
   end
 
   local value = signal.count
-  -- TODO: Get inteligent about this...  detect or setting for larger storage containers?
-  -- Make display number of stacks?
-  local stack_size = 25000 -- default fluid
-  local max_slider = 1000000 -- Large default based on Angel's storage tanks?  Get smarter.
-  if signal.signal.type == "item" then
-    stack_size = game.item_prototypes[signal.signal.name].stack_size
-    max_slider = stack_size * 256 -- More hard coded defaults to fix...
-  end
+  local stack_size = 1 --Fluid doesn't have stacks
   dlog(signal.signal.type .. " " .. stack_size)
-  ltnc.signal_value_slider.set_slider_minimum_maximum(0,max_slider)
-  ltnc.signal_value_slider.set_slider_value_step(stack_size)
-  ltnc.signal_value_slider.slider_value = value * -1
-  ltnc.signal_value_slider.enabled = true
-
-  ltnc.signal_value_text.text = tostring(value)
+  local slider_type
   ltnc.signal_value_text.enabled = true
+  ltnc.signal_value_text.text = tostring(value)
   ltnc.signal_value_text.focus()
-
-  ltnc.signal_value_confirm.visible = true
   ltnc.signal_value_confirm.enabled = false
+  if signal.signal.type == "item" or signal.signal.type == "fluid" then
+    if signal.signal.type == "item" then
+      slider_type = "slider-max-items"
+      stack_size = game.item_prototypes[signal.signal.name].stack_size
+      ltnc.signal_value_stack.enabled = true
+      if settings.get_player_settings(e.player_index)["use-stacks"].value then
+        ltnc.signal_value_stack.focus()
+      end
+    elseif signal.signal.type == "fluid" then
+      slider_type = "slider-max-fluid"
+      ltnc.signal_value_stack.enabled = false
+    end
+    local max_slider = stack_size * settings.get_player_settings(e.player_index)[slider_type].value
+    ltnc.signal_value_stack.text = tostring(value/stack_size)
+    ltnc.signal_value_slider.set_slider_minimum_maximum(0,max_slider)
+    ltnc.signal_value_slider.set_slider_value_step(stack_size)
+    ltnc.signal_value_slider.enabled = true
+    ltnc.signal_value_slider.slider_value = 0
+    ltnc.signal_value_slider.slider_value = math.abs(value)
+    ltnc.stack_size = stack_size
+  else
+    -- Not Item or Fluid
+    ltnc.signal_value_stack.enabled = false
+    ltnc.signal_value_slider.enabled = false
+  end
 end -- change_signal_count()
 
 function ltnc_gui.RegisterTemplates()
@@ -260,8 +273,12 @@ function ltnc_gui.RegisterTemplates()
     frame_action_button = {type="sprite-button", style="frame_action_button", mouse_button_filter={"left"}},
     ltnc_entry_text = {
       type="textfield", style="short_number_textfield",
-      style_mods={horizontal_align="right", horizontally_stretchable="off"},
-      elem_mods={selectable=true, loose_foucus_on_confirm=true}
+      style_mods={
+        horizontal_align="right",
+        horizontally_stretchable="off"
+      },
+      lose_focus_on_confirm=true,
+      clear_and_focus_on_right_click=true,
     },
     confirm_button = {template="frame_action_button", style="item_and_count_select_confirm", sprite="utility/check_mark"},
     cancel_button = {template="frame_action_button", style="red_button", style_mods={size=28, padding=0, top_margin=1}, sprite="utility/close_white"},
@@ -303,6 +320,7 @@ function ltnc_gui.RegisterHandlers()
           local ltnc = global.player_data[e.player_index].ltnc
           ltnc.signal_value_confirm.enabled = true
           ltnc.signal_value_text.text = tostring(e.element.slider_value * -1)
+          ltnc.signal_value_stack.text = (tostring((e.element.slider_value * -1) / ltnc.stack_size))
         end
       },
       signal_text = {
@@ -312,7 +330,14 @@ function ltnc_gui.RegisterHandlers()
           if not value then return end
           local ltnc = global.player_data[e.player_index].ltnc
           ltnc.signal_value_confirm.enabled = true
-          ltnc.signal_value_slider.slider_value = math.abs(value)
+          if e.element.name == "signal_value" then
+            ltnc.signal_value_slider.slider_value = math.abs(value)
+            local stack = value / ltnc.stack_size
+            ltnc.signal_value_stack.text = tostring(stack >=0 and math.ceil(stack) or math.floor(stack))
+          elseif e.element.name == "signal_stack" then
+            ltnc.signal_value_slider.slider_value = math.abs(value * ltnc.stack_size)
+            ltnc.signal_value_text.text = tostring(value * ltnc.stack_size)
+          end
         end,
         on_gui_confirmed = function(e)
           local ltnc = global.player_data[e.player_index].ltnc
@@ -346,9 +371,11 @@ function ltnc_gui.RegisterHandlers()
           local signal = {signal=e.element.elem_value, count=0}
           ltnc.combinator:set_slot(slot, signal)
           e.element.locked = true
-          change_signal_count(ltnc, {button=defines.mouse_button_type.left,
-                                      element={number=0},
-                                      player_index=e.player_index})
+          change_signal_count(ltnc, {
+            button=defines.mouse_button_type.left,
+            element={number=0},
+            player_index=e.player_index
+          })
         end,
         on_gui_click = function(e)
           dlog("choose_button - on_gui_click: "..e.button)
@@ -643,7 +670,6 @@ function create_window(player_index, unit_number)
                 style_mods={width=280, minimal_height=80}, column_count=7}
               },
             },
-            --{type="flow", style_mods={vertical_align="center", top_padding=10}, children={
             {type="flow", direction="vertical", children={
               {type="slider", save_as="signal_value_slider",
               elem_mods={enabled=false},
@@ -651,19 +677,20 @@ function create_window(player_index, unit_number)
               minimum_value=-1, maximum_value=50,
               handlers="ltnc_handlers.slider",
               },
-              {type="flow", direction="horizontal", children={
-                {type="label", caption="Stacks: "},
+              {type="flow", direction="horizontal", style_mods={horizontal_align="right"}, children={
+                {type="label", style_mods={top_margin=5}, caption="Stacks: "},
                 {template="ltnc_entry_text", name="signal_stack", save_as="signal_value_stack", enabled=false,
-                elem_mods={numeric=true, text="0", allow_negative=true},
-                handlers="ltnc_handlers.signal_text",
+                  elem_mods={numeric=true, text="0", allow_negative=true},
+                  handlers="ltnc_handlers.signal_text",
                 },
-                {type="label", caption="Items: "},
+                {type="label", style_mods={top_margin=5}, caption="Items: "},
                 {template="ltnc_entry_text", name="signal_value", save_as="signal_value_text", enabled=false,
-                elem_mods={numeric=true, text="0", allow_negative=true},
-                handlers="ltnc_handlers.signal_text",
+                  elem_mods={numeric=true, text="0", allow_negative=true},
+                  handlers="ltnc_handlers.signal_text",
                 },
                 {template="confirm_button", style_mods={left_padding=5}, enabled=false,
-                save_as="signal_value_confirm", handlers="ltnc_handlers.confirm_button"}
+                  save_as="signal_value_confirm", handlers="ltnc_handlers.confirm_button"
+                }
               }},
             }}
           }},
@@ -727,8 +754,17 @@ function create_window(player_index, unit_number)
       if name == "ltn-disable-warnings" then
           ltnc[table].add({type="checkbox", name="ltnc-element__"..name, style="ltnc_entry_checkbox", state=details.default})
       else
-        local elem = ltnc[table].add({type="textfield", name="ltnc-element__"..name, style="ltnc_entry_text",
-                                      text=details.default, numeric=true, allow_decimal=false, allow_negative=false})
+        local elem = ltnc[table].add({
+          type="textfield",
+          name="ltnc-element__"..name,
+          style="ltnc_entry_text",
+          text=details.default,
+          numeric=true,
+          allow_decimal=false,
+          allow_negative=false,
+          clear_and_focus_on_right_click=true,
+          lose_focus_on_confirm=true
+        })
         if details.bounds.min < 0 then
             elem.allow_negative = true
         end

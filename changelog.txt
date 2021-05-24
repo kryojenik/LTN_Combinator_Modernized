@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.4
+Date: 2021-05-23
+  Features:
+    - Now able to specify requests as number of stacks.
+    - Per-player setting to enable stack based requests (default)
+    - Per-player setting to adjust the upper bound of the request slider
+  Changes:
+    - Can now right click in the text fields to clear the existing value
+---------------------------------------------------------------------------------------------------
 Version: 1.0.3
 Date: 2021-05-14
   Bugfixes:
