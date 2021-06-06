@@ -3,6 +3,7 @@ Version: 1.0.5
 Date: 2021-06-06
   Bugfixes:
     - Crash when adding / editing virtual signals.
+    - Crash when opening fast-replaced combinator when original, regular combinator had more than 14 non-LTN signals.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.4
 Date: 2021-05-23
