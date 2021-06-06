@@ -144,6 +144,9 @@ function ltn_combinator:_sort_signal_slots()
     else
       control.set_signal(misc_slot, signal)
       misc_slot = misc_slot + 1
+      if misc_slot > config.ltnc_item_slot_count then
+        break
+      end
     end
   end
 end
