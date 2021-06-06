@@ -233,14 +233,14 @@ local function change_signal_count(ltnc, e)
   end
 
   local value = signal.count
-  local stack_size = 1 --Fluid doesn't have stacks
-  dlog(signal.signal.type .. " " .. stack_size)
+  dlog(signal.signal.type)
   local slider_type
   ltnc.signal_value_text.enabled = true
   ltnc.signal_value_text.text = tostring(value)
   ltnc.signal_value_text.focus()
   ltnc.signal_value_confirm.enabled = false
   if signal.signal.type == "item" or signal.signal.type == "fluid" then
+    local stack_size
     if signal.signal.type == "item" then
       slider_type = "slider-max-items"
       stack_size = game.item_prototypes[signal.signal.name].stack_size
@@ -250,6 +250,7 @@ local function change_signal_count(ltnc, e)
       end
     elseif signal.signal.type == "fluid" then
       slider_type = "slider-max-fluid"
+      stack_size = 1 --Fluid doesn't have stacks
       ltnc.signal_value_stack.enabled = false
     end
     local max_slider = stack_size * settings.get_player_settings(e.player_index)[slider_type].value
@@ -264,6 +265,7 @@ local function change_signal_count(ltnc, e)
     -- Not Item or Fluid
     ltnc.signal_value_stack.enabled = false
     ltnc.signal_value_slider.enabled = false
+    ltnc.stack_size = 1 -- Other signals don't have stacks
   end
 end -- change_signal_count()
 
