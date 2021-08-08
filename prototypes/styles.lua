@@ -1,4 +1,4 @@
---local flib_gui = require("__flib__.gui")
+--local flib_gui = require("lib.gui")
 local styles = data.raw["gui-style"].default
 
 styles["ltnc_entry_sprite"] = {
