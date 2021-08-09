@@ -1,4 +1,4 @@
-local gui = require("__flib__.gui")
+local gui = require("lib.gui")
 local event = require("__flib__.event")
 --local migration = require("__flib__.migration")
 
