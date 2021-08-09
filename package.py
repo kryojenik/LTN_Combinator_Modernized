@@ -20,6 +20,7 @@ modFolders = [
 	"migrations",
 	"prototypes",
 	"script",
+	"lib",
 ]
 
 with open("info.json") as file:
