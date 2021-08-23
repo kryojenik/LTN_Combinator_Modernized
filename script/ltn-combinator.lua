@@ -15,6 +15,8 @@ ltn_combinator = {
   ltn_stop_type = nil,
 }
 
+ltn_combinator.__index = ltn_combinator
+
 function ltn_combinator:new(entity)
   if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
     print("ltn_combinator:new: entity has to be a valid instance of 'ltn-combinator'")
@@ -23,10 +25,9 @@ function ltn_combinator:new(entity)
 
   local obj = {}
   setmetatable(obj, self)
-  self.__index = self
 
-  self.entity = entity
-  self:_parse_entity()
+  obj.entity = entity
+  obj:_parse_entity()
 
   return obj
 end

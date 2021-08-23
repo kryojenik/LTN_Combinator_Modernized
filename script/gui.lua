@@ -531,7 +531,7 @@ function ltnc_gui.RegisterHandlers()
       },
     },
     netconfig_handlers = {
-      close_button = { 
+      close_button = {
         on_gui_click = function(e)
           ltnc_gui.Close(e.player_index, e.element.name)
         end
@@ -551,7 +551,7 @@ function ltnc_gui.RegisterHandlers()
               ltnc.net_id_table.children[net].sprite = path
               ltnc.net_id_table.children[net].caption = ""
             end
-            local type =  e.element.elem_value.type == "virtual" and "virtual-signal" or e.element.elem_value.type
+            local type = e.element.elem_value.type == "virtual" and "virtual-signal" or e.element.elem_value.type
             gni.type = type
             gni.name = e.element.elem_value.name
             global.network_description[net].icon = gni
@@ -851,7 +851,7 @@ event.on_load(function()
   if global.player_data then
     for _, pd in pairs(global.player_data) do
       if pd and pd.ltnc and pd.ltnc.ep.valid then
-        pd.ltnc.combinator = ltn_combinator:new(pd.ltnc.ep.entity)
+        setmetatable(pd.ltnc.combinator, ltn_combinator)
       end
     end
   end
