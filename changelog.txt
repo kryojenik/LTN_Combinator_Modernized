@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.7
+Date: 2021-08-23
+  Bugfixes:
+    - Fix for multi-player entity overwrite - Thanks Blackclaws
+    - Eliminated crash when player joins while other player has LTNC open.
+---------------------------------------------------------------------------------------------------
 Version: 1.0.6
 Date: 2021-08-08
   Changes:
