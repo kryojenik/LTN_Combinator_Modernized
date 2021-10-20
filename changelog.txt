@@ -4,6 +4,8 @@ Date: 2021-10-20
   Changes:
     - Added depot priority as a managed signal / field.
   Bugfixes:
+    - Fix crash due to selecting an invalid signal that the base game does not allow to be filtered.
+      https://forums.factorio.com/viewtopic.php?p=554711
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.7
 Date: 2021-08-23

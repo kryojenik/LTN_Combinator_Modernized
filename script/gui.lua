@@ -1,5 +1,6 @@
 local gui = require("lib.gui")
 local event = require("__flib__.event")
+local table = require("__flib__.table")
 --local migration = require("__flib__.migration")
 
 local config = require "config"
@@ -366,7 +367,18 @@ function ltnc_gui.RegisterHandlers()
       },
       choose_button = {
         on_gui_elem_changed = function(e)
-          if e.element.elem_value == nil then return end
+          local bad = {"signal-each", "signal-anything", "signal-everything"}
+          if e.element.elem_value == nil or e.element.elem_value.name == nil then
+            e.element.elem_value = nil
+            return
+          elseif table.find(bad, e.element.elem_value.name) then
+            print(string.format(
+              "Invalid signal: %s.  Work around lack of filter capability.\nhttps://forums.factorio.com/viewtopic.php?p=554711",
+              e.element.elem_value.name
+            ))
+            e.element.elem_value = nil
+            return
+          end
           dlog("choose_button - on_gui_elem_changed - "..e.element.elem_value.name)
           local ltnc = global.player_data[e.player_index].ltnc
           local _, _, slot =  string.find(e.element.name, "__(%d+)")
