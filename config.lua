@@ -1,7 +1,7 @@
 local config = {}
 
-config.ltnc_item_slot_count = 27
-config.ltnc_ltn_slot_count  = 13
+config.ltnc_item_slot_count = 28
+config.ltnc_ltn_slot_count  = 14
 config.ltnc_misc_slot_count = 14
 
 config.ltn_signals = {
@@ -17,7 +17,8 @@ config.ltn_signals = {
     ["ltn-provider-stack-threshold"]  = {stop_type = "provider", default = 0, slot = 10, bounds = {min = 0, max = 2000000000}},
     ["ltn-provider-priority"]         = {stop_type = "provider", default = 0, slot = 11, bounds = {min = -2000000000, max = 2000000000}},
     ["ltn-locked-slots"]              = {stop_type = "provider", default = 0, slot = 12, bounds = {min = 0, max = 40}},
-    ["ltn-depot"]                     = {stop_type = "common", default = 0, slot = 13, bounds = {min = 0, max = 1}},
+    ["ltn-depot"]                     = {stop_type = "depot", default = 0, slot = 13, bounds = {min = 0, max = 1}},
+    ["ltn-depot-priority"]            = {stop_type = "depot", default = 0, slot = 14, bounds = {min = -2000000000, max = 2000000000}},
 }
 
 config.LTN_STOP_NONE      = 0
@@ -29,22 +30,4 @@ config.LTN_STOP_DEFAULT = config.LTN_STOP_PROVIDER
 
 config.high_threshold_count = 50000000
 
--- todo make network id hidden, in settings lua too
---[[
-config.default_visibility = {
-    ["ltn-network-id"] = true,
-    ["ltn-requester-threshold"] = true,
-    ["ltn-requester-stack-threshold"] = false,
-    ["ltn-requester-priority"] = true,
-    ["ltn-provider-threshold"] = true,
-    ["ltn-provider-stack-threshold"] = false,
-    ["ltn-provider-priority"] = true,
-    ["ltn-min-train-length"] = true,
-    ["ltn-max-train-length"] = true,
-    ["ltn-max-trains"] = false,
-    ["ltn-locked-slots"] = false,
-    ["ltn-disable-warnings"] = true,
-    ["ltn-depot"] = false,
-}
-]]
 return config

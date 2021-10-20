@@ -1,9 +1,10 @@
+local config = require("config")
 local ltnc = flib.copy_prototype(data.raw["constant-combinator"]["constant-combinator"], "ltn-combinator")
 ltnc.icon = "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png"
 ltnc.icon_size = 32
 ltnc.icon_mipmaps = nil
 ltnc.next_upgrade = nil
-ltnc.item_slot_count = 27
+ltnc.item_slot_count = config.ltnc_item_slot_count
 ltnc.fast_replaceable_group = "constant-combinator"
 ltnc.sprites = make_4way_animation_from_spritesheet(
     { layers =

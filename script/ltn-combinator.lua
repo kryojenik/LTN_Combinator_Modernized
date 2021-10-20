@@ -133,9 +133,8 @@ function ltn_combinator:_sort_signal_slots()
   end
 
   -- reassign all signals to a proper slot
-  local ltn_slot  = 1
   local misc_slot = config.ltnc_ltn_slot_count + 1
-  for k, signal in pairs(previous) do
+  for _, signal in pairs(previous) do
     local type = signal.signal.type
     local name = signal.signal.name
 
@@ -157,30 +156,48 @@ end
 function ltn_combinator:_validate_signals()
   if not self.entity or not self.entity.valid then return end
   local control = self.entity.get_or_create_control_behavior()
+  local signals = config.ltn_signals
 
   -- Stop DEPOT: Remove every signal but ltn-network-id (slot 1) and ltn-depot (last slot)
   if self.ltn_stop_type == config.LTN_STOP_DEPOT then
-    for slot=2, config.ltnc_ltn_slot_count-1 do
-      control.set_signal(slot, nil)
+    for slot=1, config.ltnc_ltn_slot_count do
+      --[[
+      repeat
+        if
+          slot == signals["ltn-depot"].slot
+          or slot == signals["ltn-depot-priority"].slot
+          or slot == signals["ltn-network-id"].slot
+          then break
+        end
+        ]]
+        local keep = slot == signals["ltn-depot"].slot
+                      or slot == signals["ltn-depot-priority"].slot
+                      or slot == signals["ltn-network-id"].slot
+        if not keep then
+          control.set_signal(slot, nil)
+        end
+      --until true
     end
 
   -- Stop Requester
   elseif self.ltn_stop_type == config.LTN_STOP_REQUESTER then
-    control.set_signal(10, nil)
-    control.set_signal(11, nil)
-    control.set_signal(12, nil)
-    control.set_signal(13, nil)
+    control.set_signal(signals["ltn-provider-stack-threshold"].slot, nil)
+    control.set_signal(signals["ltn-provider-priority"].slot, nil)
+    control.set_signal(signals["ltn-locked-slots"].slot, nil)
+    control.set_signal(signals["ltn-depot"].slot, nil)
+    control.set_signal(signals["ltn-depot-priority"].slot, nil)
   elseif self.ltn_stop_type == config.LTN_STOP_PROVIDER then
-    control.set_signal(5, nil)
-    control.set_signal(6, nil)
-    control.set_signal(7, nil)
-    control.set_signal(8, nil)
-    control.set_signal(13, nil)
+    control.set_signal(signals["ltn-requester-threshold"].slot, nil)
+    control.set_signal(signals["ltn-requester-stack-threshold"].slot, nil)
+    control.set_signal(signals["ltn-requester-priority"].slot, nil)
+    control.set_signal(signals["ltn-disable-warnings"].slot, nil)
+    control.set_signal(signals["ltn-depot"].slot, nil)
+    control.set_signal(signals["ltn-depot-priority"].slot, nil)
   -- 6 = bit32.bor(REQUESTER, PROVIDER)
   elseif self.ltn_stop_type == bit32.bor(config.LTN_STOP_PROVIDER, config.LTN_STOP_REQUESTER) then
-    control.set_signal(13, nil)
+    control.set_signal(signals["ltn-depot"].slot, nil)
   elseif self.ltn_stop_type == config.LTN_STOP_NONE then
-    control.set_signal(13, nil)
+    control.set_signal(signals["ltn-depot"].slot, nil)
   end
 end
 
@@ -321,7 +338,7 @@ function ltn_combinator:_validate_slot(slot)
   if not slot then return -1 end
   slot = slot + config.ltnc_ltn_slot_count
 
-  -- make sure slot is a valid number for an non-ltn signal
+  -- make sure slot is a valid number for a non-ltn signal
   if slot <= config.ltnc_ltn_slot_count or slot > config.ltnc_item_slot_count then
     dlog("Invalid slot number #" .. slot)
     return -1

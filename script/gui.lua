@@ -81,8 +81,10 @@ local function update_visible_components(ltnc, pi)
   if stop_type == nil then stop_type = config.LTN_STOP_NONE end
   if stop_type == config.LTN_STOP_NONE or stop_type == config.LTN_STOP_DEPOT then
     ltnc.signal_pane.visible = false
+    ltnc.ltn_depot_pri_fr.visible = true
   else
     ltnc.signal_pane.visible = true
+    ltnc.ltn_depot_pri_fr.visible = false
   end
   local prov = bit32.btest(stop_type, config.LTN_STOP_PROVIDER)
   local req = bit32.btest(stop_type, config.LTN_STOP_REQUESTER)
@@ -93,7 +95,7 @@ local function update_visible_components(ltnc, pi)
     ltnc.ltn_req_fr.visible = true
     ltnc.ltn_prov_fr.visible = true
   else
-    ltnc.ltn_req_fr.visible =  req
+    ltnc.ltn_req_fr.visible = req
     ltnc.ltn_prov_fr.visible = prov
   end
   if settings.get_player_settings(pi)["show-net-panel"].value then
@@ -662,6 +664,13 @@ function create_window(player_index, unit_number)
               }},
             },
           }},
+          --{type="frame", direction="vertical", save_as="ltn_depot_pri_fr", style="container_inside_shallow_frame",
+          {type="flow", direction="vertical", save_as="ltn_depot_pri_fr",
+            style_mods={top_margin=12, padding=8}, elem_mods={visible=false}, children={
+            {type="table", save_as="ltn_signals_depot", column_count=3,
+              style_mods={cell_padding=2, horizontally_stretchable=true},
+            },
+          }},
           {type="line", style_mods={top_margin=5}},
           -- Signal Table
           {type="label", style_mods={top_margin=5}, caption={"ltnc.output-signals"}},
@@ -774,9 +783,10 @@ function create_window(player_index, unit_number)
     end
   end
 
-  -- Depot signal should not be visible
+  -- Depot and depot_prioritiy signals should not be visible
   for _, part in pairs{"sprite", "label", "element"} do
-    ltnc.ltn_signals_common["ltnc-"..part.."__ltn-depot"].visible = false
+    ltnc.ltn_signals_depot["ltnc-"..part.."__ltn-depot"].visible = false
+    -- ltnc.ltn_signals_common["ltnc-"..part.."__ltn-depot-priority"].visible = false
   end
 
   gui.update_filters("ltnc_handlers.choose_button", player_index, {"ltnc-signal-button"}, "add")
