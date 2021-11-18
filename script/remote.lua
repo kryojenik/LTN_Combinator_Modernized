@@ -96,5 +96,5 @@ remote.add_interface("ltn-combinator", {
     remote.call("ltn-combinator", "close_ltn_combinator", event.player_index)
   end
 
-  commands.add_command("ltncopen", "Use$/ltncopen while hovering an entity to open a near ltn combinator", ltnc_remote_open)
-  commands.add_command("ltncclose", "Use$/ltncclose to close the opened ltn combinator", ltnc_remote_close)
+  commands.add_command("ltncopen", "Use /ltncopen while hovering an entity to open a near ltn combinator", ltnc_remote_open)
+  commands.add_command("ltncclose", "Use /ltncclose to close the opened ltn combinator", ltnc_remote_close)

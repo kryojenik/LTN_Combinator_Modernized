@@ -372,10 +372,7 @@ function ltnc_gui.RegisterHandlers()
             e.element.elem_value = nil
             return
           elseif table.find(bad, e.element.elem_value.name) then
-            print(string.format(
-              "Invalid signal: %s.  Work around lack of filter capability.\nhttps://forums.factorio.com/viewtopic.php?p=554711",
-              e.element.elem_value.name
-            ))
+            print({"ltnc.bad-signal", e.element.elem_value.name})
             e.element.elem_value = nil
             return
           end
@@ -701,12 +698,12 @@ function create_window(player_index, unit_number)
               handlers="ltnc_handlers.slider",
               },
               {type="flow", direction="horizontal", style_mods={horizontal_align="right"}, children={
-                {type="label", style_mods={top_margin=5}, caption="Stacks: "},
+                {type="label", style_mods={top_margin=5}, caption={"ltnc.label-stacks"}},
                 {template="ltnc_entry_text", name="signal_stack", save_as="signal_value_stack", enabled=false,
                   elem_mods={numeric=true, text="0", allow_negative=true},
                   handlers="ltnc_handlers.signal_text",
                 },
-                {type="label", style_mods={top_margin=5}, caption="Items: "},
+                {type="label", style_mods={top_margin=5}, caption={"ltnc.label-items"}},
                 {template="ltnc_entry_text", name="signal_value", save_as="signal_value_text", enabled=false,
                   elem_mods={numeric=true, text="0", allow_negative=true},
                   handlers="ltnc_handlers.signal_text",
