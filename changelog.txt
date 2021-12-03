@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.10
+Date: 2021-11-17
+  Bugfixes:
+    - Fix a crash in network id encoding pane when cliking Net IDs if the value in the text field
+      is not a valid number.
+---------------------------------------------------------------------------------------------------
 Version: 1.0.9
 Date: 2021-11-17
   Bugfixes:

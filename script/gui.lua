@@ -494,7 +494,7 @@ function ltnc_gui.RegisterHandlers()
           dlog("net_id_toggle: on_gui_click "..e.element.name)
           local ltnc = global.player_data[e.player_index].ltnc
           local netid_textbox = ltnc.net_id_flow["ltnc-element__ltn-network-id"]
-          local networkid = tonumber(netid_textbox.text)
+          local networkid = tonumber(netid_textbox.text) or ltnc.combinator:get("ltn-network-id")
           local new_netid = nil
           if e.element.name == "net_id_all" then
             new_netid = -1
