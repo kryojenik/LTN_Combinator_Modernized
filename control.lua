@@ -2,6 +2,7 @@ MOD_STRING  = "LTN Combinator"
 
 print, dlog = require "script.logger" ()
 local config = require("config")
+local on_built = require("script.on_built")
 require("script.util")
 require("script.gui")
 require("script.remote")
@@ -36,3 +37,9 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
 		config.ltn_signals["ltn-network-id"].default = default_networkid
 	end
 end)
+
+local ev = defines.events
+script.on_event(
+	{ev.on_built_entity, ev.on_robot_built_entity, ev.script_raised_built, ev.script_raised_revive},
+	on_built.check_built_entity
+)
