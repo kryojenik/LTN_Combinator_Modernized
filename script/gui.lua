@@ -34,17 +34,17 @@ end -- update_signal_table()
 local function update_ltn_signals(ltnc)
   for name, details in pairs(config.ltn_signals) do
     local value = ltnc.combinator:get(name)
-    local elem = nil
     if name == "ltn-network-id" then
-      elem = ltnc["net_id_flow"]["ltnc-element__"..name]
+      ltnc["net_id_flow"]["ltnc-element__"..name].text = tostring(value)
+      ltnc["ltn_signals_"..details.stop_type]["ltnc-label__"..name].caption = {"ltnc.encode-net-id", tostring(value)}
     else
-      elem = ltnc["ltn_signals_"..details.stop_type]["ltnc-element__"..name]
-    end
-    if  elem then
-      if elem.type == "checkbox" then
-        elem.state = (value > 0 and true or false)
-      else
-        elem.text = tostring(value)
+      local elem = ltnc["ltn_signals_"..details.stop_type]["ltnc-element__"..name]
+      if  elem then
+        if elem.type == "checkbox" then
+          elem.state = (value > 0 and true or false)
+        else
+          elem.text = tostring(value)
+        end
       end
     end
   end
@@ -476,6 +476,7 @@ function ltnc_gui.RegisterHandlers()
           ltnc.combinator:set(signal, ltnc_util.clamp(value, min, max))
           if signal == "ltn-network-id" then
             update_net_id_buttons(ltnc, value)
+            ltnc["ltn_signals_network"]["ltnc-label__ltn-network-id"].caption = {"ltnc.encode-net-id", tostring(value)}
           end
         end,
         on_gui_checked_state_changed = function(e)
@@ -494,6 +495,7 @@ function ltnc_gui.RegisterHandlers()
           dlog("net_id_toggle: on_gui_click "..e.element.name)
           local ltnc = global.player_data[e.player_index].ltnc
           local netid_textbox = ltnc.net_id_flow["ltnc-element__ltn-network-id"]
+          local encode_label = ltnc["ltn_signals_network"]["ltnc-label__ltn-network-id"]
           local networkid = tonumber(netid_textbox.text) or ltnc.combinator:get("ltn-network-id")
           local new_netid = nil
           if e.element.name == "net_id_all" then
@@ -515,6 +517,7 @@ function ltnc_gui.RegisterHandlers()
             end
           end
           netid_textbox.text = tostring(new_netid)
+          encode_label.caption = {"ltnc.encode-net-id", tostring(new_netid)}
           ltnc.combinator:set("ltn-network-id", new_netid)
           update_net_id_buttons(ltnc, new_netid)
         end
@@ -764,7 +767,7 @@ function create_window(player_index, unit_number)
     if name == "ltn-network-id" then
       ltnc[table].add({type="sprite-button", name="ltnc-encode-net-id", style="ltnc_net_net_button", sprite="virtual-signal/"..name,
                         tooltip={"ltnc.net-config-tip"}})
-      ltnc[table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"ltnc.encode-net-id"}})
+      ltnc[table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"ltnc.encode-net-id", details.default}})
       ltnc["net_id_flow"].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"virtual-signal-name."..name}})
       ltnc["net_id_flow"].add({type="textfield", name="ltnc-element__"..name, style="ltnc_netid_text",
                         text=details.default, numeric=true, allow_decimal=false, allow_negative=true})
