@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.11
+Date: ????
+  Changes:
+    - Sort and clean signals on combinator closing
+  Features:
+    - Add mod setting to keep default Network ID if explicitly set
+    - If above setting is enabled, explicitly set default Network ID on build
+        Note: If the LTN default network is changed, explicily set combinators will not change automatically.
+---------------------------------------------------------------------------------------------------
 Version: 1.0.10
 Date: 2022-1-8
   Bugfixes:

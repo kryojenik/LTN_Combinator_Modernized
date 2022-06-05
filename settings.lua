@@ -15,6 +15,13 @@ data:extend({
   },
   {
     type = "bool-setting",
+    name = "emit-default-network-id",
+    order = "mc",
+    setting_type = "runtime-global",
+    default_value = "false"
+  },
+  {
+    type = "bool-setting",
     name = "show-all-panels",
     setting_type = "runtime-per-user",
     order = "ua",

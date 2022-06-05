@@ -42,8 +42,8 @@ function ltn_combinator:_parse_entity()
   -- check if signals are sorted correctly
   local need_sorting = false
   for slot = 1, config.ltnc_item_slot_count do
-    if control.get_signal(slot).signal ~= nil then
-      local signal = control.get_signal(slot)
+    local signal = control.get_signal(slot)
+    if signal.signal ~= nil then
       local type = signal.signal.type
       local name = signal.signal.name
 
@@ -51,8 +51,15 @@ function ltn_combinator:_parse_entity()
       if type == "virtual" and config.ltn_signals[name] ~= nil then
         need_sorting = config.ltn_signals[name].slot ~= slot or need_sorting
 
-        -- remove ltn signals in 1 .. 13 if it equals default value
-        if signal.count == config.ltn_signals[name].default and name ~= "ltn-requester-threshold" and name ~= "ltn-provider-threshold" then
+        -- remove ltn signals in 1 .. 13 if it equals 0 or default value
+        -- signals aren't emitted if 0, and if no signal is present LTN default is used
+        if signal.count == config.ltn_signals[name].default then
+          if name == "ltn-requester-threshold" or name == "ltn-provider-threshold" then
+          elseif name == "ltn-network-id" and settings.global["emit-default-network-id"].value then
+          else
+            control.set_signal(slot, nil)
+          end
+        elseif signal.count == 0 then
           control.set_signal(slot, nil)
         end
       end
@@ -158,25 +165,15 @@ function ltn_combinator:_validate_signals()
   local control = self.entity.get_or_create_control_behavior()
   local signals = config.ltn_signals
 
-  -- Stop DEPOT: Remove every signal but ltn-network-id (slot 1) and ltn-depot (last slot)
+  -- Stop DEPOT: Remove every signal but ltn-network-id, ltn-depot-priority, and ltn-depot
   if self.ltn_stop_type == config.LTN_STOP_DEPOT then
     for slot=1, config.ltnc_ltn_slot_count do
-      --[[
-      repeat
-        if
-          slot == signals["ltn-depot"].slot
-          or slot == signals["ltn-depot-priority"].slot
-          or slot == signals["ltn-network-id"].slot
-          then break
-        end
-        ]]
-        local keep = slot == signals["ltn-depot"].slot
-                      or slot == signals["ltn-depot-priority"].slot
-                      or slot == signals["ltn-network-id"].slot
-        if not keep then
-          control.set_signal(slot, nil)
-        end
-      --until true
+      local keep = slot == signals["ltn-depot"].slot or
+                   slot == signals["ltn-depot-priority"].slot or
+                   slot == signals["ltn-network-id"].slot
+      if not keep then
+        control.set_signal(slot, nil)
+      end
     end
 
   -- Stop Requester
@@ -245,10 +242,8 @@ function ltn_combinator:is_enabled()
 end
 
 -- ltn_combinator:set
---  @param  signal_type as defined data
 --  @param  signal_name as defined data
 --  @param  integer value (32bit signed) for this signal
---  @param  designated slot. integer between 1 .. 14 (only needed for non-ltn signals)
 function ltn_combinator:set(signal_name, value)
   if not self.entity or not self.entity.valid then return end
   -- check if its a proper ltn signal
