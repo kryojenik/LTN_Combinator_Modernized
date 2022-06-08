@@ -92,14 +92,14 @@ local function update_visible_components(ltnc, pi)
   ltnc.chk_depot.state = bit32.btest(stop_type, config.LTN_STOP_DEPOT)
   ltnc.chk_requester.state = req
   ltnc.chk_provider.state = prov
-  if settings.get_player_settings(pi)["show-all-panels"].value then
+  if settings.get_player_settings(pi)["ltnc-show-all-panels"].value then
     ltnc.ltn_req_fr.visible = true
     ltnc.ltn_prov_fr.visible = true
   else
     ltnc.ltn_req_fr.visible = req
     ltnc.ltn_prov_fr.visible = prov
   end
-  if settings.get_player_settings(pi)["show-net-panel"].value then
+  if settings.get_player_settings(pi)["ltnc-show-net-panel"].value then
     ltnc.net_id_flow.visible = true
   end
 end -- update_visible_components()
@@ -233,7 +233,6 @@ local function change_signal_count(ltnc, e)
   local slot = ltnc.selected_slot
   local signal = ltnc.combinator:get_slot(slot)
   if not signal or not signal.signal then
-    print({"ltnc.combinator-gone"})
     ltnc_gui.Close(e.player_index)
     return
   end
@@ -248,14 +247,14 @@ local function change_signal_count(ltnc, e)
   if signal.signal.type == "item" or signal.signal.type == "fluid" then
     local stack_size
     if signal.signal.type == "item" then
-      slider_type = "slider-max-items"
+      slider_type = "ltnc-slider-max-items"
       stack_size = game.item_prototypes[signal.signal.name].stack_size
       ltnc.signal_value_stack.enabled = true
-      if settings.get_player_settings(e.player_index)["use-stacks"].value then
+      if settings.get_player_settings(e.player_index)["ltnc-use-stacks"].value then
         ltnc.signal_value_stack.focus()
       end
     elseif signal.signal.type == "fluid" then
-      slider_type = "slider-max-fluid"
+      slider_type = "ltnc-slider-max-fluid"
       stack_size = 1 --Fluid doesn't have stacks
       ltnc.signal_value_stack.enabled = false
     end
@@ -354,7 +353,7 @@ function ltnc_gui.RegisterHandlers()
           if not value then return end
           local type = ltnc.combinator:get_slot(ltnc.selected_slot).signal.type
           if value > 0 and (type == "item" or type == "fluid") and
-              settings.get_player_settings(e.player_index)["negative-signals"].value and
+              settings.get_player_settings(e.player_index)["ltnc-negative-signals"].value and
               bit32.band(ltnc.combinator.ltn_stop_type, config.LTN_STOP_REQUESTER) ~= 0 then
             value = value * -1
           end
@@ -371,7 +370,7 @@ function ltnc_gui.RegisterHandlers()
           if not value then return end
           local type = ltnc.combinator:get_slot(ltnc.selected_slot).signal.type
           if value > 0 and (type == "item" or type == "fluid") and
-              settings.get_player_settings(e.player_index)["negative-signals"].value and
+              settings.get_player_settings(e.player_index)["ltnc-negative-signals"].value and
               bit32.band(ltnc.combinator.ltn_stop_type, config.LTN_STOP_REQUESTER) ~= 0 then
             value = value * -1
           end
@@ -433,7 +432,6 @@ function ltnc_gui.RegisterHandlers()
           local ltnc = global.player_data[e.player_index].ltnc
           local stop_type = ltnc.combinator:get_stop_type()
           if not stop_type then
-            print({"ltnc.combinator-gone"})
             ltnc_gui.Close(e.player_index)
             return
           end

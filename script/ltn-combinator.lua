@@ -55,7 +55,7 @@ function ltn_combinator:_parse_entity()
         -- signals aren't emitted if 0, and if no signal is present LTN default is used
         if signal.count == config.ltn_signals[name].default then
           if name == "ltn-requester-threshold" or name == "ltn-provider-threshold" then
-          elseif name == "ltn-network-id" and settings.global["emit-default-network-id"].value then
+          elseif name == "ltn-network-id" and settings.global["ltnc-emit-default-network-id"].value then
           else
             control.set_signal(slot, nil)
           end
@@ -85,7 +85,7 @@ function ltn_combinator:_parse_entity()
     self.ltn_stop_type = config.LTN_STOP_DEPOT
   else
     -- requester -- If a requester threshold is set, add the requester flag
-    if (settings.global["high-provide-threshold"].value and
+    if (settings.global["ltnc-high-provide-threshold"].value and
         control.get_signal(config.ltn_signals["ltn-provider-threshold"].slot).count == config.high_threshold_count) or
        (control.get_signal(config.ltn_signals["ltn-requester-threshold"].slot).signal ~= nil or
          control.get_signal(config.ltn_signals["ltn-requester-stack-threshold"].slot).signal ~= nil or
@@ -206,10 +206,10 @@ function ltn_combinator:set_stop_type(stop_type)
 
   dlog("new stop type set: " .. stop_type)
   if bit32.btest(stop_type, config.LTN_STOP_PROVIDER) then
-    if settings.global["high-provide-threshold"].value and self:get("ltn-provider-threshold") == config.high_threshold_count then
+    if settings.global["ltnc-high-provide-threshold"].value and self:get("ltn-provider-threshold") == config.high_threshold_count then
       self.entity.get_or_create_control_behavior().set_signal(9, nil)
     end
-  elseif settings.global["high-provide-threshold"].value then
+  elseif settings.global["ltnc-high-provide-threshold"].value then
     self:set("ltn-provider-threshold", config.high_threshold_count)
   end
 
@@ -340,53 +340,6 @@ function ltn_combinator:_validate_slot(slot)
   end
 
   return slot
-end
-
--- ltn_combinator:_stack_visibility
---
-function ltn_combinator:_stack_visibility(signal)
-  local provide_type = settings.global["provide-type"].value
-
-  if provide_type ~= "only-stack-count" then
-    return true
-  end
-
-  if signal.signal.name == "ltn-provider-threshold" then
-    if signal.count == 0 or signal.count == config.high_threshold_count then
-      return false
-    end 
-  end
-
-  if signal.signal.name == "ltn-requester-threshold" then
-    if signal.count == 0 then
-      return false
-    end
-  end
-
-  return true
-end
-
--- ltn_combinator:mark_visibility
---  marks entries visible, if signal is set, in disregard of mod settings
-function ltn_combinator:mark_visibility(visibility)
-  if not self.entity or not self.entity.valid then return 0, 0 end
-  local control      = self.entity.get_or_create_control_behavior()
-
-  local changes = 0
-  for slot=1,config.ltnc_ltn_slot_count do
-    local signal = control.get_signal(slot)
-
-    if signal ~= nil and signal.signal ~= nil and signal.signal.name ~= "ltn-depot" then
-      local name = signal.signal.name
-
-      if self:_stack_visibility(signal) and visibility[name] == false then
-        changes = changes + 1
-        visibility[name] = true
-      end
-    end
-  end
-
-  return visibility, changes
 end
 
 --[[
