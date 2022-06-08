@@ -61,6 +61,13 @@ data:extend({
   },
   {
     type = "bool-setting",
+    name = "negative-signals",
+    setting_type = "runtime-per-user",
+    order = "uf",
+    default_value = true
+  },
+  {
+    type = "bool-setting",
     name = "ltnc-upgradable",
     order = "sa",
     setting_type = "startup",

@@ -352,6 +352,12 @@ function ltnc_gui.RegisterHandlers()
           if not ltnc.selected_slot then return end
           local value = tonumber(ltnc.signal_value_text.text)
           if not value then return end
+          local type = ltnc.combinator:get_slot(ltnc.selected_slot).signal.type
+          if value > 0 and (type == "item" or type == "fluid") and
+              settings.get_player_settings(e.player_index)["negative-signals"].value and
+              bit32.band(ltnc.combinator.ltn_stop_type, config.LTN_STOP_REQUESTER) ~= 0 then
+            value = value * -1
+          end
           local min = -2^31
           local max = 2^31-1
           set_new_signal_value(ltnc, value, min, max)
@@ -363,6 +369,12 @@ function ltnc_gui.RegisterHandlers()
           if not ltnc.selected_slot then return end
           local value = tonumber(ltnc.signal_value_text.text)
           if not value then return end
+          local type = ltnc.combinator:get_slot(ltnc.selected_slot).signal.type
+          if value > 0 and (type == "item" or type == "fluid") and
+              settings.get_player_settings(e.player_index)["negative-signals"].value and
+              bit32.band(ltnc.combinator.ltn_stop_type, config.LTN_STOP_REQUESTER) ~= 0 then
+            value = value * -1
+          end
           local min = -2^31
           local max = 2^31-1
           set_new_signal_value(ltnc, value, min, max)

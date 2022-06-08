@@ -17,13 +17,11 @@ function me.check_built_entity(event)
       if settings.global["emit-default-network-id"].value then
         if control_behavior then
           local slot = signals["ltn-network-id"].slot
-          local signal = {
-            signal = {
-              type = "virtual",
-              name = "ltn-network-id",
-            },
-            count = signals["ltn-network-id"].default
-          }
+          local signal = control_behavior.get_signal(slot)
+          if not signal.signal then 
+            signal = {signal = {type = "virtual", name = "ltn-network-id",},
+                      count = signals["ltn-network-id"].default}
+          end
           control_behavior.set_signal(slot, signal)
         end
       end

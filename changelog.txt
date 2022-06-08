@@ -3,6 +3,7 @@ Version: 1.0.11
 Date: ????
   Changes:
     - Sort and clean signals on combinator closing
+    - If the "Requester" checkbox is checked types values for Item and Fluids will be converted to negatives.
   Features:
     - Add mod setting to keep default Network ID if explicitly set
     - If above setting is enabled, explicitly set default Network ID on build
