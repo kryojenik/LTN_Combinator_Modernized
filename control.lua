@@ -3,6 +3,7 @@ MOD_STRING  = "LTN Combinator"
 print, dlog = require "script.logger" ()
 local config = require("config")
 local on_built = require("script.on_built")
+local event = require("__flib__.event")
 require("script.util")
 require("script.gui")
 require("script.remote")
@@ -39,7 +40,11 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
 end)
 
 local ev = defines.events
-script.on_event(
+event.register(
   {ev.on_built_entity, ev.on_robot_built_entity, ev.script_raised_built, ev.script_raised_revive},
-  on_built.check_built_entity
+  on_built.check_built_entity,
+  {
+    {filter="type", type="constant-combinator"},
+    {filter="name", name="ltn-combinator", mode="and"}
+  }
 )

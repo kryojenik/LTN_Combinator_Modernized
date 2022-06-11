@@ -6,7 +6,6 @@ local gsettings = settings.global
 function me.check_built_entity(event)
   local built_entity = event.created_entity or event.entity
   if not built_entity then return end
-  if built_entity.type ~= "constant-combinator" or built_entity.name ~= "ltn-combinator" then return end
 
   local ltnc = ltn_combinator:new(built_entity)
   if not ltnc then return end
