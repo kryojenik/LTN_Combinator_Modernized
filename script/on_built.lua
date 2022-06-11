@@ -18,13 +18,10 @@ function me.check_built_entity(event)
     ltnc:set_enabled(false)
   end
   if gsettings["ltnc-emit-default-network-id"].value then
-    local slot = signals["ltn-network-id"].slot
-    local signal = ltnc:get_slot(slot)
-    if not signal.signal then
-      signal = {signal = {type = "virtual", name = "ltn-network-id",},
-                count = signals["ltn-network-id"].default}
+    local netid = ltnc:get("ltn-network-id")
+    if netid == signals["ltn-network-id"].default then
+      ltnc:set("ltn-network-id", netid)
     end
-    ltnc:set_slot(slot, signal)
   end
 end
 
