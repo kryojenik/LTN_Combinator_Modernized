@@ -2,12 +2,16 @@
 Version: 1.0.11
 Date: 2022-06-10
   Changes:
-    - Sort and clean signals on combinator closing
-    - If the "Requester" checkbox is checked types values for Item and Fluids will be converted to negatives.
-    - Default Network ID will explicitly be set on new combinators if keep default net ID setting is enabled.
-        Note: If the LTN default network is changed, explicily set combinators will not change automatically.
-    - Newly built LTN Combinators from blueprints or copy / cut / paste operations will be set to
-      disabled by default.
+    - Sort and remove uneeded signals on combinator closing. (Already done on open).
+    - If the "Requester" checkbox is checked, values for Item and Fluids will be converted
+      to negatives.
+    - Default Network ID will explicitly be set on new combinators if "Explicit default Network ID"
+      setting is enabled. Explicit NetID can be removed by selecting "None" in the config dialog.
+      This will revert to following the LTN configured default implicilty.
+        Note: If the LTN default network is changed, explicily set combinators will not change
+              automatically.
+    - Newly built Requester LTN Combinators from blueprints or copy / cut / paste operations will be
+      set to disabled by default.
     - Remove some dead code
   Features:
     - Add setting to keep default Network ID if explicitly set.
@@ -52,7 +56,8 @@ Version: 1.0.5
 Date: 2021-06-06
   Bugfixes:
     - Crash when adding / editing virtual signals.
-    - Crash when opening fast-replaced combinator when original, regular combinator had more than 14 non-LTN signals.
+    - Crash when opening fast-replaced combinator when original, regular combinator had more than 14
+      non-LTN signals.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.4
 Date: 2021-05-23
@@ -292,7 +297,8 @@ Date: 2019-04-06
   Features:
     - LTN-C now allows stations to be setup as Requester and Provider
   Changes:
-    - Changed next_upgrade to be applied in data-final-fixes. This should fix isses with Nanobots and Squeak through
+    - Changed next_upgrade to be applied in data-final-fixes. This should fix isses with Nanobots
+      and Squeak through
     - In some cases LTN-Cs GUI gets destroyed. It will now be automatically rebuild.
   Bugfixes:
     - Corrected bounds on Priorities, Encoded Network ID and Thresholds
@@ -300,7 +306,8 @@ Date: 2019-04-06
 Version: 0.2.3
 Date: 2019-03-31
   Bugfixes:
-    - Fixed that LTN-T could not find any LTN-Cs connected with a red circuit wire (for real this time)
+    - Fixed that LTN-T could not find any LTN-Cs connected with a red circuit wire
+      (for real this time)
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.2
 Date: 2019-03-31
