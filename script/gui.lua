@@ -142,17 +142,11 @@ function ltnc_gui.Open_Netconfig(player_index)
           netconfig.netconfig_table.children[i].children[2].elem_value = signal
         end
       end
-      --[[
-      if gnd.tip then
-        netconfig.netconfig_table.children[i].children[2].tooltip = gnd.tip
-      end
-      ]]
     end
   end
 
   local pd = ltnc_util.get_player_data(player_index)
   pd.netconfig = netconfig
-  --player.opened = pd.netconfig.net_config
 end -- Open_Netconfig()
 
 -- Display the GUI for the player
@@ -485,6 +479,9 @@ function ltnc_gui.RegisterHandlers()
           if config.ltn_signals[signal] ~= nil then
             min = config.ltn_signals[signal].bounds.min
             max = config.ltn_signals[signal].bounds.max
+          end
+          if signal == "ltn-locked-slots" then
+            max = ltnc_util.get_max_wagon_size()
           end
           ltnc.combinator:set(signal, ltnc_util.clamp(value, min, max))
           if signal == "ltn-network-id" then

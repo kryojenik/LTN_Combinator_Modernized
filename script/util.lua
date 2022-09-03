@@ -52,4 +52,20 @@ function M.clamp(value, min, max)
   return math.max(min, math.min(max, tonumber(value)))
 end
 
+-- Get size of largest cargo-wagon for locked-slots bounding
+function M.get_max_wagon_size()
+  local entity_filters = {}
+  table.insert(entity_filters, {filter = "type", type = "cargo-wagon", mode = "or"})
+  table.insert(entity_filters, {filter = "name", name = "ee-infinity-cargo-wagon", invert = "true", mode = "and"})
+  local cargo_wagons = game.get_filtered_entity_prototypes(entity_filters)
+  local cargo_slots = 0
+  for k,v in pairs(cargo_wagons) do
+    if v.get_inventory_size(defines.inventory.cargo_wagon) > cargo_slots then
+---@diagnostic disable-next-line: cast-local-type
+      cargo_slots = v.get_inventory_size(defines.inventory.cargo_wagon)
+    end
+  end
+  return cargo_slots
+end
+
 return M

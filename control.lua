@@ -4,7 +4,6 @@ print, dlog = require "script.logger" ()
 local config = require("config")
 local on_built = require("script.on_built")
 local event = require("__flib__.event")
-require("script.util")
 require("script.gui")
 require("script.remote")
 
@@ -26,7 +25,7 @@ if settings.global["ltn-stop-default-network"] then
   config.ltn_signals["ltn-network-id"].default = default_networkid
 end
 
-script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
+script.on_event({defines.events.on_runtime_mod_setting_changed}, function(e)
   if e.setting == "ltn-dispatcher-requester-threshold" then
     local threshold = settings.global["ltn-dispatcher-requester-threshold"].value
     config.ltn_signals["ltn-requester-threshold"].default = threshold

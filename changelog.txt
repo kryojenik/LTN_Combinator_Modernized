@@ -5,6 +5,8 @@ Date: ????
     - Fixed a number/string coercion in number formatting
     - Fixed typos in strings - Thanks fournm.
   Changes:
+  Features:
+    - Detect largest cargo-wagon and set ltn-locked-slots upper bound to match.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.11
 Date: 2022-06-10
