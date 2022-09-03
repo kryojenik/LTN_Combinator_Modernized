@@ -36,7 +36,7 @@ function M.format_number(n, append_suffix)
       end
     end
   end
-  local formatted = amount.tostring
+  local formatted = tostring(amount)
   local k
   local gsub = string.gsub
   while true do

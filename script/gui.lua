@@ -408,6 +408,12 @@ function ltnc_gui.RegisterHandlers()
             e.element.locked = false
             e.element.elem_value = nil
             e.element.children[1].caption = ""
+            if ltnc.selected_slot == slot then
+              ltnc.signal_value_confirm.enabled = false
+              ltnc.signal_value_text.enabled = false
+              ltnc.signal_value_stack.enabled = false
+              ltnc.signal_value_slider.enabled = false
+            end
           elseif e.button == defines.mouse_button_type.left and e.element.elem_value then
             ltnc.selected_slot = slot
             change_signal_count(ltnc, e)

@@ -1,10 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.12
-Date: ????
+Date: 2022-09-03
   Bugfixes:
     - Fixed a number/string coercion in number formatting
     - Fixed typos in strings - Thanks fournm.
-  Changes:
+    - Fixed crash when confirming value change when signal was removed.
   Features:
     - Detect largest cargo-wagon and set ltn-locked-slots upper bound to match.
 ---------------------------------------------------------------------------------------------------
