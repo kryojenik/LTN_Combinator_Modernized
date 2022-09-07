@@ -791,13 +791,20 @@ function create_window(player_index, unit_number)
       ltnc[signal_table].add({type="sprite", name="ltnc-sprite__"..name, style="ltnc_entry_sprite", sprite="virtual-signal/"..name})
       ltnc[signal_table].add({type="label", name="ltnc-label__"..name, style="ltnc_entry_label", caption={"virtual-signal-name."..name}})
       if name == "ltn-disable-warnings" then
-          ltnc[signal_table].add({type="checkbox", name="ltnc-element__"..name, style="ltnc_entry_checkbox", state=details.default})
+          ltnc[signal_table].add({
+            type="checkbox",
+            name="ltnc-element__"..name,
+            style="ltnc_entry_checkbox",
+            state=details.default,
+            tooltip={"ltnc-signal-tips.ltn-disable-warnings"}
+          })
       else
         local elem = ltnc[signal_table].add({
           type="textfield",
           name="ltnc-element__"..name,
           style="ltnc_entry_text",
           text=details.default,
+          tooltip=ltnc_util.signal_tooltip(name, details),
           numeric=true,
           allow_decimal=false,
           allow_negative=false,

@@ -68,4 +68,15 @@ function M.get_max_wagon_size()
   return cargo_slots
 end
 
+function M.signal_tooltip(name, d)
+  local max = d.bounds.max
+  if name == "ltn-locked-slots" then
+    max = M.get_max_wagon_size()
+  end
+  return {"",
+          {"ltnc-signal-tips."..name},
+          {"ltnc-signal-tips.zero-value"},
+          {"ltnc-signal-tips.min-max-default",d.bounds.min, max, d.default}}
+end
+
 return M
