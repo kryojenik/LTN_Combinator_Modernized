@@ -1,8 +1,9 @@
 local config = {}
+local startup_settings = settings.startup
 
-config.ltnc_item_slot_count = 28
 config.ltnc_ltn_slot_count  = 14
-config.ltnc_misc_slot_count = 14
+config.ltnc_misc_slot_count = 7 * startup_settings["ltnc-signal-rows"].value
+config.ltnc_item_slot_count = config.ltnc_ltn_slot_count + config.ltnc_misc_slot_count
 
 config.ltn_signals = {
   ["ltn-network-id"]                = {stop_type = "network", default = -1, slot = 1, bounds = {min = -2^31, max = 2^31 - 1}},

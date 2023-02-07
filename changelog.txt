@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.14
+Date: ????
+  Bugfixes:
+    - Typo in English locale
+  Features:
+    - Added setting to configure number of rows allowed for Non-LTN control signals
+---------------------------------------------------------------------------------------------------
 Version: 1.0.13
 Date: 2022-09-07
   Changes:

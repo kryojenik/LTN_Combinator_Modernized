@@ -74,4 +74,12 @@ data:extend({
     setting_type = "startup",
     default_value = false
   },
+  {
+    type = "int-setting",
+    name = "ltnc-signal-rows",
+    order = "sb",
+    setting_type = "startup",
+    default_value = 2,
+    allowed_values = {1,2,3,4,5,6,7,8,9,10}
+  },
 })
