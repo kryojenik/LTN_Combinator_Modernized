@@ -87,14 +87,14 @@ remote.add_interface("ltn-combinator", {
     if game.players[event.player_index] then
       entity = game.players[event.player_index].selected
     end
-
-    if entity == nil or entity.valid ~= true then return end
+    
+    if entity == nil or entity.valid ~= true or entity.name ~= "ltn-combinator" then return end
     remote.call("ltn-combinator", "open_ltn_combinator", event.player_index, entity, true)
   end
 
   local function ltnc_remote_close(event)
     remote.call("ltn-combinator", "close_ltn_combinator", event.player_index)
   end
-
+  script.on_event("ltnc-hotkey", ltnc_remote_open)
   commands.add_command("ltncopen", "Use /ltncopen while hovering an entity to open a near ltn combinator", ltnc_remote_open)
   commands.add_command("ltncclose", "Use /ltncclose to close the opened ltn combinator", ltnc_remote_close)
