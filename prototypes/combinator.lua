@@ -1,12 +1,15 @@
-local config = require("config")
-local ltnc = flib.copy_prototype(data.raw["constant-combinator"]["constant-combinator"], "ltn-combinator")
-ltnc.icon = "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png"
-ltnc.icon_size = 32
-ltnc.icon_mipmaps = nil
-ltnc.next_upgrade = nil
-ltnc.item_slot_count = config.ltnc_item_slot_count
-ltnc.fast_replaceable_group = "constant-combinator"
-ltnc.sprites = make_4way_animation_from_spritesheet(
+local flib = require("__flib__/data-util")
+local config = require("__LTN_Combinator_Modernized__/script/config")
+
+local ltnc_entity = flib.copy_prototype(data.raw["constant-combinator"]["constant-combinator"], "ltn-combinator")
+
+ltnc_entity.icon = "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png"
+ltnc_entity.icon_size = 32
+ltnc_entity.icon_mipmaps = nil
+ltnc_entity.next_upgrade = nil
+ltnc_entity.item_slot_count = config.ltnc_slot_count
+ltnc_entity.fast_replaceable_group = "constant-combinator"
+ltnc_entity.sprites = make_4way_animation_from_spritesheet(
   { layers =
     {
       {
@@ -57,7 +60,7 @@ ltnc_recipe.ingredients = {
 }
 
 data:extend({
-  ltnc,
+  ltnc_entity,
   ltnc_item,
   ltnc_recipe,
 })

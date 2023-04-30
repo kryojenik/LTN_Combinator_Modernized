@@ -1,0 +1,60 @@
+- [ ] Replace const combi - disabling services
+- [ ] Migration doesn't disable requester
+- [ ] Really need to update all players with same combi open
+- [ ] Check net icon from removed mod
+- [ ] Change background of misc signal when it is working slot
+- [ ] Better handeling of pasting signals from Plain Constant combi
+- [ ] Update UI when settings pasted
+- [ ] Make signal sprite a return to default button
+- [ ] Raise / process data changed event
+- [ ] Add access to player config settings
+- [ ] Sort - combine same LTN signals.  Leave misc sigs in same relative slot
+- [ ] Remove global.player_settings for player.settings
+- [ ] Remote interface to get network descriptions
+- [x] Close open sounds
+- [x] Make "anywhere" things require connected to LTN train station
+- [x] Update netid buttons when changed
+  - [ ] Check in multiplayer
+- [x] In map mode, if cusor not empty, don't open
+- [x] Prevent duplicate Net Desc opens
+- [x] Fix opening combi when depot - fields not disabled
+- [x] Necessary Migration to maintain data from old version
+- [x] Broken placing ghost
+- [x] Remote interface to open/close
+- [x] Open anywhere
+- [x] Paste anywhere
+- [x] Disable instead of hide count controls
+- [x] Clamp stack entry to not overflow items
+- [x] Depot removes other signals / hides side panel
+- [x] Blueprint / copy / paste / destroy / revive
+- [x] Provider / Requester mechanisms
+  - [x] Large Threshold
+- [x] Refactor to use event_handler
+- [x] How does script raised destroy come into play?
+- [x] Netowrk Icon / descriptions
+- [x] Close or separate net desc window when ltnc closes
+- [x] Cancel Net Desc Window
+- [x] Negatives not quite right
+- [x] Mouse button filter on buttons network id
+- [x] update tooltip for network ID button - remove SHIFT
+- [x] E to confirm should not be in the tool tip for the commit buttons
+- [x] Description for Setting ltnc-emit-explicit-defualt
+- [x] Tool tips for signals
+- [x] Fix number labels
+- [x] Fix not closing when opening something else
+- [x] Network ID Panel
+- [x] Player setting to auto negative Item/fluid signals
+- [x] Update settings / defaults when mod settings change
+- [x] Do I really need all the items in the player table?
+- [x] _sort
+  - [x] ltn_signals
+  - [x] miscelaneous signals
+- [x] Improve textbox style..
+  - [x] Don't change style on click, wait until change text
+- [x] Cancel button for miscelaneous signals
+- [x] Move misc controls above
+- [x] Make misc controls not visible when not needed
+  - [x] Tab into should still be readable
+- [x] Feature parity of basic signal handeling
+- [x] Depot priority needs to allow negative
+- [ ] Split gui to separate file
