@@ -1,5 +1,3 @@
-- [ ] Replace const combi - disabling services
-- [ ] Migration doesn't disable requester
 - [ ] Really need to update all players with same combi open
 - [ ] Check net icon from removed mod
 - [ ] Change background of misc signal when it is working slot
