@@ -1435,6 +1435,7 @@ local function on_gui_opened(e)
   reset_reach(player)
 end
 
+--- When building a new entity set defaults according to mod settings
 --- @param e BuildEvent
 local function on_built(e)
   local entity = e.created_entity or e.entity or e.destination
@@ -1631,6 +1632,7 @@ local function find_attached_ltn_combinator(entity)
 end -- find_attached_ltn_combinator()
 
 function ltnc.add_commands()
+  --[[
   commands.add_command("dumpcombi", nil, function()
     game.print(serpent.block(global.combinators))
   end)
@@ -1647,6 +1649,27 @@ function ltnc.add_commands()
     end
 
     game.print(string.format("Combi: %d - Name: %s",found.unit_number, found.name))
+  end)
+  ]]
+
+  commands.add_command("ltnc-unset-requester", {"ltnc.unset-requester-help"}, function()
+    local entities = {}
+    for _, surface in pairs(game.surfaces) do
+      entities = table.array_merge({entities, surface.find_entities_filtered({name = "ltn-combinator"})})
+    end
+    for _, entity in ipairs(entities) do
+      local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
+      for i = config.ltnc_ltn_signal_count + 1, config.ltnc_slot_count do
+        --- @cast i uint
+        local signal = ctl.get_signal(i)
+        if signal.signal and signal.count < 0 then
+          goto continue
+        end
+      end
+
+      toggle_service_by_ctl(ctl, "requester", false)
+      ::continue::
+    end
   end)
 end -- add_commands()
 

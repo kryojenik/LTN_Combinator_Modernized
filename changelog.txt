@@ -1,4 +1,22 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.1
+Date: 2023-05-01
+  Bugfixes:
+    - Fixed 2.0.0 migration issue that can result in lost thresholds when placing blueprints from
+      migrated combinators (or copy paste)
+  Features:
+    - Added a command to "disable: the requester service on all combinators that do not have a
+      negative item or fluid signal configured.
+
+      This version of the combinator more accurately reflects how the signals are controlling
+      the station.  The previous versions imperfectly guessed how to display requester / provider
+      services based on signals that were configured.  Now this check box is more deterministic
+      and specifically controls requester and provider thresholds.  Therefore many combinators
+      that appeared to be provider only in previous versions now look like the are both 
+      provider and requester because there is not a high-request threshold set.
+
+      /ltnc-unset-requester
+---------------------------------------------------------------------------------------------------
 Version: 2.0.0
 Date: 2023-04-30
   Bugfixes:
@@ -16,6 +34,10 @@ Date: 2023-04-30
       This sends high thresholds into the station and retains the values so they can be reenabled.
     - I'm sure I've added new bugs in this process.  Please report them and any missing features
       or non-intuitive behavior.
+  Info:
+    - Pulled version 2.0.0 from downloads as it had a major issue that could result
+      in combinator setting loss when copy/pasting or blueprinting from combinators created prior
+      to 2.0.0.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.14
 Date: 2023-02-06
