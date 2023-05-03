@@ -1581,6 +1581,7 @@ local function on_linked_paste_settings(e)
 
   local player = game.get_player(e.player_index)
   if not player or not player.valid
+  or not player.entity_copy_source or not player.entity_copy_source.valid
   or player.entity_copy_source.type ~= "constant-combinator"
   or not player.selected
   or not player.selected.valid then
