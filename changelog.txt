@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 2.0.2
-Date: ????
+Version: 2.0.3
+Date: 2023-05-03
   Bugfixes:
     - Fix crash when pasting after the copy source has been removed. 
+    - Forgot datestamp in changelog..  Bumped version as a result
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.1
 Date: 2023-05-01
