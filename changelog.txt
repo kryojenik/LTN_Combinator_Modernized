@@ -2,7 +2,8 @@
 Version: 2.0.4
 Date: ????
   Bugfixes:
-    - Typo correction.  Thanks Asterixyz
+    - Typos correction.  Thanks Asterixyz
+    - Update description for disable service setting
   Changes:
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.3
