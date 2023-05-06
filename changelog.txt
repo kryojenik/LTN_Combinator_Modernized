@@ -5,6 +5,11 @@ Date: ????
     - Typos correction.  Thanks Asterixyz
     - Update description for disable service setting
   Changes:
+    - Updated setting names and descriptions for disabling station servers when a combinator is
+      built.
+    - Updated Mod Description on portal to better explain how disabling services work and why they
+      work that way.  If the combinator is off these functions don't work and a station will be both
+      a requester and provider.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.3
 Date: 2023-05-03
