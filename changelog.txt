@@ -1,10 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.4
-Date: ????
+Date: 2023-05-07
   Bugfixes:
-    - Typos correction.  Thanks Asterixyz
+    - Typos correction.
     - Update description for disable service settings
     - Blueprints created in pre-2.0 versions of the mod will now properly retain threshold values
+    - Fixed multi-player crash when combinator is removed while someone else has it open.
   Changes:
     - Updated setting names and descriptions for disabling station servers when a combinator is
       built.

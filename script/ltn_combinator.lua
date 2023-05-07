@@ -458,7 +458,7 @@ local function sort_signals(entity)
 end -- sort_signals()
 
 --- Called to close the combinator UI
---- @param input EventData.CustomInputEvent | number This will either be a player_index or an EventData table
+--- @param input EventData.CustomInputEvent | number # This will either be a player_index or an EventData table
 local function close(input)
   --- @type uint
   local ndx
@@ -1599,6 +1599,12 @@ local function on_destroy(e)
 
   if name ~= "ltn-combinator" or not unit_number then
     return
+  end
+
+  for ndx, p in ipairs(global.players) do
+    if p.unit_number == unit_number then
+      close(ndx)
+    end
   end
 
   global.combinators[unit_number] = nil
