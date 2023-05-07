@@ -8,6 +8,14 @@ local M = {}
 ---@type Signal
 M.nilSignal = nil
 
+function M.debug_log(expr)
+  if not __DebugAdapter then
+    return
+  end
+
+  __DebugAdapter.print(expr)
+end
+
 ---Set slider value and stacks textbox value from the items text box
 ---@param player LuaPlayer
 function M.from_items(player)

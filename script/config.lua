@@ -13,6 +13,7 @@ config.slider_max_fluid = 500000
 config.slider_max_stacks = 960
 ---@type int
 config.high_threshold = startup_settings["ltnc-high-threshold"].value --[[@as int]]
+config.old_high_threshold = 50000000
 
 ---@alias LTNSignals
 ---| "ltn-network-id"

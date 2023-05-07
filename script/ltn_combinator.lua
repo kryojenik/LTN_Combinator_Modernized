@@ -10,6 +10,8 @@ local player_data = require("__LTN_Combinator_Modernized__/script/player_data")
 
 local config = require("__LTN_Combinator_Modernized__/script/config")
 
+local dlog = util.debug_log
+
 --- @enum ToggleType
 local tt = {
   bits = 1,
@@ -22,7 +24,7 @@ local tt = {
 ---@return CombinatorData
 local function get_combinator_data(unit_number)
   if not global.combinators[unit_number] then
-    global.combinators[unit_number] = {}
+    global.combinators[unit_number] = {provider = true, requester = true}
   end
   return global.combinators[unit_number]
 end
@@ -397,10 +399,11 @@ local function update_ui(self)
 end -- update_ui()
 
 --- Sort the signals within the combinator.
---- @param self LTNC | LuaEntity
-local function sort_signals(self)
+--- @param entity LuaEntity
+local function sort_signals(entity)
   local needs_sorting = false
-  local ctl = self.control or self.get_control_behavior()
+  local ctl = entity.get_control_behavior()
+  --- @cast ctl LuaConstantCombinatorControlBehavior
 
   -- Validate signal slot locations, If sorting is not needed skip it.
   --- @type uint
@@ -1330,7 +1333,7 @@ local function open_gui(player, entity)
   new_ui.elems = build(player)
   new_ui.elems.entity_preview.entity = new_ui.entity
   new_ui.elems.ltnc_main_window.force_auto_center()
-  sort_signals(new_ui)
+  sort_signals(entity)
   update_ui(new_ui)
 
   pt.uis.main = new_ui
@@ -1435,6 +1438,70 @@ local function on_gui_opened(e)
   reset_reach(player)
 end
 
+--- Create the global data from an existing combinator
+--- This will address Pre-2.0 Blueprints that don't have this data in stored tags.
+---@param entity LuaEntity
+---@return CombinatorData
+local function create_global_data_from_combinator(entity)
+  sort_signals(entity)
+  local ltn_signals = config.ltn_signals
+  local cd = get_combinator_data(entity.unit_number)
+  local ctl = entity.get_control_behavior()
+  --- @cast ctl LuaConstantCombinatorControlBehavior
+  -- If depot is set, all provider and requester signals are ignored.
+  -- Disable requester and provider and clear requester provider signals
+  local sig = ctl.get_signal(ltn_signals["ltn-depot"].slot)
+  if sig.signal and sig.signal.name == "ltn-depot" and sig.count > 0 then
+    cd = { provider = false, requester = false }
+    for signal_name, details in pairs(ltn_signals) do
+      if details.group == "provider" or details.group == "requester" then
+        ctl.set_signal(details.slot, nil)
+      end
+    end
+    goto continue
+  end
+
+  -- Not a depot, save non-zero thresholds into global
+  for _, service in ipairs{ "provider", "requester" } do
+    -- First check if service is "disabled" from high threshold
+    -- The high threshold used in pre-2.0 combinator was 50000000
+    local name = "ltn-" .. service .. "-threshold"
+    sig = ctl.get_signal(config.ltn_signals[name].slot)
+    -- If threshold is above <old_high_threshold> set the service to off
+    -- and set the new high threshold
+    if sig.signal and sig.signal.name == name then
+      -- TODO: Should this be == vs >=
+      if sig.count >= config.old_high_threshold then
+        cd[service] = false
+        ctl.set_signal(config.ltn_signals[name].slot, {
+          signal = { name = name, type = "virtual" },
+          count = config.high_threshold
+        })
+      else
+        --- @type int
+        cd[name] = sig.count
+      end
+    end
+
+    -- Store the stack threshold in global if one exists.
+    name = "ltn-" .. service .. "-stack-threshold"
+    sig = ctl.get_signal(config.ltn_signals[name].slot)
+    -- If stack threshold is set, save it in global
+    -- If the service is "disabled" (high value set in non-stack threshold
+    -- make sure actual stack-threshold signal is removed
+    if sig.signal and sig.signal.name == name and sig.count ~= 0 then
+      --- @type integer
+      cd[name] = sig.count
+      if not cd[service] then
+        ctl.set_signal(config.ltn_signals[name].slot, nil)
+      end
+    end
+  end
+
+  ::continue::
+  return cd
+end
+
 --- When building a new entity set defaults according to mod settings
 --- @param e BuildEvent
 local function on_built(e)
@@ -1446,15 +1513,16 @@ local function on_built(e)
   -- TODO:  Better thinking through.   It is disabling when fast-replacing const combi
 
   -- If tags exist, copy them to global 
-  local cd = e.tags and e.tags["LTNC"] or {} --[[@as CombinatorData]]
-  if next(cd) == nil then
-    -- New, blank combinator, initialize state
-    cd.provider = true
-    cd.requester = true
+  local cd = e.tags and e.tags["LTNC"] or nil
+  --- @cast cd CombinatorData
+
+  if not cd then
+    cd = create_global_data_from_combinator(entity)
   end
 
   global.combinators[entity.unit_number] = cd
-  -- TODO: Disable on blueprint build
+
+  -- Disable services based on mod settings
   local build_disable = settings.global["ltnc-disable-built-combinators"].value
   local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
   if build_disable == "requester" then

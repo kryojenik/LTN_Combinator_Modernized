@@ -6,10 +6,10 @@
 ---@class CombinatorData
 ---@field provider boolean
 ---@field requester boolean
----@field ltn-provider-threshold number
----@field ltn-provider-stack_threshold number
----@field ltn-requester-threshold number
----@field ltn-requester-stack-threshold number
+---@field ltn-provider-threshold number?
+---@field ltn-provider-stack_threshold number?
+---@field ltn-requester-threshold number?
+---@field ltn-requester-stack-threshold number?
 
 local global_data = {}
 

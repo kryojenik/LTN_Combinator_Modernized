@@ -1,5 +1,4 @@
 local config = require("__LTN_Combinator_Modernized__/script/config")
-local old_high_threshold = 50000000
 
 -- Find all the combinators and create an entry in global
 local combinator_count = 0
@@ -19,7 +18,7 @@ for _, surface in pairs(game.surfaces) do
     if sig.signal and sig.signal.name == "ltn-depot" and sig.count > 0 then
       cd = { provider = false, requester = false }
       for signal_name, details in pairs(config.ltn_signals) do
-        if details.group == "provider" or details.group  == "requester" then
+        if details.group == "provider" or details.group == "requester" then
           ctl.set_signal(details.slot, nil)
         end
       end
@@ -35,7 +34,8 @@ for _, surface in pairs(game.surfaces) do
       -- If threshold is above <old_high_threshold> set the service to off
       -- and set the new high threshold
       if sig.signal and sig.signal.name == name then
-        if sig.count >= old_high_threshold then
+        -- TODO: Should this be == vs >=
+        if sig.count >= config.old_high_threshold then
           cd[service] = false
           ctl.set_signal(config.ltn_signals[name].slot, {
             signal = { name = name, type = "virtual" },

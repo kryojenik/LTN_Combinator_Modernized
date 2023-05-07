@@ -3,7 +3,8 @@ Version: 2.0.4
 Date: ????
   Bugfixes:
     - Typos correction.  Thanks Asterixyz
-    - Update description for disable service setting
+    - Update description for disable service settings
+    - Blueprints created in pre-2.0 versions of the mod will now properly retain threshold values
   Changes:
     - Updated setting names and descriptions for disabling station servers when a combinator is
       built.
