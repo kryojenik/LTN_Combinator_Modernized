@@ -589,7 +589,7 @@ misc_signal_confirm = function(self, e)
   local elem = self.elems["misc_signal_slot__" .. ws.index]
   local name = elem.elem_value.name
   local type = elem.elem_value.type
-  if pt.settings["ltnc-negative-signals"] and value > 0 
+  if pt.settings["ltnc-negative-signals"] and value > 0
     and (type == "item" or type == "fluid") then
     value = value * -1
   end
