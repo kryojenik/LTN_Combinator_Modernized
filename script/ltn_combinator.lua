@@ -1533,6 +1533,22 @@ local function on_built(e)
     toggle_service_by_ctl(ctl, "provider", false)
     toggle_service_by_ctl(ctl, "requester", false)
   end
+
+  -- If there is no signal for stack thresholds, set them based on train length
+  local max_train_length = get_ltn_signal_from_control(ctl, "ltn-max-train-length")
+
+  if not max_train_length.is_default then
+      local provider_stack_threshold = get_ltn_signal_from_control(ctl, "ltn-provider-stack-threshold")
+      local requester_stack_threshold = get_ltn_signal_from_control(ctl, "ltn-requester-stack-threshold")
+
+      if provider_stack_threshold.is_default then
+          set_ltn_signal_by_control(ctl, max_train_length.value * 40, "ltn-provider-stack-threshold")
+      end
+      if requester_stack_threshold.is_default then
+          set_ltn_signal_by_control(ctl, max_train_length.value * 40, "ltn-requester-stack-threshold")
+      end
+  end
+  
 end -- on_built()
 
 --- @param e EventData.on_player_setup_blueprint
