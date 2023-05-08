@@ -1,7 +1,8 @@
 local flib_gui = require("__flib__/gui-lite")
-local table = require("__flib__/table")
 local flib_format = require("__flib__/format")
 local flib_position = require("__flib__/position")
+local table = require("__flib__/table")
+local math = require("__flib__/math")
 
 local util = require("__LTN_Combinator_Modernized__/script/util")
 local netui = require("__LTN_Combinator_Modernized__/script/network_descriptions")
@@ -202,7 +203,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   local signal = {}
   signal.count = value
   signal.signal = { name = ltn_signal_name, type = "virtual" }
-  
+
   -- Set the non-default values
   if signal.count ~= ltn_signals[ltn_signal_name].default then
     ctl.set_signal(config.ltn_signals[ltn_signal_name].slot, signal)
@@ -239,13 +240,16 @@ local function reset_ui_misc_signal_contols(self)
   if not ws then
     return
   end
-  
+
   ws.slider.enabled = false
+  ws.slider.slider_value = 0
   ws.stacks.enabled = false
+  ws.stacks.text = ""
   ws.items.enabled = false
+  ws.items.text = ""
   ws.confirm.enabled = false
   ws.cancel.enabled = false
-  
+
   pt.working_slot = nil
 end -- reset_misc_signal_contols()
 
@@ -583,9 +587,10 @@ misc_signal_confirm = function(self, e)
   local pt = global.players[e.player_index]
   local ws = pt.working_slot
   local value = tonumber(ws.items.text)
-  if not value then
+  if not value or value < math.min_int or value > math.max_int then
     return
   end
+
   local elem = self.elems["misc_signal_slot__" .. ws.index]
   local name = elem.elem_value.name
   local type = elem.elem_value.type
@@ -593,6 +598,7 @@ misc_signal_confirm = function(self, e)
     and (type == "item" or type == "fluid") then
     value = value * -1
   end
+
   set_misc_signal(
     self,
     {count = value, signal = { name = name, type = type}},
@@ -605,6 +611,8 @@ end, -- misc_signal_confirm()
 --- @param e EventData.on_gui_click
 --- @param self LTNC
 misc_signal_cancel = function(self, e)
+  local ws = global.players[e.player_index].working_slot
+  update_ui_misc_signal(self, ws.index)
   reset_ui_misc_signal_contols(self)
 end,
 
@@ -617,6 +625,21 @@ end, -- misc_signal_stacks_text_changed()
 --- @param e EventData.on_gui_text_changed
 --- @param self LTNC
 misc_signal_items_text_chaged = function(self, e)
+  if not e.element or not e.element.text then
+    return
+  end
+
+  local value = tonumber(e.element.text)
+  if not value then
+    return
+  end
+
+  if value < math.min_int or value > math.max_int then
+    e.element.style = "ltnc_entry_text_invaid_value"
+  else
+    e.element.style = "ltnc_entry_text"
+  end
+
   util.from_items(self.player)
 end, -- misc_signal_items_text_changed()
 

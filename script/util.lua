@@ -41,6 +41,7 @@ function M.from_stacks(player)
   value = math.clamp(value * ws.stack_size, math.min_int, math.max_int)
   value = value < 0 and math.ceiled(value, ws.stack_size) or  math.floored(value, ws.stack_size)
   ws.items.text = tostring(value)
+  ws.items.style = "ltnc_entry_text"
   ws.slider.slider_value = math.abs(value)
 end -- M.from_stacks()
 
@@ -51,6 +52,7 @@ function M.from_slider(player)
   local value = ws.slider.slider_value
   ws.stacks.text = tostring(value / ws.stack_size)
   ws.items.text = tostring(value)
+  ws.items.style = "ltnc_entry_text"
 end --M.from_slider()
 
 ---Encode the Network ID from the buttons that are enabled
