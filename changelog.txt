@@ -4,6 +4,7 @@ Date: ????
   Bugfixes:
     - Fixed crash when entering misc signal values outside bounds of signed int (#37)
     - Fixed misc signal input values not getting cleared when confirming or resetting input (#38)
+    - Fixed initial item / stacks were fractional stacks (#39)
   Changes:
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.4

@@ -297,14 +297,6 @@ local function open_ui_misc_signal_edit_controls(self, slot)
     return
   end
 
-  if not cur.signal then
-    -- Must be setting up a new signal slot
-    cur.signal = {}
-    local elem = self.elems["misc_signal_slot__" .. slot]
-    cur.signal.name = elem.elem_value.name
-    cur.signal.type = elem.elem_value.type
-  end
-
   -- Record the slot player is working with in global so that values can be
   -- updated with later events
   ws = {}
@@ -326,6 +318,17 @@ local function open_ui_misc_signal_edit_controls(self, slot)
   ws.confirm.enabled = true
   ws.cancel.enabled = true
 
+  local is_new = false
+  if not cur.signal then
+    -- Must be setting up a new signal slot
+    local elem = self.elems["misc_signal_slot__" .. slot]
+    cur.signal = {
+      name = elem.elem_value.name,
+      type = elem.elem_value.type
+    }
+    is_new = true
+  end
+
   if cur.signal.type == "item" then
     ws.stack_size = game.item_prototypes[cur.signal.name].stack_size
     ws.stacks.enabled = true
@@ -338,16 +341,24 @@ local function open_ui_misc_signal_edit_controls(self, slot)
     slider_max = config.slider_max_fluid
     slider_increment = 1000
   end
+
   ws.items.text = tostring(cur.count)
+  ws.stacks.text = "1"
   ws.slider.set_slider_minimum_maximum(0, slider_max)
   ws.slider.set_slider_value_step(slider_increment)
-  util.from_items(self.player)
 
   if cur.signal.type == "item" and pt.settings["ltnc-use-stacks"] then
+    if is_new then
+      util.from_stacks(self.player)
+    else
+      util.from_items(self.player)
+    end
+
     ws.stacks.enabled = true
     ws.stacks.focus()
     ws.stacks.select_all()
   else
+    util.from_items(self.player)
     ws.stacks.enabled = false
     ws.items.focus()
     ws.items.select_all()
@@ -656,11 +667,13 @@ misc_signal_elem_changed = function(self, e)
   if not elem.elem_value then
     return
   end
+
   if table.find(config.bad_signals, elem.elem_value.name) then
     game.print({"ltnc.bad-signal", elem.elem_value.name})
     elem.elem_value = nil
     return
   end
+
   local _, _, slot = string.find(elem.name, "__(%d+)")
   slot = tonumber(slot) --[[@as uint]]
   open_ui_misc_signal_edit_controls(self, slot)
