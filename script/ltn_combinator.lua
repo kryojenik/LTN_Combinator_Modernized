@@ -1703,6 +1703,46 @@ local function on_linked_paste_settings(e)
   and not player.can_reach_entity(dest) then
     increase_reach(player, dest)
   end
+end -- on_linked_paste_settings
+
+local function on_upgrade(e)
+  local event = e
+end
+
+--- Handle pasting a rotatated ghost over an existing ghost
+---@param e EventData.on_pre_build
+local function on_pre_build(e)
+  local player = game.get_player(e.player_index)
+  if not player or not player.valid then
+    return
+  end
+
+-- If holding ltn-combinator or ghost of ltn-combinator
+-- if position has a ghost of an ltn combinator and the direction is different than the hand
+-- change the direction of the ghost-entity on the surface
+--- @type LuaItemStack | LuaItemPrototype | string
+local cs = player.cursor_stack
+if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
+  goto found
+end
+
+cs = player.cursor_ghost
+if cs and cs.name == "ltn-combinator" then
+  goto found
+end
+
+do
+  return
+end
+
+::found::
+local entities = player.surface.find_entities_filtered{position = e.position, ghost_name = "ltn-combinator"}
+
+if not next(entities) or entities[1].direction == e.direction then
+  return
+end
+
+entities[1].direction = e.direction
 end
 
 --- @class LTNC
@@ -1743,26 +1783,6 @@ local function find_attached_ltn_combinator(entity)
 end -- find_attached_ltn_combinator()
 
 function ltnc.add_commands()
-  --[[
-  commands.add_command("dumpcombi", nil, function()
-    game.print(serpent.block(global.combinators))
-  end)
-  commands.add_command("findcombi", nil, function(e)
-    local entity = game.get_player(e.player_index).selected
-    if not entity or not entity.valid then
-      return
-    end
-
-    local found = find_attached_ltn_combinator(entity)
-    if not found or not found.valid then
-      game.print("LTN Combinator not found!")
-      return
-    end
-
-    game.print(string.format("Combi: %d - Name: %s",found.unit_number, found.name))
-  end)
-  ]]
-
   commands.add_command("ltnc-unset-requester", {"ltnc.unset-requester-help"}, function()
     local entities = {}
     for _, surface in pairs(game.surfaces) do
@@ -1843,6 +1863,14 @@ ltnc.events = {
   [defines.events.on_entity_settings_pasted] = on_settings_pasted,
   ["ltnc-linked-open-gui"] = on_linked_open_gui,
   ["ltnc-linked-paste-settings"] = on_linked_paste_settings,
+  [defines.events.on_marked_for_upgrade] = on_upgrade,
+  [defines.events.on_pre_ghost_upgraded] = on_upgrade,
+  [defines.events.on_cancelled_upgrade] = on_upgrade,
+  [defines.events.on_robot_pre_mined] = on_upgrade,
+  [defines.events.on_pre_build] = on_pre_build,
+  [defines.events.on_pre_ghost_deconstructed] = on_upgrade,
+  [defines.events.on_pre_player_mined_item] = on_upgrade,
+  [defines.events.on_entity_cloned] = on_upgrade,
 }
 
 return ltnc
