@@ -162,4 +162,40 @@ function M.find_connected_entity(find_name, start_list, max_depth)
   return walk_entities(find_name, start_list, 0)
 end
 
+local shift = 0x1000000
+local normalize = 1000000
+
+--- Pack a position into 42 bits.  This will give plenty of space for
+--- the fullly possible factorio map of 2,000,000 x 2,000,000 tiles
+--- with half tile resolution.
+--- @param expr { x: number, y: number } | number[]
+--- @return integer # Return 0 if not a valid coordinate
+function M.pack_position(expr)
+  local x = expr.x or expr[1]
+  local y = expr.y or expr[2]
+  if not x or not y then
+    return 0
+  end
+
+  -- Normalize and double to handle positions in the middle of tiles
+  x = (x + normalize) * 2
+  y = (y + normalize) * 2
+  -- Shift x coordinate to the high 24 bits (x << 24) + y
+  return x * shift + y
+end -- pack_position()
+
+--- Unpack an integer representation of a tile location
+--- @param posint integer
+--- @return { x: number, y: number } # Return origin if posint == nil
+function M.unpack_position(posint)
+if not posint then
+  return { x = 0, y = 0 }
+end
+
+return {
+  x = math.floor(posint / shift) / 2 - normalize,
+  y = math.floor(posint % shift) / 2 - normalize
+}
+end -- unpack_position()
+
 return M
