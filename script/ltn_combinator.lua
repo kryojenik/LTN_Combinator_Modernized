@@ -1536,7 +1536,7 @@ local function create_global_data_from_combinator(entity)
 
   ::continue::
   return cd
-end
+end -- create_global_data_from_combinator()
 
 --- When building a new entity set defaults according to mod settings
 --- @param e BuildEvent
@@ -1551,6 +1551,12 @@ local function on_built(e)
   -- If tags exist, copy them to global 
   local cd = e.tags and e.tags["LTNC"] or nil
   --- @cast cd CombinatorData
+  local pos_int = util.pack_position(entity.position)
+  local ocd = global.replacements[pos_int]
+  if ocd then
+    cd = ocd
+    global.replacements[pos_int] = nil
+  end
 
   if not cd then
     cd = create_global_data_from_combinator(entity)
@@ -1628,6 +1634,15 @@ local function on_destroy(e)
 
   local name = entity.name
   local unit_number = entity.unit_number
+  -- Keep track of additional data from global if this ltn-combinator is being replaced by andother
+  -- ltn-combinator (i.e. being rotated by a robot)
+  if e.name == defines.events.on_robot_mined_entity and name == "ltn-combinator"
+  and entity.to_be_upgraded() and entity.get_upgrade_target().name == "ltn-combinator"
+  and entity.direction ~= entity.get_upgrade_direction() then
+    local ocd = global.combinators[entity.unit_number]
+    global.replacements[util.pack_position(entity.position)] = ocd
+  end
+
   if name == "entity-ghost" then
     name = entity.ghost_name
     unit_number = entity.ghost_unit_number
@@ -1717,33 +1732,33 @@ local function on_pre_build(e)
     return
   end
 
--- If holding ltn-combinator or ghost of ltn-combinator
--- if position has a ghost of an ltn combinator and the direction is different than the hand
--- change the direction of the ghost-entity on the surface
---- @type LuaItemStack | LuaItemPrototype | string
-local cs = player.cursor_stack
-if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
-  goto found
-end
+  -- If holding ltn-combinator or ghost of ltn-combinator
+  -- if position has a ghost of an ltn combinator and the direction is different than the hand
+  -- change the direction of the ghost-entity on the surface
+  --- @type LuaItemStack | LuaItemPrototype | string
+  local cs = player.cursor_stack
+  if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
+    goto found
+  end
 
-cs = player.cursor_ghost
-if cs and cs.name == "ltn-combinator" then
-  goto found
-end
+  cs = player.cursor_ghost
+  if cs and cs.name == "ltn-combinator" then
+    goto found
+  end
 
-do
-  return
-end
+  do
+    return
+  end
 
-::found::
-local entities = player.surface.find_entities_filtered{position = e.position, ghost_name = "ltn-combinator"}
+  ::found::
+  local entities = player.surface.find_entities_filtered{position = e.position, ghost_name = "ltn-combinator"}
 
-if not next(entities) or entities[1].direction == e.direction then
-  return
-end
+  if not next(entities) or entities[1].direction == e.direction then
+    return
+  end
 
-entities[1].direction = e.direction
-end
+  entities[1].direction = e.direction
+end -- on_pre_build()
 
 --- @class LTNC
 --- @field entity LuaEntity
@@ -1861,16 +1876,9 @@ ltnc.events = {
   [defines.events.script_raised_destroy] = on_destroy,
   [defines.events.on_post_entity_died] = on_post_died,
   [defines.events.on_entity_settings_pasted] = on_settings_pasted,
+  [defines.events.on_pre_build] = on_pre_build,
   ["ltnc-linked-open-gui"] = on_linked_open_gui,
   ["ltnc-linked-paste-settings"] = on_linked_paste_settings,
-  [defines.events.on_marked_for_upgrade] = on_upgrade,
-  [defines.events.on_pre_ghost_upgraded] = on_upgrade,
-  [defines.events.on_cancelled_upgrade] = on_upgrade,
-  [defines.events.on_robot_pre_mined] = on_upgrade,
-  [defines.events.on_pre_build] = on_pre_build,
-  [defines.events.on_pre_ghost_deconstructed] = on_upgrade,
-  [defines.events.on_pre_player_mined_item] = on_upgrade,
-  [defines.events.on_entity_cloned] = on_upgrade,
 }
 
 return ltnc

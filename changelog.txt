@@ -4,8 +4,8 @@ Date: ????
   Info:
     - *** Potential loss of request signals - please check your mod settings        ***
       *** Only impacts users that changed the default number of signal rows pre-2.0 ***
-          Apparently setting values are note moved during the migratinon scripts
-          The number of signal rows setting changed name when migrating to 2.0 and reverts to the
+          Apparently setting values are not moved during the migratinon scripts
+          The number of signal rows setting changed names when migrating to 2.0 and reverts to the
           deffault value of 2.  If you had a larger number pre-2.0, please check your settings
           before loading loading / saveing your game.  Making sure the new setting is large enough
           will avoid a loss of request signals.  Version 2.0 defaults to 2 rows of 10 signals while
@@ -14,6 +14,7 @@ Date: ????
     - Fixed crash when entering misc signal values outside bounds of signed int (#37)
     - Fixed misc signal input values not getting cleared when confirming or resetting input (#38)
     - Fixed initial item / stacks were fractional stacks (#39)
+    - Fixed robots rotating combinators loosing settings (#35)
   Changes:
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.4

@@ -1,10 +1,7 @@
-local config = require("__LTN_Combinator_Modernized__/script/config")
 local global_data = require("__LTN_Combinator_Modernized__/script/global_data")
 local player_data = require("__LTN_Combinator_Modernized__/script/player_data")
 
 local old_global = global or {}
-
-local old_high_threshold = 50000000
 
 global = {}
 global_data.init()

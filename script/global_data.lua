@@ -20,6 +20,8 @@ function global_data.init()
   global.network_descriptions = {}
   ---@type CombinatorData[]
   global.combinators = {}
+  ---@type CombinatorData[]
+  global.replacements = {}
 end
 
 return global_data
