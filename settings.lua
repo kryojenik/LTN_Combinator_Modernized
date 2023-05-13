@@ -88,7 +88,7 @@ data:extend({
     order = "mc",
     setting_type = "runtime-global",
     default_value = "requester",
-    allowed_values = {"none", "requester", "provider", "all"}
+    allowed_values = {"none", "requester", "provider", "all", "off"}
   },
   -- Runtime User Settings
   {

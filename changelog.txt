@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.5
-Date: ????
+Date: 2023-05-13
   Info:
     - *** Potential loss of request signals - please check your mod settings        ***
       *** Only impacts users that changed the default number of signal rows pre-2.0 ***
@@ -17,13 +17,14 @@ Date: ????
       threshold setting will be retained even when you disable a function and restored when you
       re-enable the fuction.  This will result in a different visual appearance (cheked/unchecked)
       than pre-2.0 versions.
-
   Bugfixes:
     - Fixed crash when entering misc signal values outside bounds of signed int (#37)
     - Fixed misc signal input values not getting cleared when confirming or resetting input (#38)
     - Fixed initial item / stacks were fractional stacks (#39)
     - Fixed robots rotating combinators loosing settings (#35)
-  Changes:
+  Features:
+    - Readded ability to have combinators placed in a "Powered Off" state vs. "Powered On" with
+      services "Disabled"  Thanks Dominiquini and Credomane for helping me see the use case.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.4
 Date: 2023-05-07

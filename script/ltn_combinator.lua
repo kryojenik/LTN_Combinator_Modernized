@@ -1567,7 +1567,9 @@ local function on_built(e)
   -- Disable services based on mod settings
   local build_disable = settings.global["ltnc-disable-built-combinators"].value
   local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
-  if build_disable == "requester" then
+  if build_disable == "off" then
+    ctl.enabled = false
+  elseif build_disable == "requester" then
     toggle_service_by_ctl(ctl, "requester", false)
   elseif build_disable == "provider" then
     toggle_service_by_ctl(ctl, "provider", false)
