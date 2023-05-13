@@ -10,6 +10,14 @@ Date: ????
           before loading loading / saveing your game.  Making sure the new setting is large enough
           will avoid a loss of request signals.  Version 2.0 defaults to 2 rows of 10 signals while
           pre-2.0 the default was 2 rows of 7 signals.
+    - Note on Provider and Requester checkboxes:  LTN does not make a distinction between these two
+      functions.  A station will ALLWAYS be able to Request and Provide materials.  These
+      Checkboxes control the Request and Provide Thresholds.  Disabled (unchecked) and the threshold
+      will be set high (2^32-1). Enabled (checked) and the threshold will be as you set it.  Your
+      threshold setting will be retained even when you disable a function and restored when you
+      re-enable the fuction.  This will result in a different visual appearance (cheked/unchecked)
+      than pre-2.0 versions.
+
   Bugfixes:
     - Fixed crash when entering misc signal values outside bounds of signed int (#37)
     - Fixed misc signal input values not getting cleared when confirming or resetting input (#38)

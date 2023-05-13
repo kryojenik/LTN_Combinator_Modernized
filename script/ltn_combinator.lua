@@ -28,7 +28,7 @@ local function get_combinator_data(unit_number)
     global.combinators[unit_number] = {provider = true, requester = true}
   end
   return global.combinators[unit_number]
-end
+end -- get_combinator_data()
 
 --- Retreive an LTN signal from specified entity 
 --- If it is not set, return the default value
@@ -59,7 +59,7 @@ end -- get_ltn_signal
 --- @param ctl LuaConstantCombinatorControlBehavior
 local function is_depot(ctl)
   return get_ltn_signal_from_control(ctl, "ltn-depot").value > 0 and true or false
-end
+end -- is_depot()
 
 --- Enable or disable the edit elements in the provider / requester sections.
 ---@param self LTNC
@@ -75,12 +75,12 @@ local function toggle_ui_req_prov_panels(self, set_enable)
     local chkbox = self.elems["check__" .. service]
     chkbox.enabled =set_enable
   end
-end
+end -- toggle_ui_req_prov_panels()
 
 local function update_ui_network_id_label(self, netid)
   local label = self.elems["label__ltn-network-id"]
   label.caption = { "ltnc.encode-net-id", flib_format.number(netid, false) }
-end
+end -- update_ui_network_id_label()
 
 --- Parse the Network ID and populate the bitfield editor
 --- @param self LTNC
@@ -625,7 +625,7 @@ misc_signal_cancel = function(self, e)
   local ws = global.players[e.player_index].working_slot
   update_ui_misc_signal(self, ws.index)
   reset_ui_misc_signal_contols(self)
-end,
+end, -- misc_signal_cancel
 
 --- @param e EventData.on_gui_text_changed
 --- @param self LTNC
@@ -818,13 +818,13 @@ ltn_signal_textbox_confirmed = function(self, e)
     set_ltn_signal(self, value, name)
   end
   update_ui_ltn_signal(self, name)
-end,
+end, -- ltn_signal_textbox_confirmed()
 
 --- @param e EventData.CustomInputEvent
 --- @param self LTNC
 close_ltnc_ui = function(self, e)
   close(e)
-end,
+end, -- close_ltnc_ui()
 }
 
 flib_gui.add_handlers(handlers, function(e, handler)
@@ -1472,7 +1472,7 @@ local function on_gui_opened(e)
 
   open_gui(player, entity)
   reset_reach(player)
-end
+end -- on_gui_opened()
 
 --- Create the global data from an existing combinator
 --- This will address Pre-2.0 Blueprints that don't have this data in stored tags.
@@ -1719,10 +1719,6 @@ local function on_linked_paste_settings(e)
     increase_reach(player, dest)
   end
 end -- on_linked_paste_settings
-
-local function on_upgrade(e)
-  local event = e
-end
 
 --- Handle pasting a rotatated ghost over an existing ghost
 ---@param e EventData.on_pre_build
