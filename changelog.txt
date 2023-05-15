@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.6
+Date: 2023-05-15
+  Bugfixes:
+    - Added missing locale string help for /ltnc-unset-requester
+  Changes:
+    - Added a debug output file in script-out.  There have been a few reports of a crash in
+      multi-player that I haven't been able to reproduce, or track down the source.  If these
+      conditions present again it will dump some data from this mod to a file and print a message
+      on the screen instead of crashing.  If you run into this, please provide the file it creates
+      and a description of what you were doing when it happend, who-else was online, if they were
+      working with any combinators, anything that could help reproduce the conditions.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.5
 Date: 2023-05-13
   Info:

@@ -597,12 +597,32 @@ end, -- network_id_toggle()
 misc_signal_confirm = function(self, e)
   local pt = global.players[e.player_index]
   local ws = pt.working_slot
+  -- Trying to track down a bug and prevent crashes
+  if not ws then
+    game.write_file("ltnc-modernized.out",
+        game.tick .. " " .. e.player_index .. " " .. script.active_mods["LTN_Combinator_Modernized"] .. ":\n" ..  serpent.block(global) .. "\n",
+        true)
+    game.print("An error with LNT Combinator Modernized occured.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
+    reset_ui_misc_signal_contols(self)
+    return
+  end
+  
   local value = tonumber(ws.items.text)
   if not value or value < math.min_int or value > math.max_int then
     return
   end
 
   local elem = self.elems["misc_signal_slot__" .. ws.index]
+  -- Trying to track down a bug and prevent crashes
+  if not elem or not elem.elem_value then
+    game.write_file("ltnc-modernized.out",
+        game.tick .. " " .. e.player_index .. " " .. script.active_mods["LTN_Combinator_Modernized"] .. ":\n" ..  serpent.block(global) .. "\n",
+        true)
+    game.print("An error with LNT Combinator Modernized occured.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
+    reset_ui_misc_signal_contols(self)
+    return
+  end
+
   local name = elem.elem_value.name
   local type = elem.elem_value.type
   if pt.settings["ltnc-negative-signals"] and value > 0
@@ -1457,7 +1477,7 @@ local function on_linked_open_gui(e)
   end
 end -- on_linked_open_gui()
 
---- Handle opening the custom GUI to replace the builtin one when it opend.
+--- Handle opening the custom GUI to replace the builtin one when it opens.
 --- @param e EventData.on_gui_opened
 local function on_gui_opened(e)
   local player = game.get_player(e.player_index)
