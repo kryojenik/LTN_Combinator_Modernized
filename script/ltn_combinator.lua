@@ -1633,11 +1633,23 @@ local function on_player_removed(e)
   global.players[e.player_index] = nil
 end -- on_player_removed()
 
+--- @param e EventData.on_player_created
 local function on_player_created(e)
   local player = game.get_player(e.player_index) --[[@as LuaPlayer]]
   player_data.init(player)
 end -- on_player_created()
 
+--- @param e EventData.on_player_joined_game
+local function on_player_joined(e)
+  local pt = global.players[e.player_index]
+  if pt.uis.main or pt.uis.netui then
+    -- bug hunting
+    log(string.format("[LTNC] Closing existing LTNC UIs for: %s as they're joining.\n", game.get_player(e.player_index).name))
+    close(e.player_index)
+  end
+end -- on_player_joined()
+
+--- @param e EventData.on_runtime_mod_setting_changed
 local function on_settings_changed(e)
   if e.setting_type == "runtime-per-user" then
     player_setting_changed(e.setting, e.player_index)
@@ -1800,6 +1812,19 @@ function ltnc.on_load()
   for k, _ in pairs(ltn_setting_to_signal) do
     runtime_setting_changed(k)
   end
+  -- Bug hunting
+  for i, pt in pairs(global.players) do
+    if pt.uis.main then
+      local ws = pt.working_slot and pt.working_slot.index or nil
+      local unit = pt.unit_number
+      local logstring =
+        string.format(
+          "[LTNC] Player index %d has an LTNC UI open in global. Unit: %s, WS: %s\n",
+          i, tostring(unit), tostring(ws)
+        )
+      log(logstring)
+    end
+  end
 end -- on_load()
 
 --- Find closest LTN combinator on a circuit network attached to this entity
@@ -1884,6 +1909,7 @@ ltnc.events = {
   [defines.events.on_gui_opened] = on_gui_opened,
   [defines.events.on_player_removed] = on_player_removed,
   [defines.events.on_player_created] = on_player_created,
+  [defines.events.on_player_joined_game] = on_player_joined,
   [defines.events.on_built_entity] = on_built,
   [defines.events.on_entity_cloned] = on_built,
   [defines.events.on_robot_built_entity] = on_built,
