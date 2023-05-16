@@ -13,7 +13,7 @@ local net_ui = {}
 local function update_ui(self)
   local gni = global.network_descriptions[self.network]
   if gni then
-    if gni.icon then
+    if gni.icon and self.elems.icon.gui.is_valid_sprite_path(gni.icon) then
       local _, _, type, name = string.find(gni.icon, "(.*)/(.*)")
       
       ---@type SignalID

@@ -1,5 +1,4 @@
 - [ ] Really need to update all players with same combi open
-- [ ] Check net icon from removed mod
 - [ ] Change background of misc signal when it is working slot
 - [ ] Better handeling of pasting signals from Plain Constant combi
 - [ ] Update UI when settings pasted
@@ -9,6 +8,7 @@
 - [ ] Sort - combine same LTN signals.  Leave misc sigs in same relative slot
 - [ ] Remove global.player_settings for player.settings
 - [ ] Remote interface to get network descriptions
+- [x] Check net icon from removed mod
 - [x] Close open sounds
 - [x] Make "anywhere" things require connected to LTN train station
 - [x] Update netid buttons when changed

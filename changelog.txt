@@ -3,6 +3,8 @@ Version: 2.0.6
 Date: 2023-05-15
   Bugfixes:
     - Added missing locale string help for /ltnc-unset-requester
+    - Attempt to avoid an elusive crash bug with some additional validation.
+    - Re-fix crash if Network Description Icon is from a mod you removed.  (#5)
   Changes:
     - Added a debug output file in script-out.  There have been a few reports of a crash in
       multi-player that I haven't been able to reproduce, or track down the source.  If these
