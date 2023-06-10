@@ -1438,7 +1438,8 @@ local function on_linked_open_gui(e)
   end
 
   local entity = player.selected
-  if not entity or not entity.valid then
+  if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
+    log("Trying to open a non-LTN Combinator too quickly after opening LTN combinator (latency)")
     return
   end
 

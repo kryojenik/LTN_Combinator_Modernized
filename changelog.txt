@@ -4,6 +4,8 @@ Date: ????
   Bugfixes:
     - Several spelling errors corrected in en locale
     - Fix not disabling signal edit controls when modifying stop type
+    - Fix crash when switching entities while LTN Combinator is opening in map view and latency
+      to the game server exists.
   Changes:
     - Will not remove signals when converting to depot by default.   Hold Shift when clicking depot
       checkbox to remove Requester/Provider related signals
