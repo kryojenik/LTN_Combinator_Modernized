@@ -3,7 +3,10 @@ Version: 2.0.7
 Date: ????
   Bugfixes:
     - Several spelling errors corrected in en locale
+    - Fix not disabling signal edit controls when modifying stop type
   Changes:
+    - Will not remove signals when converting to depot by default.   Hold Shift when clicking depot
+      checkbox to remove Requester/Provider related signals
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.6
 Date: 2023-05-15
@@ -16,7 +19,7 @@ Date: 2023-05-15
       multi-player that I haven't been able to reproduce, or track down the source.  If these
       conditions present again it will dump some data from this mod to a file and print a message
       on the screen instead of crashing.  If you run into this, please provide the file it creates
-      and a description of what you were doing when it happend, who-else was online, if they were
+      and a description of what you were doing when it happened, who-else was online, if they were
       working with any combinators, anything that could help reproduce the conditions.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.5
@@ -24,10 +27,10 @@ Date: 2023-05-13
   Info:
     - *** Potential loss of request signals - please check your mod settings        ***
       *** Only impacts users that changed the default number of signal rows pre-2.0 ***
-          Apparently setting values are not moved during the migratinon scripts
+          Apparently setting values are not moved during the migration scripts
           The number of signal rows setting changed names when migrating to 2.0 and reverts to the
-          deffault value of 2.  If you had a larger number pre-2.0, please check your settings
-          before loading loading / saveing your game.  Making sure the new setting is large enough
+          default value of 2.  If you had a larger number pre-2.0, please check your settings
+          before loading loading / saving your game.  Making sure the new setting is large enough
           will avoid a loss of request signals.  Version 2.0 defaults to 2 rows of 10 signals while
           pre-2.0 the default was 2 rows of 7 signals.
     - Note on Provider and Requester checkboxes:  LTN does not make a distinction between these two

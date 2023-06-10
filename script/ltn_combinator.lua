@@ -234,24 +234,24 @@ local function get_misc_signal(self, slot)
 end -- get_misc_signal()
 
 --- @param self LTNC
-local function reset_ui_misc_signal_controls(self)
+local function close_ui_misc_signal_edit_controls(self)
+  local elems = self.elems
   local pt = global.players[self.player.index]
-  local ws = pt.working_slot
-  if not ws then
+  if not elems then
     return
   end
 
-  ws.slider.enabled = false
-  ws.slider.slider_value = 0
-  ws.stacks.enabled = false
-  ws.stacks.text = ""
-  ws.items.enabled = false
-  ws.items.text = ""
-  ws.confirm.enabled = false
-  ws.cancel.enabled = false
+  elems.misc_signal_slider.enabled = false
+  elems.misc_signal_slider.slider_value = 0
+  elems.text_entry__stacks.enabled = false
+  elems.text_entry__stacks.text = ""
+  elems.text_entry__item_fluid.enabled = false
+  elems.text_entry__item_fluid.text = ""
+  elems.signal_quantity_confirm.enabled = false
+  elems.signal_quantity_cancel.enabled = false
 
   pt.working_slot = nil
-end -- reset_misc_signal_controls()
+end -- close_misc_signal_edit_controls()
 
 --- Populate a specific miscellaneous signal slot
 --- @param slot uint
@@ -275,6 +275,7 @@ end -- update_misc_signal()
 --- Populate the miscellaneous signal table
 --- @param self LTNC
 local function update_ui_all_misc_signals(self)
+  close_ui_misc_signal_edit_controls(self)
   --- @type uint
   for i = 1, config.ltnc_misc_signal_count do
     update_ui_misc_signal(self, i)
@@ -597,13 +598,9 @@ end, -- network_id_toggle()
 misc_signal_confirm = function(self, e)
   local pt = global.players[e.player_index]
   local ws = pt.working_slot
-  -- Trying to track down a bug and prevent crashes
+  -- Prevent a crash is somehow the working slot becomes invalid 
   if not ws then
-    game.write_file("ltnc-modernized.out",
-        game.tick .. " " .. e.player_index .. " " .. script.active_mods["LTN_Combinator_Modernized"] .. ":\n" ..  serpent.block(global) .. "\n",
-        true)
-    game.print("An error with LNT Combinator Modernized occurred.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
-    reset_ui_misc_signal_controls(self)
+    close_ui_misc_signal_edit_controls(self)
     return
   end
   
@@ -613,13 +610,9 @@ misc_signal_confirm = function(self, e)
   end
 
   local elem = self.elems["misc_signal_slot__" .. ws.index]
-  -- Trying to track down a bug and prevent crashes
+  -- Prevent a crash if somehow the element is no longer valid and the edit controls are still open
   if not elem or not elem.elem_value then
-    game.write_file("ltnc-modernized.out",
-        game.tick .. " " .. e.player_index .. " " .. script.active_mods["LTN_Combinator_Modernized"] .. ":\n" ..  serpent.block(global) .. "\n",
-        true)
-    game.print("An error with LNT Combinator Modernized occurred.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
-    reset_ui_misc_signal_controls(self)
+    close_ui_misc_signal_edit_controls(self)
     return
   end
 
@@ -636,7 +629,7 @@ misc_signal_confirm = function(self, e)
     ws.index + config.ltnc_ltn_signal_count
   )
   update_ui_misc_signal(self, ws.index)
-  reset_ui_misc_signal_controls(self)
+  close_ui_misc_signal_edit_controls(self)
 end, -- misc_signal_confirm()
 
 --- @param e EventData.on_gui_click
@@ -644,7 +637,7 @@ end, -- misc_signal_confirm()
 misc_signal_cancel = function(self, e)
   local ws = global.players[e.player_index].working_slot
   update_ui_misc_signal(self, ws.index)
-  reset_ui_misc_signal_controls(self)
+  close_ui_misc_signal_edit_controls(self)
 end, -- misc_signal_cancel
 
 --- @param e EventData.on_gui_text_changed
@@ -710,7 +703,7 @@ misc_signal_clicked = function(self, e)
     elem.locked = false
     clear_misc_signal(self, slot)
     update_ui_misc_signal(self, slot)
-    reset_ui_misc_signal_controls(self)
+    close_ui_misc_signal_edit_controls(self)
   elseif e.button == defines.mouse_button_type.left then
     -- Left click.  If the slot has a signal we don't want choose a new one, just update the value.
     if not elem.locked then
@@ -761,32 +754,34 @@ ltn_checkbox_state_change = function(self, e)
   set_ltn_signal(self, value, name)
 end, -- ltn_checkbox_state_change()
 
---- @param e EventData.on_gui_checked_state_changed
+--- @param e EventData.on_gui_click
 --- @param self LTNC
 ltn_depot_toggle = function(self, e)
   if not e.element then
     return
   end
 
+  if e.shift then
+    -- Remove and disable signals associated with requesters and providers
+    for signal, details in pairs(config.ltn_signals) do
+      if details.group == "provider" or details.group == "requester" then
+        set_ltn_signal(self, 0, signal )
+      end
+    end
+    e.element.state = true
+  end
+
   local value = 0
   if e.element.state then
     value = 1
-    toggle_service(self, "provider", not e.element.state)
-    toggle_service(self, "requester", not e.element.state)
+    toggle_service(self, "provider", false)
+    toggle_service(self, "requester", false)
   end
 
   set_ltn_signal(self, value, "ltn-depot")
   -- element.state is true if we made the station a depot.  Therefore the req/prov panels should
   -- be disabled (not e.element.state)
   toggle_ui_req_prov_panels(self, not e.element.state)
-
-  -- Remove and disable signals associated with requesters and providers
-  for signal, details in pairs(config.ltn_signals) do
-    if details.group == "provider" or details.group == "requester" then
-      set_ltn_signal(self, 0, signal )
-      --update_ui_ltn_signal(self, signal)
-    end
-  end
 
   update_ui(self)
 end, -- ltn_depot_toggle()
@@ -1211,7 +1206,8 @@ local function build(player)
               ),
               check_box(
                 "ltn-depot",
-                { [defines.events.on_gui_checked_state_changed] = handlers.ltn_depot_toggle },
+                { [defines.events.on_gui_click] = handlers.ltn_depot_toggle },
+                --{ [defines.events.on_gui_checked_state_changed] = handlers.ltn_depot_toggle },
                 { "ltnc.depot" },
                 { "ltnc-signal-tips.ltn-depot" }
               ),
