@@ -34,11 +34,11 @@ Date: 2023-05-13
           will avoid a loss of request signals.  Version 2.0 defaults to 2 rows of 10 signals while
           pre-2.0 the default was 2 rows of 7 signals.
     - Note on Provider and Requester checkboxes:  LTN does not make a distinction between these two
-      functions.  A station will ALLWAYS be able to Request and Provide materials.  These
+      functions.  A station will ALWAYS be able to Request and Provide materials.  These
       Checkboxes control the Request and Provide Thresholds.  Disabled (unchecked) and the threshold
       will be set high (2^32-1). Enabled (checked) and the threshold will be as you set it.  Your
       threshold setting will be retained even when you disable a function and restored when you
-      re-enable the fuction.  This will result in a different visual appearance (cheked/unchecked)
+      re-enable the function.  This will result in a different visual appearance (checked/unchecked)
       than pre-2.0 versions.
   Bugfixes:
     - Fixed crash when entering misc signal values outside bounds of signed int (#37)
@@ -46,7 +46,7 @@ Date: 2023-05-13
     - Fixed initial item / stacks were fractional stacks (#39)
     - Fixed robots rotating combinators loosing settings (#35)
   Features:
-    - Readded ability to have combinators placed in a "Powered Off" state vs. "Powered On" with
+    - Re-added ability to have combinators placed in a "Powered Off" state vs. "Powered On" with
       services "Disabled"  Thanks Dominiquini and Credomane for helping me see the use case.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.4
@@ -133,13 +133,13 @@ Date: 2022-09-03
 Version: 1.0.11
 Date: 2022-06-10
   Changes:
-    - Sort and remove uneeded signals on combinator closing. (Already done on open).
+    - Sort and remove unneeded signals on combinator closing. (Already done on open).
     - If the "Requester" checkbox is checked, values for Item and Fluids will be converted
       to negatives.
     - Default Network ID will explicitly be set on new combinators if "Explicit default Network ID"
       setting is enabled. Explicit NetID can be removed by selecting "None" in the config dialog.
-      This will revert to following the LTN configured default implicilty.
-        Note: If the LTN default network is changed, explicily set combinators will not change
+      This will revert to following the LTN configured default implicitly.
+        Note: If the LTN default network is changed, explicitly set combinators will not change
               automatically.
     - Newly built Requester LTN Combinators from blueprints or copy / cut / paste operations will be
       set to disabled by default.
@@ -151,13 +151,13 @@ Date: 2022-06-10
 Version: 1.0.10
 Date: 2022-1-8
   Bugfixes:
-    - Fix a crash in network id encoding pane when cliking Net IDs if the value in the text field
+    - Fix a crash in network id encoding pane when clicking Net IDs if the value in the text field
       is not a valid number.
   Features:
     - Setting to make all placed LTN Combinators disabled as they are placed.
       Thanks Nico for the contribution.
   Changes:
-    - Display the encoded netowrk ID on the main panel.
+    - Display the encoded network ID on the main panel.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.9
 Date: 2021-11-17
@@ -202,7 +202,7 @@ Date: 2021-05-23
 Version: 1.0.3
 Date: 2021-05-14
   Bugfixes:
-    - Crash on load if loading save where LTN Combi has not previously been created.
+    - Crash on load if loading save where LTN Combinator has not previously been created.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.2
 Date: 2021-05-14
@@ -253,7 +253,7 @@ Date: 2021-1-30
 Version: 0.9.7
 Date: 2021-1-30
   Bugfixes:
-    - Crash when openining a combinator if the Mod was already enable when a new game was created
+    - Crash when opening a combinator if the Mod was already enable when a new game was created
 ---------------------------------------------------------------------------------------------------
 Version: 0.9.5
 Date: 2021-1-25
@@ -272,9 +272,9 @@ Date: 2021-1-25
 Version: 0.9.4
 Date: 2021-1-17
   Changes:
-    - Use provider threshhold default settings from LTN
+    - Use provider threshold default settings from LTN
   Bugfixes:
-    - Doesn't reliably detect combined Requester/Provider condfiguration
+    - Doesn't reliably detect combined Requester/Provider configuration
       It will still show up as a provider only if no requests are configured and all the requester
       signals are still default.
     - Fixed some LTN signal values not updating in UI as they are changed.
@@ -282,9 +282,9 @@ Date: 2021-1-17
 Version: 0.8.4
 Date: 2021-1-17
   Changes:
-    - Use provider threshhold default settings from LTN
+    - Use provider threshold default settings from LTN
   Bugfixes:
-    - Doesn't reliably detect combined Requester/Provider condfiguration
+    - Doesn't reliably detect combined Requester/Provider configuration
       It will still show up as a provider only if no requests are configured and all the requester
       signals are still default.
     - Fixed some LTN signal values not updating in UI as they are changed.
@@ -299,13 +299,13 @@ Version: 0.8.3
 Date: 2021-1-15
   Features:
     - First release backported to Factorio 1.0 (based on 0.9.2 for Factorio 1.1)
-    - Complete GUI rewite to modernize interface
+    - Complete GUI rewrite to modernize interface
     - Added tooltips to signal table
     - Added description to the "Upgrade constant combinator" setting
   Changes:
     - Items marked with '[9.0]' should have been included in previous version notes
     - GUI can be moved around on the screen by dragging the title bar
-    - Slider increments by stack size of the selected outut signal
+    - Slider increments by stack size of the selected output signal
     - Slider increments absolute value.  Actually applied value is negative
   Bugfixes:
     - Element Choose Buttons are not locked after initial selection
@@ -317,7 +317,7 @@ Date: 2021-1-10
     - Added tooltips to signal table
     - Added description to the "Upgrade constant combinator" setting
   Changes:
-    - Reodered Entity Preview and Network ID.  Looks better...
+    - Reordered Entity Preview and Network ID.  Looks better...
     - Moved the Network ID to the Encoding panel.
   Bugfixes:
     - Fix some crashes on invalid data entry
@@ -327,7 +327,7 @@ Date: 2020-12-24
   Changes:
     - Items marked with '[9.0]' should have been included in previous version notes
     - [9.0] GUI can be moved around on the screen by dragging the title bar
-    - [9.0] Slider increments by stack size of the selected outut signal
+    - [9.0] Slider increments by stack size of the selected output signal
     - [9.0] Slider increments absolute value.  Actually applied value is negative
   Bugfixes:
     - Missing 'x' on Close button, a missing '✓' on confirm button
@@ -337,9 +337,9 @@ Date: 2020-12-24
 Version: 0.9.0
 Date: 2020-12-23
   Features:
-    - Complete GUI rewite to modernize interface
+    - Complete GUI rewrite to modernize interface
     - Network ID UI not created yet.  Need to modify manually
-    - Still a beta release, please notifiy of issues
+    - Still a beta release, please notify of issues
 ---------------------------------------------------------------------------------------------------
 Version: 0.7.0
 Date: 2020-12-13
@@ -428,7 +428,7 @@ Date: 2019-04-06
   Features:
     - LTN-C now allows stations to be setup as Requester and Provider
   Changes:
-    - Changed next_upgrade to be applied in data-final-fixes. This should fix isses with Nanobots
+    - Changed next_upgrade to be applied in data-final-fixes. This should fix issues with Nanobots
       and Squeak through
     - In some cases LTN-Cs GUI gets destroyed. It will now be automatically rebuild.
   Bugfixes:
