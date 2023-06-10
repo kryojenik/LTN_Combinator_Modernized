@@ -30,9 +30,9 @@ local function get_combinator_data(unit_number)
   return global.combinators[unit_number]
 end -- get_combinator_data()
 
---- Retreive an LTN signal from specified entity 
+--- Retrieve an LTN signal from specified entity 
 --- If it is not set, return the default value
---- @param ltn_signal_name LTNSignals @ The signal name being retreived
+--- @param ltn_signal_name LTNSignals @ The signal name being retrieved
 --- @param ctl LuaConstantCombinatorControlBehavior
 --- @return {value: integer, is_default: boolean}
 local function get_ltn_signal_from_control(ctl, ltn_signal_name)
@@ -40,15 +40,15 @@ local function get_ltn_signal_from_control(ctl, ltn_signal_name)
   local default = config.ltn_signals[ltn_signal_name].default
   local signal = ctl.get_signal(slot)
   if signal.signal then
-    return { value = signal.count, is_defualt = false }
+    return { value = signal.count, is_default = false }
   else
     return { value = default, is_default = true }
   end
 end -- get_ltn_signal_from_control()
 
---- Retreive an LTN signal from combinator representd by this table 
+--- Retrieve an LTN signal from combinator represented by this table 
 --- If it is not set, return the default value
---- @param ltn_signal_name LTNSignals @ The signal name being retreived
+--- @param ltn_signal_name LTNSignals @ The signal name being retrieved
 --- @param self LTNC
 --- @return {value: integer, is_default: boolean}
 local function get_ltn_signal(self, ltn_signal_name)
@@ -146,7 +146,7 @@ local function update_ui_ltn_signal(self, ltn_signal_name)
   end
 end -- update_ltn_signal()
 
---- Populate the LTN signals into their respecitve UI elements
+--- Populate the LTN signals into their respective UI elements
 --- @param self LTNC
 local function update_ui_all_ltn_signals(self)
   for ltn_signal, _ in pairs(config.ltn_signals) do
@@ -154,7 +154,7 @@ local function update_ui_all_ltn_signals(self)
   end
 end -- update_ltn_signals()
 
--- Checks if request/provide is enabled and returns the approriate value to set on the combinator
+-- Checks if request/provide is enabled and returns the appropriate value to set on the combinator
 --- @param unit_number uint Entity unit number
 --- @param name LTNSignals LTN Threshold Signal name
 --- @param value integer Real threshold to store in global
@@ -193,7 +193,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
     end
   end
 
-  -- Remove the signal if it is zero or non-existant
+  -- Remove the signal if it is zero or non-existent
   if not value or value == 0 then
     ctl.set_signal(config.ltn_signals[ltn_signal_name].slot, util.nilSignal)
     return
@@ -224,7 +224,7 @@ local function set_ltn_signal(self, value, ltn_signal_name)
   set_ltn_signal_by_control(self.control, value, ltn_signal_name)
 end -- set_ltn_signal()
 
---- Retreive a miscelaneous signal from the combinator
+--- Retrieve a miscellaneous signal from the combinator
 --- @param slot uint @ The slot to get data from
 --- @param self LTNC
 --- @return Signal
@@ -234,7 +234,7 @@ local function get_misc_signal(self, slot)
 end -- get_misc_signal()
 
 --- @param self LTNC
-local function reset_ui_misc_signal_contols(self)
+local function reset_ui_misc_signal_controls(self)
   local pt = global.players[self.player.index]
   local ws = pt.working_slot
   if not ws then
@@ -251,9 +251,9 @@ local function reset_ui_misc_signal_contols(self)
   ws.cancel.enabled = false
 
   pt.working_slot = nil
-end -- reset_misc_signal_contols()
+end -- reset_misc_signal_controls()
 
---- Populate a specific miscelaneous signal slot
+--- Populate a specific miscellaneous signal slot
 --- @param slot uint
 --- @param self LTNC
 local function update_ui_misc_signal(self, slot)
@@ -272,7 +272,7 @@ local function update_ui_misc_signal(self, slot)
   end
 end -- update_misc_signal()
 
---- Populate the miscelaneous signal table
+--- Populate the miscellaneous signal table
 --- @param self LTNC
 local function update_ui_all_misc_signals(self)
   --- @type uint
@@ -335,7 +335,7 @@ local function open_ui_misc_signal_edit_controls(self, slot)
     slider_max = config.slider_max_stacks * ws.stack_size
     slider_increment = ws.stack_size
   else
-    ws.stack_size = 1 --fluids and virtuals don't have stacks
+    ws.stack_size = 1 -- fluid and virtual signals don't have stacks
     ws.stacks.enabled = false
     -- TODO: Base on user setting on multiples of chosen tank type?
     slider_max = config.slider_max_fluid
@@ -365,7 +365,7 @@ local function open_ui_misc_signal_edit_controls(self, slot)
   end
 end -- open_misc_signal_edit_controls()
 
---- Clear a miscelaneous signal slot
+--- Clear a miscellaneous signal slot
 --- @param slot uint
 --- @param self LTNC
 local function clear_misc_signal(self, slot)
@@ -432,7 +432,7 @@ local function sort_signals(entity)
       if type == "virtual" and config.ltn_signals[name] ~= nil then
         -- Signals with a value of 0 are not emitted on the wire.
         -- In the case of an LTN, absence of a control signal will result in the LTN default
-        -- being used.  Remove LTN signals with a vaule of 0 to remove ambiguity.
+        -- being used.  Remove LTN signals with a value of 0 to remove ambiguity.
         if signal.count == 0 then
           ctl.set_signal(i, util.nilSignal)
         else
@@ -443,7 +443,7 @@ local function sort_signals(entity)
         needs_sorting = i <= config.ltnc_ltn_signal_count --or needs_sorting
       end
     end
-    -- No need to check all the signals if we found one requring sorting.
+    -- No need to check all the signals if we found one requiring sorting.
     if needs_sorting then break end
   end
 
@@ -517,7 +517,7 @@ local function runtime_setting_changed(name)
     = settings.global[name].value --[[@as number]]
 end -- runtime_setting_changed()
 
---- Update the player runtime setting cache in global if the player changes thier settings
+--- Update the player runtime setting cache in global if the player changes their settings
 --- @param name string The setting that was changed
 --- @param player_index uint Index of the player that changed their setting
 local function player_setting_changed(name, player_index)
@@ -602,8 +602,8 @@ misc_signal_confirm = function(self, e)
     game.write_file("ltnc-modernized.out",
         game.tick .. " " .. e.player_index .. " " .. script.active_mods["LTN_Combinator_Modernized"] .. ":\n" ..  serpent.block(global) .. "\n",
         true)
-    game.print("An error with LNT Combinator Modernized occured.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
-    reset_ui_misc_signal_contols(self)
+    game.print("An error with LNT Combinator Modernized occurred.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
+    reset_ui_misc_signal_controls(self)
     return
   end
   
@@ -618,8 +618,8 @@ misc_signal_confirm = function(self, e)
     game.write_file("ltnc-modernized.out",
         game.tick .. " " .. e.player_index .. " " .. script.active_mods["LTN_Combinator_Modernized"] .. ":\n" ..  serpent.block(global) .. "\n",
         true)
-    game.print("An error with LNT Combinator Modernized occured.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
-    reset_ui_misc_signal_contols(self)
+    game.print("An error with LNT Combinator Modernized occurred.  Please submit the ltnc-modernized.out file found in your script-out folder to the author.")
+    reset_ui_misc_signal_controls(self)
     return
   end
 
@@ -636,7 +636,7 @@ misc_signal_confirm = function(self, e)
     ws.index + config.ltnc_ltn_signal_count
   )
   update_ui_misc_signal(self, ws.index)
-  reset_ui_misc_signal_contols(self)
+  reset_ui_misc_signal_controls(self)
 end, -- misc_signal_confirm()
 
 --- @param e EventData.on_gui_click
@@ -644,7 +644,7 @@ end, -- misc_signal_confirm()
 misc_signal_cancel = function(self, e)
   local ws = global.players[e.player_index].working_slot
   update_ui_misc_signal(self, ws.index)
-  reset_ui_misc_signal_contols(self)
+  reset_ui_misc_signal_controls(self)
 end, -- misc_signal_cancel
 
 --- @param e EventData.on_gui_text_changed
@@ -655,7 +655,7 @@ end, -- misc_signal_stacks_text_changed()
 
 --- @param e EventData.on_gui_text_changed
 --- @param self LTNC
-misc_signal_items_text_chaged = function(self, e)
+misc_signal_items_text_changed = function(self, e)
   if not e.element or not e.element.text then
     return
   end
@@ -666,7 +666,7 @@ misc_signal_items_text_chaged = function(self, e)
   end
 
   if value < math.min_int or value > math.max_int then
-    e.element.style = "ltnc_entry_text_invaid_value"
+    e.element.style = "ltnc_entry_text_invalid_value"
   else
     e.element.style = "ltnc_entry_text"
   end
@@ -710,7 +710,7 @@ misc_signal_clicked = function(self, e)
     elem.locked = false
     clear_misc_signal(self, slot)
     update_ui_misc_signal(self, slot)
-    reset_ui_misc_signal_contols(self)
+    reset_ui_misc_signal_controls(self)
   elseif e.button == defines.mouse_button_type.left then
     -- Left click.  If the slot has a signal we don't want choose a new one, just update the value.
     if not elem.locked then
@@ -799,7 +799,7 @@ ltn_signal_textbox_changed = function(self, e)
   local name = string.match(elem.name, "__(.*)$")
   -- value == nil is still valid - results in removing the signal and reverting to LTN default
   if not util.is_valid(name, value) then
-    elem.style = "ltnc_entry_text_invaid_value"
+    elem.style = "ltnc_entry_text_invalid_value"
     return
   end
 
@@ -813,7 +813,7 @@ ltn_signal_textbox_changed = function(self, e)
   if name == "ltn-network-id" then
     update_ui_network_id_buttons(self)
   end
-end, -- ltn_signignal_textbox_click()
+end, -- ltn_signal_textbox_click()
 
 --- @param e EventData.on_gui_click
 --- @param self LTNC
@@ -969,7 +969,7 @@ local function ltn_signals_by_group(group)
 end -- ltn_signals_by_group()
 
 --- Render a panel of LTN signal for the given group
---- @param group LTNGroups @ The group of singnals disired
+--- @param group LTNGroups @ The group of signals desired
 --- @return GuiElemDef
 local function ltn_signal_panel(group)
   return {
@@ -992,7 +992,7 @@ local function ltn_signal_panel(group)
   }
 end -- ltn_signal_panel()
 
---- Render GuiElemDef for the miscelaneous signal slot buttons
+--- Render GuiElemDef for the miscellaneous signal slot buttons
 --- @param slot_count integer @ Number of signal slots to build
 --- @return GuiElemDef
 local function misc_signal_buttons(slot_count)
@@ -1002,7 +1002,7 @@ local function misc_signal_buttons(slot_count)
     buttons[i] = {
       type = "choose-elem-button",
       name = "misc_signal_slot__" .. tostring(i),
-      sytle = "flib_slot_button_default",
+      style = "flib_slot_button_default",
       elem_type = "signal",
       handler = {
         [defines.events.on_gui_elem_changed] = handlers.misc_signal_elem_changed,
@@ -1019,7 +1019,7 @@ local function misc_signal_buttons(slot_count)
   return buttons
 end -- misc_signal_button()
 
---- Generate the butons for the network encoder UI
+--- Generate the buttons for the network encoder UI
 --- @param buttons uint
 --- @return GuiElemDef
 local function net_encode_toggle_buttons(buttons)
@@ -1285,7 +1285,7 @@ local function build(player)
                 lose_focus_on_confirm = true,
                 clear_and_focus_on_right_click = true,
                 handler = {
-                  [defines.events.on_gui_text_changed] = handlers.misc_signal_items_text_chaged,
+                  [defines.events.on_gui_text_changed] = handlers.misc_signal_items_text_changed,
                   [defines.events.on_gui_confirmed] = handlers.misc_signal_confirm,
                 },
               },
@@ -1329,7 +1329,7 @@ local function build(player)
             style = "ltnc_header_label",
             caption = { "ltnc.output-signals" }
           },
-          { -- Miscelaneous signal table
+          { -- Miscellaneous signal table
             type = "frame",
             direction = "vertical",
             style = "slot_button_deep_frame",
@@ -1377,7 +1377,7 @@ local function open_gui(player, entity)
       return
     end
 
-    --  Opening a different LTN Combinator, need to fisrt close the existing before opening the new.
+    --  Opening a different LTN Combinator, need to first close the existing before opening the new.
     close(player.index)
   end
 
@@ -1427,7 +1427,7 @@ local function reset_reach(player)
   pt.original_reach_bonus = nil
 end -- reset_reach()
 
---- Open GUI if on the map or temporarily increase reach if trying to open and LNTC
+--- Open GUI if on the map or temporarily increase reach if trying to open and LTNC
 --- out of normal reach range since this is a train control system.
 --- Similar behavior as train-stops.
 --- @param e EventData.CustomInputEvent
@@ -1462,7 +1462,7 @@ local function on_linked_open_gui(e)
   end
 
   -- Increase the players reach if they are not in map mode and the LTN Combinator is out of
-  -- thier reach.  Then let the game open the gui.  Reach needs to be reset in the open function.
+  -- their reach.  Then let the game open the gui.  Reach needs to be reset in the open function.
   if player.render_mode == defines.render_mode.game and not player.can_reach_entity(entity) then
     if player.cursor_stack and player.cursor_stack.valid_for_read then
       return
@@ -1566,7 +1566,7 @@ local function on_built(e)
     return
   end
 
-  -- TODO:  Better thinking through.   It is disabling when fast-replacing const combi
+  -- TODO:  Better thinking through.   It is disabling when fast-replacing const combinator
 
   -- If tags exist, copy them to global 
   local cd = e.tags and e.tags["LTNC"] or nil
@@ -1627,7 +1627,7 @@ local function on_player_setup_blueprint(e)
     ::continue::
   end
 
-end -- on_plyaer_setup_blueprint()
+end -- on_player_setup_blueprint()
 
 local function on_player_removed(e)
   global.players[e.player_index] = nil
@@ -1668,7 +1668,7 @@ local function on_destroy(e)
 
   local name = entity.name
   local unit_number = entity.unit_number
-  -- Keep track of additional data from global if this ltn-combinator is being replaced by andother
+  -- Keep track of additional data from global if this ltn-combinator is being replaced by another
   -- ltn-combinator (i.e. being rotated by a robot)
   if e.name == defines.events.on_robot_mined_entity and name == "ltn-combinator"
   and entity.to_be_upgraded() and entity.get_upgrade_target().name == "ltn-combinator"
@@ -1754,7 +1754,7 @@ local function on_linked_paste_settings(e)
   end
 end -- on_linked_paste_settings
 
---- Handle pasting a rotatated ghost over an existing ghost
+--- Handle pasting a rotated ghost over an existing ghost
 ---@param e EventData.on_pre_build
 local function on_pre_build(e)
   local player = game.get_player(e.player_index)

@@ -3,7 +3,7 @@
 ---@field uis {main: LTNC, netui: NetUI} @ Custom UIs for the mod
 ---@field unit_number uint
 ---@field main_elems table<string, LuaGuiElement> @ GuiElemDef Elems of LtncUI
----@field working_slot WorkingSlot @ Current miscelaneous signal slot player is working with
+---@field working_slot WorkingSlot @ Current miscellaneous signal slot player is working with
 ---@field settings table @ State of settings
 ---@field original_reach_bonus uint
 

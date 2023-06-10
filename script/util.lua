@@ -166,7 +166,7 @@ local shift = 0x1000000
 local normalize = 1000000
 
 --- Pack a position into 42 bits.  This will give plenty of space for
---- the fullly possible factorio map of 2,000,000 x 2,000,000 tiles
+--- the fully possible factorio map of 2,000,000 x 2,000,000 tiles
 --- with half tile resolution.
 --- @param expr { x: number, y: number } | number[]
 --- @return integer # Return 0 if not a valid coordinate

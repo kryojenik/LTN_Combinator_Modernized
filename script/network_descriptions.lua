@@ -191,7 +191,7 @@ function net_ui.open_single(e, callback)
 
 end
 
----Close the description editior
+---Close the description editor
 ---@param self NetUI
 ---@param input uint | GuiEventData
 function net_ui.close(self, input)
