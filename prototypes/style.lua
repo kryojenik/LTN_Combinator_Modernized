@@ -77,7 +77,7 @@ styles.ltnc_entry_text_not_transmitted = {
   font_color = {255, 1, 1},
 }
 
-styles.ltnc_entry_text_invaid_value = {
+styles.ltnc_entry_text_invalid_value = {
   type = "textbox_style",
   parent = "invalid_value_short_number_textfield",
   minimal_width = 108,
