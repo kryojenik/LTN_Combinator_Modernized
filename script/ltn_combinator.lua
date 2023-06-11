@@ -129,10 +129,10 @@ local function update_ui_signal_reset(self, ltn_signal_name, is_default)
   local elem = self.elems["ltn_signal_reset__" .. ltn_signal_name]
   if is_default then
     elem.enabled = false
-    elem.tooltip = { "ltnc.signal-is-default" }
+    elem.tooltip = { "ltnc-tooltips.signal-is-default" }
   else
     elem.enabled = true
-    elem.tooltip = { "ltnc.signal-not-default" }
+    elem.tooltip = { "ltnc-tooltips.signal-not-default" }
   end
 end -- update_ui_signal_reset()
 
@@ -890,6 +890,15 @@ ltn_signal_textbox_confirmed = function(self, e)
   update_ui_ltn_signal(self, name)
 end, -- ltn_signal_textbox_confirmed()
 
+--- @param e EventData.on_gui_click
+--- @param self LTNC
+reset_ltn_signal = function(self, e)
+  local name = string.match(e.element.name, "__(.*)$")
+  set_ltn_signal(self, 0, name)
+  update_ui_ltn_signal(self, name)
+  update_ui_signal_reset(self, name, true)
+end,  -- reset_ltn_signal()
+
 --- @param e EventData.CustomInputEvent
 --- @param self LTNC
 close_ltnc_ui = function(self, e)
@@ -1035,7 +1044,7 @@ local function ltn_signal_panel(group)
   return {
     type = "flow",
     direction = "vertical",
-    { type = "label", style = "ltnc_header_label", caption = { "ltnc." .. group } },
+    { type = "label", style = "ltnc_header_label", caption = { "ltnc." .. group .. "-heading" } },
     {
       type = "frame",
       direction = "vertical",
