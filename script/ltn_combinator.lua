@@ -101,11 +101,13 @@ local function update_ui_network_id_buttons(self, type)
     else
       btns[i].style = type == tt.on and "ltnc_net_id_button_pressed" or "ltnc_net_id_button"
     end
+
     if gni[i] then
       if gni[i].icon and btns[i].gui.is_valid_sprite_path(gni[i].icon) then
         btns[i].sprite = gni[i].icon
         btns[i].caption = ""
       end
+
       if gni[i].tip then
         btns[i].tooltip = { "", gni[i].tip, "\n\n", { "ltnc.net-description-tip" } }
       end
@@ -113,36 +115,81 @@ local function update_ui_network_id_buttons(self, type)
   end
 end -- update_ui_network_id_buttons()
 
+--- Setup the signal reset button associated with each LTN Signal
+--- @param self LTNC
+--- @param ltn_signal_name LTNSignals
+--- @param is_default boolean # Is the named signal the default value
+local function update_ui_signal_reset(self, ltn_signal_name, is_default)
+  if ltn_signal_name == "ltn-depot"
+  or ltn_signal_name == "ltn-network-id"
+  or ltn_signal_name == "ltn-depot-priority" then
+    return
+  end
+
+  local elem = self.elems["ltn_signal_reset__" .. ltn_signal_name]
+  if is_default then
+    elem.enabled = false
+    elem.tooltip = { "ltnc.signal-is-default" }
+  else
+    elem.enabled = true
+    elem.tooltip = { "ltnc.signal-not-default" }
+  end
+end -- update_ui_signal_reset()
+
 --- Populate a specific LTN Signal in the UI
 --- @param ltn_signal_name LTNSignals @ LTN Signal to populate
 --- @param self LTNC
 local function update_ui_ltn_signal(self, ltn_signal_name)
-  local elem = self.elems["text_entry__" .. ltn_signal_name]
   local ret = get_ltn_signal(self, ltn_signal_name)
+  local transmitted = true
+  --- @type LuaGuiElement
+  local elem
 
   if ltn_signal_name == "ltn-depot" or ltn_signal_name == "ltn-disable-warnings" then
     elem = self.elems["check__" .. ltn_signal_name]
     elem.state = ret.value > 0 and true or false
-  else
-    elem.style = "ltnc_entry_text"
-    if string.match(ltn_signal_name, "%-threshold$") then
-      local cd = get_combinator_data(self.entity.unit_number)
-      local req_prov = string.match(ltn_signal_name, "ltn%-(.-)%-")
-      if not cd[req_prov] then
-        elem.style = "ltnc_entry_text_not_transmitted"
-        ret.value = cd[ltn_signal_name] and cd[ltn_signal_name] or config.ltn_signals[ltn_signal_name].default
+    update_ui_signal_reset(self, ltn_signal_name, ret.is_default)
+    return
+  end
+
+  elem = self.elems["text_entry__" .. ltn_signal_name]
+  elem.style = "ltnc_entry_text"
+
+  -- Handle threshold values that are maintained even when Request Provide is disabled
+  if string.match(ltn_signal_name, "%-threshold$") then
+    local cd = get_combinator_data(self.entity.unit_number)
+    local req_prov = string.match(ltn_signal_name, "ltn%-(.-)%-")
+
+    if not cd[req_prov] then
+      if cd[ltn_signal_name] then
+        ret.value = cd[ltn_signal_name]
         ret.is_default = false
+      else
+        ret.value = config.ltn_signals[ltn_signal_name].default
+        ret.is_default = true
       end
-    end
 
-    if ret.is_default then
-      elem.style = "ltnc_entry_text_default_value"
+      transmitted = ret.value == 0
     end
+  end
 
-    elem.text = tostring(ret.value)
-    if ltn_signal_name == "ltn-network-id" then
-      update_ui_network_id_label(self, ret.value)
-    end
+  elem.text = tostring(ret.value)
+  update_ui_signal_reset(self, ltn_signal_name, ret.is_default)
+  
+  -- Set text box style
+  if ret.is_default then
+    elem.style = "ltnc_entry_text_default_value"
+  end
+  
+  -- Special style for Thresholds that are saved, but not emitted on the signal wire because the
+  -- Request or Provide service is disabled for the combinator.  MAX_INT is emitted instead.
+  if not transmitted then
+    elem.style = "ltnc_entry_text_not_transmitted"
+  end
+
+  -- Update Network ID configuration buttons
+  if ltn_signal_name == "ltn-network-id" then
+    update_ui_network_id_label(self, ret.value)
   end
 end -- update_ltn_signal()
 
@@ -159,7 +206,7 @@ end -- update_ltn_signals()
 --- @param name LTNSignals LTN Threshold Signal name
 --- @param value integer Real threshold to store in global
 --- @return integer # Threshold to apply to combinator dependant on request/provide state
-local function check_threshold(unit_number, value, name)
+local function get_threshold_from_global(unit_number, value, name)
   local cd = get_combinator_data(unit_number)
   if (string.match(name, "ltn%-requester") and cd.requester)
   or (string.match(name, "ltn%-provider") and cd.provider) then
@@ -180,7 +227,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   local settings = settings.global
   local explicit_network = settings["ltnc-emit-default-network-id"].value
   local explicit_default = settings["ltnc-emit-explicit-default"].value
-  local ltn_signals = config.ltn_signals
+  local signal_data = config.ltn_signals[ltn_signal_name]
 
 
   -- Need to store thresholds in global and set the correct values on the combinator
@@ -188,14 +235,20 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   if string.match(ltn_signal_name, "%-threshold$") then
     local cd = get_combinator_data(ctl.entity.unit_number)
     cd[ltn_signal_name] = value ~= 0 and value or nil
+    
+    -- Remove default thresholds from global if explicit_default is not set
+    if value == signal_data.default and not explicit_default then
+      cd[ltn_signal_name] = nil
+    end
+
     if not is_depot(ctl) then
-      value = check_threshold(ctl.entity.unit_number, value, ltn_signal_name)
+      value = get_threshold_from_global(ctl.entity.unit_number, value, ltn_signal_name)
     end
   end
 
-  -- Remove the signal if it is zero or non-existent
+  -- Remove the signal from combinator if it is zero or non-existent
   if not value or value == 0 then
-    ctl.set_signal(config.ltn_signals[ltn_signal_name].slot, util.nilSignal)
+    ctl.set_signal(signal_data.slot, util.nilSignal)
     return
   end
 
@@ -205,8 +258,8 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   signal.signal = { name = ltn_signal_name, type = "virtual" }
 
   -- Set the non-default values
-  if signal.count ~= ltn_signals[ltn_signal_name].default then
-    ctl.set_signal(config.ltn_signals[ltn_signal_name].slot, signal)
+  if signal.count ~= signal_data.default then
+    ctl.set_signal(signal_data.slot, signal)
     return
   end
 
@@ -214,9 +267,9 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   -- Otherwise, default values are removed.
   if (ltn_signal_name == "ltn-network-id" and explicit_network)
       or (ltn_signal_name ~= "ltn-network-id" and explicit_default) then
-    ctl.set_signal(ltn_signals[ltn_signal_name].slot, signal)
+    ctl.set_signal(signal_data.slot, signal)
   else
-    ctl.set_signal(config.ltn_signals[ltn_signal_name].slot, util.nilSignal)
+    ctl.set_signal(signal_data.slot, util.nilSignal)
   end
 end -- set_ltn_signal_by_control()
 
@@ -750,8 +803,9 @@ ltn_checkbox_state_change = function(self, e)
   if elem.state then
     value = 1
   end
-
+  
   set_ltn_signal(self, value, name)
+  update_ui_signal_reset(self, name, get_ltn_signal(self, name).is_default)
 end, -- ltn_checkbox_state_change()
 
 --- @param e EventData.on_gui_click
@@ -799,6 +853,7 @@ ltn_signal_textbox_changed = function(self, e)
   end
 
   elem.style = "ltnc_entry_text"
+  update_ui_signal_reset(self, name, false)
   -- Do not remove signal while typing if they only deleted the text before typing
   -- If player explicitly types '0' remove the signal as typed
   if value then
@@ -944,6 +999,16 @@ local function ltn_signals_by_group(group)
   for ltn_signal_name, _ in pairs(group_signals) do
     elems = table.array_merge { elems, {
       {
+        type = "sprite-button",
+        style = "ltnc_cancel_button",
+        name = "ltn_signal_reset__" .. ltn_signal_name,
+        style_mods = { size = 14 },
+        elem_mods = { enabled = false },
+        mouse_button_filter = { "left" },
+        sprite = "utility/reset",
+        handler = { [defines.events.on_gui_click] = handlers.reset_ltn_signal },
+      },
+      {
         type = "sprite",
         sprite = "virtual-signal/" .. ltn_signal_name,
         style = "ltnc_entry_sprite"
@@ -979,7 +1044,7 @@ local function ltn_signal_panel(group)
       {
         type = "table",
         name = "table_" .. group,
-        column_count = 4,
+        column_count = 5,
         style_mods = { cell_padding = 2, horizontally_stretchable = true },
         children = ltn_signals_by_group(group)
       }
