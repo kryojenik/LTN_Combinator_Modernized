@@ -224,9 +224,9 @@ end -- check_threshold()
 --- @param ltn_signal_name LTNSignals
 --- @param ctl LuaConstantCombinatorControlBehavior
 local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
-  local settings = settings.global
-  local explicit_network = settings["ltnc-emit-default-network-id"].value
-  local explicit_default = settings["ltnc-emit-explicit-default"].value
+  local loc_settings = settings.global
+  local explicit_network = loc_settings["ltnc-emit-default-network-id"].value
+  local explicit_default = loc_settings["ltnc-emit-explicit-default"].value
   local signal_data = config.ltn_signals[ltn_signal_name]
 
 
@@ -649,8 +649,8 @@ end, -- network_id_toggle()
 --- @param e EventData.on_gui_click
 --- @param self LTNC
 misc_signal_confirm = function(self, e)
-  local pt = global.players[e.player_index]
-  local ws = pt.working_slot
+  local ws = global.players[e.player_index].working_slot
+  local loc_settings = settings.get_player_settings(e.player_index)
   -- Prevent a crash is somehow the working slot becomes invalid 
   if not ws then
     close_ui_misc_signal_edit_controls(self)
@@ -671,9 +671,12 @@ misc_signal_confirm = function(self, e)
 
   local name = elem.elem_value.name
   local type = elem.elem_value.type
-  if pt.settings["ltnc-negative-signals"] and value > 0
-    and (type == "item" or type == "fluid") then
-    value = value * -1
+  if value > 0
+  and (
+    loc_settings["ltnc-negative-signals"].value and not e.shift
+    or e.shift and not loc_settings["ltnc-negative-signals"].value
+  ) then
+      value = value * -1
   end
 
   set_misc_signal(
@@ -1112,6 +1115,14 @@ local function net_encode_toggle_buttons(buttons)
   return t
 end -- net_encode_toggle_buttons()
 
+---@param player LuaPlayer
+---@return table?
+local function confirm_tooltip(player)
+  if settings.get_player_settings(player)["ltnc-negative-signals"].value then
+    return { "ltnc-tooltips.signal-confirm" }
+  end
+end
+
 --- Build the LTN Main UI window
 --- @param player LuaPlayer @ Player object that is opening the combinator
 --- @return GuiElemDef
@@ -1365,6 +1376,7 @@ local function build(player)
                 name = "signal_quantity_confirm",
                 elem_mods = { enabled = false },
                 mouse_button_filter = { "left" },
+                tooltip = confirm_tooltip(player),
                 sprite = "utility/check_mark",
                 handler = { [defines.events.on_gui_click] = handlers.misc_signal_confirm },
               },

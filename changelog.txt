@@ -12,6 +12,7 @@ Date: ????
       checkbox to remove Requester/Provider related signals
   Features:
     - Added reset buttons for LTN signals that will clear the signal to use the LTN default (#12)
+    - Now able to store a positive signal by holding SHIFT when clicking the confirm button.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.6
 Date: 2023-05-15
