@@ -3,7 +3,7 @@ Version: 2.0.7
 Date: ????
   Bugfixes:
     - Several spelling errors corrected in en locale
-    - Fix not disabling signal edit controls when modifying stop type
+    - Fix not disabling signal edit controls when modifying stop type (#42, #43)
     - Fix crash when switching entities while LTN Combinator is opening in map view and latency
       to the game server exists.
   Changes:
