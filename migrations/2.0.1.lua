@@ -34,7 +34,6 @@ for _, surface in pairs(game.surfaces) do
       -- If threshold is above <old_high_threshold> set the service to off
       -- and set the new high threshold
       if sig.signal and sig.signal.name == name then
-        -- TODO: Should this be == vs >=
         if sig.count >= config.old_high_threshold then
           cd[service] = false
           ctl.set_signal(config.ltn_signals[name].slot, {

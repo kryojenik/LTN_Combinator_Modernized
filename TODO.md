@@ -1,19 +1,31 @@
+# TODOs
+
+- [ ] Add documentation in informatron
+- [ ] Show network config panel by default
+- [ ] Slider for fluids should be based on taker sizes
+- [ ] Add text to alert, setting to include surface
+- [ ] Add chat message to force for adding combi and setting
+- [ ] Does on_linked_open and open_gui need to be revisited?
+  - Can I get it so it doesn't open/close/open the UI?
+  - Should it be non-openable and only respond to the linked-control?
+- [ ] If creating new, don't disable
+- [ ] Setting - auto delete non-depot signals (fun create_global_data...)
 - [ ] Really need to update all players with same combi open
 - [ ] Change background of misc signal when it is working slot
-- [ ] Better handeling of pasting signals from Plain Constant combi
+- [ ] Better handling of pasting signals from Plain Constant combi
 - [ ] Update UI when settings pasted
-- [ ] Make signal sprite a return to default button
 - [ ] Raise / process data changed event
 - [ ] Add access to player config settings
 - [ ] Sort - combine same LTN signals.  Leave misc sigs in same relative slot
 - [ ] Remove global.player_settings for player.settings
 - [ ] Remote interface to get network descriptions
+- [x] Make signal sprite a return to default button
 - [x] Check net icon from removed mod
 - [x] Close open sounds
 - [x] Make "anywhere" things require connected to LTN train station
 - [x] Update netid buttons when changed
   - [ ] Check in multiplayer
-- [x] In map mode, if cusor not empty, don't open
+- [x] In map mode, if cursor not empty, don't open
 - [x] Prevent duplicate Net Desc opens
 - [x] Fix opening combi when depot - fields not disabled
 - [x] Necessary Migration to maintain data from old version
@@ -29,14 +41,14 @@
   - [x] Large Threshold
 - [x] Refactor to use event_handler
 - [x] How does script raised destroy come into play?
-- [x] Netowrk Icon / descriptions
+- [x] Network Icon / descriptions
 - [x] Close or separate net desc window when ltnc closes
 - [x] Cancel Net Desc Window
 - [x] Negatives not quite right
 - [x] Mouse button filter on buttons network id
 - [x] update tooltip for network ID button - remove SHIFT
 - [x] E to confirm should not be in the tool tip for the commit buttons
-- [x] Description for Setting ltnc-emit-explicit-defualt
+- [x] Description for Setting ltnc-emit-explicit-default
 - [x] Tool tips for signals
 - [x] Fix number labels
 - [x] Fix not closing when opening something else
@@ -46,13 +58,13 @@
 - [x] Do I really need all the items in the player table?
 - [x] _sort
   - [x] ltn_signals
-  - [x] miscelaneous signals
+  - [x] miscellaneous signals
 - [x] Improve textbox style..
   - [x] Don't change style on click, wait until change text
-- [x] Cancel button for miscelaneous signals
+- [x] Cancel button for miscellaneous signals
 - [x] Move misc controls above
 - [x] Make misc controls not visible when not needed
   - [x] Tab into should still be readable
-- [x] Feature parity of basic signal handeling
+- [x] Feature parity of basic signal handling
 - [x] Depot priority needs to allow negative
 - [ ] Split gui to separate file
