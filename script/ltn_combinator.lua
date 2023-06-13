@@ -23,7 +23,7 @@ local tt = {
 --- Get the combinator data from global.  Create it if it doesn't exist
 ---@param unit_number uint
 ---@return CombinatorData
-local function get_combinator_data(unit_number)
+local function get_or_create_combinator_data(unit_number)
   if not global.combinators[unit_number] then
     global.combinators[unit_number] = {provider = true, requester = true}
   end
@@ -157,7 +157,7 @@ local function update_ui_ltn_signal(self, ltn_signal_name)
 
   -- Handle threshold values that are maintained even when Request Provide is disabled
   if string.match(ltn_signal_name, "%-threshold$") then
-    local cd = get_combinator_data(self.entity.unit_number)
+    local cd = get_or_create_combinator_data(self.entity.unit_number)
     local req_prov = string.match(ltn_signal_name, "ltn%-(.-)%-")
 
     if not cd[req_prov] then
@@ -207,7 +207,7 @@ end -- update_ltn_signals()
 --- @param value integer Real threshold to store in global
 --- @return integer # Threshold to apply to combinator dependant on request/provide state
 local function get_threshold_from_global(unit_number, value, name)
-  local cd = get_combinator_data(unit_number)
+  local cd = get_or_create_combinator_data(unit_number)
   if (string.match(name, "ltn%-requester") and cd.requester)
   or (string.match(name, "ltn%-provider") and cd.provider) then
     return value
@@ -233,7 +233,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   -- Need to store thresholds in global and set the correct values on the combinator
   -- dependant on provider/requester states
   if string.match(ltn_signal_name, "%-threshold$") then
-    local cd = get_combinator_data(ctl.entity.unit_number)
+    local cd = get_or_create_combinator_data(ctl.entity.unit_number)
     cd[ltn_signal_name] = value ~= 0 and value or nil
     
     -- Remove default thresholds from global if explicit_default is not set
@@ -458,8 +458,7 @@ local function update_ui(self)
   update_ui_network_id_buttons(self)
   -- update Misc signals
   update_ui_all_misc_signals(self)
-  -- TODO: update provider / requester / depot state
-  local cd = get_combinator_data(self.entity.unit_number)
+  local cd = get_or_create_combinator_data(self.entity.unit_number)
   self.elems.check__provider.state = cd.provider
   self.elems.check__requester.state = cd.requester
   if is_depot(self.control) then
@@ -584,7 +583,7 @@ end -- player_setting_changed()
 --- @param name string
 --- @param state boolean
 local function toggle_service_by_ctl(ctl, name, state)
-  local cd = get_combinator_data(ctl.entity.unit_number)
+  local cd = get_or_create_combinator_data(ctl.entity.unit_number)
   cd[name] = state
   for _, sig in ipairs{"threshold", "stack-threshold"} do
     local signal = "ltn-" .. name .. "-" .. sig
@@ -1446,6 +1445,18 @@ end -- build()
 --#endregion
 ----------------------------------------------------------------------------------------------------
 
+local function add_to_built_disabled(entity)
+  global.built_disabled = global.built_disabled or {}
+  global.built_disabled[entity.unit_number] = entity
+end -- add_to_built_disabled()
+
+local function remove_from_built_disabled(unit_number)
+  local bd = global.built_disabled
+  if bd and bd[unit_number] then
+    bd[unit_number] = nil
+  end
+end -- remove_from_built_disabled()
+
 --- Called to open the combinator UI
 --- @param player LuaPlayer
 --- @param entity LuaEntity
@@ -1477,6 +1488,9 @@ local function open_gui(player, entity)
   pt.uis.main = new_ui
   pt.main_elems = new_ui.elems
   pt.unit_number = new_ui.entity.unit_number
+
+  -- Check if this combinator is in the built-disabled alerts and remove
+  remove_from_built_disabled(pt.unit_number)
 
   player.opened = pt.main_elems.ltnc_main_window
 end -- open_gui()
@@ -1584,7 +1598,7 @@ end -- on_gui_opened()
 local function create_global_data_from_combinator(entity)
   sort_signals(entity)
   local ltn_signals = config.ltn_signals
-  local cd = get_combinator_data(entity.unit_number)
+  local cd = get_or_create_combinator_data(entity.unit_number)
   local ctl = entity.get_control_behavior()
   --- @cast ctl LuaConstantCombinatorControlBehavior
   -- If depot is set, all provider and requester signals are ignored.
@@ -1609,7 +1623,6 @@ local function create_global_data_from_combinator(entity)
     -- If threshold is above <old_high_threshold> set the service to off
     -- and set the new high threshold
     if sig.signal and sig.signal.name == name then
-      -- TODO: Should this be == vs >=
       if sig.count >= config.old_high_threshold then
         cd[service] = false
         ctl.set_signal(config.ltn_signals[name].slot, {
@@ -1649,15 +1662,17 @@ local function on_built(e)
     return
   end
 
-  -- TODO:  Better thinking through.   It is disabling when fast-replacing const combinator
+  -- TODO:  Better thinking through.  It is disabling when fast-replacing const combinator
 
   -- If tags exist, copy them to global 
   local cd = e.tags and e.tags["LTNC"] or nil
   --- @cast cd CombinatorData
   local pos_int = util.pack_position(entity.position)
-  local ocd = global.replacements[pos_int]
-  if ocd then
-    cd = ocd
+  -- Check to see if there was a recently removed LTNC at the same location that needs to have
+  -- its configuration restored.  (Remote rotate by robot? Undo?)
+  local old_cd = global.replacements[pos_int]
+  if old_cd then
+    cd = old_cd
     global.replacements[pos_int] = nil
   end
 
@@ -1680,6 +1695,11 @@ local function on_built(e)
     toggle_service_by_ctl(ctl, "provider", false)
     toggle_service_by_ctl(ctl, "requester", false)
   end
+
+  if build_disable ~= "none" and settings.global["ltnc-alert-build-disable"].value then
+    add_to_built_disabled(entity)
+  end
+
 end -- on_built()
 
 --- @param e EventData.on_player_setup_blueprint
@@ -1706,7 +1726,7 @@ local function on_player_setup_blueprint(e)
     end
 
     -- CD to tags...
-    bp.set_blueprint_entity_tag(i, "LTNC", get_combinator_data(real_entity.unit_number))
+    bp.set_blueprint_entity_tag(i, "LTNC", get_or_create_combinator_data(real_entity.unit_number))
     ::continue::
   end
 
@@ -1756,10 +1776,11 @@ local function on_destroy(e)
   if e.name == defines.events.on_robot_mined_entity and name == "ltn-combinator"
   and entity.to_be_upgraded() and entity.get_upgrade_target().name == "ltn-combinator"
   and entity.direction ~= entity.get_upgrade_direction() then
-    local ocd = global.combinators[entity.unit_number]
-    global.replacements[util.pack_position(entity.position)] = ocd
+    local old_cd = global.combinators[entity.unit_number]
+    global.replacements[util.pack_position(entity.position)] = old_cd
   end
 
+  -- De-ghostify variables
   if name == "entity-ghost" then
     name = entity.ghost_name
     unit_number = entity.ghost_unit_number
@@ -1769,6 +1790,7 @@ local function on_destroy(e)
     return
   end
 
+  -- Close the UI for all players that have this entity open
   for ndx, p in ipairs(global.players) do
     if p.unit_number == unit_number then
       close(ndx)
@@ -1985,6 +2007,37 @@ function ltnc.add_remote_interface()
     close_ltn_combinator = close
   })
 end -- add_remote_interfaces()
+
+ltnc.on_nth_tick = {
+  [180] = function()
+    if not global.built_disabled then
+      return
+    end
+
+    for i, entity in pairs(global.built_disabled) do
+      --- @cast entity LuaEntity
+      if not entity.valid then
+        global.built_disabled[i] = nil
+        goto continue
+      end
+
+      for _, player in ipairs(entity.force.players) do
+        player.add_custom_alert(
+          entity,
+          { name = "ltn-combinator", type = "item" },
+          { "ltnc-alerts.built" },
+          true
+        )
+      end
+
+    ::continue::
+    end
+
+    if not next(global.built_disabled) then
+      global.built_disabled = nil
+    end
+  end
+}
 
 ltnc.events = {
   [defines.events.on_player_setup_blueprint] = on_player_setup_blueprint,

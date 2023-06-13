@@ -49,7 +49,7 @@ data:extend({
     maximum_value = maxint --prevent overflow
   },
   ]]
-  -- Startup Settings
+  -- STARTUP SETTINGS
   {
     type = "int-setting",
     name = "ltnc-misc-signal-rows",
@@ -67,7 +67,7 @@ data:extend({
     minimum_value = 0,
     maximum_value = math.max_int
   },
-  -- Runtime Global Settings
+  -- MAP SETTINGS
   {
     type = "bool-setting",
     name = "ltnc-emit-explicit-default",
@@ -90,7 +90,14 @@ data:extend({
     default_value = "requester",
     allowed_values = {"none", "requester", "provider", "all", "off"}
   },
-  -- Runtime User Settings
+  {
+    type = "bool-setting",
+    name = "ltnc-alert-build-disable",
+    order = "md",
+    setting_type = "runtime-global",
+    default_value = "true"
+  },
+  -- USER SETTINGS
   {
     type = "bool-setting",
     name = "ltnc-negative-signals",
