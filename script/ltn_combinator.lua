@@ -1528,7 +1528,9 @@ end -- reset_reach()
 --- Similar behavior as train-stops.
 --- @param e EventData.CustomInputEvent
 local function on_linked_open_gui(e)
-  if not e.selected_prototype or e.selected_prototype.name ~= "ltn-combinator" then
+  if not e.selected_prototype
+  or e.selected_prototype.base_type ~= "entity"
+  or e.selected_prototype.name ~= "ltn-combinator" then
     return
   end
 
@@ -1539,7 +1541,16 @@ local function on_linked_open_gui(e)
 
   local entity = player.selected
   if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
-    log("Trying to open a non-LTN Combinator too quickly after opening LTN combinator (latency)")
+    -- There may be a latency related race in multi-player where a player tries
+    -- to open an LTNC but the selected entity changes before getting here?
+    -- If that happens, log it and abort.  They'll click again.
+    log(string.format(
+      "E: %d, G: %d - E.Selected: %s, P.Selected: %s.  Selected changed - Latency?\n",
+      e.tick,
+      game.tick,
+      e.selected_prototype.name,
+      entity and entity.name or "<no entity>"
+    ))
     return
   end
 
