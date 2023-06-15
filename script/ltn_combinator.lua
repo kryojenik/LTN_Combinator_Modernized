@@ -21,13 +21,19 @@ local tt = {
 }
 
 --- Get the combinator data from global.  Create it if it doesn't exist
----@param unit_number uint
+---@param entity LuaEntity 
 ---@return CombinatorData
-local function get_or_create_combinator_data(unit_number)
-  if not global.combinators[unit_number] then
-    global.combinators[unit_number] = {provider = true, requester = true}
+local function get_or_create_combinator_data(entity)
+  if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
+    -- Not a real, valid LTN_Combinator in the world, provide the data only
+    return { provider = true, requester = true }
   end
-  return global.combinators[unit_number]
+
+  if not global.combinators[entity.unit_number] then
+    -- Real entity in the world.  Record the details in global first, then return it.
+    global.combinators[entity.unit_number] = { provider = true, requester = true }
+  end
+  return global.combinators[entity.unit_number]
 end -- get_combinator_data()
 
 --- Retrieve an LTN signal from specified entity 
@@ -157,7 +163,7 @@ local function update_ui_ltn_signal(self, ltn_signal_name)
 
   -- Handle threshold values that are maintained even when Request Provide is disabled
   if string.match(ltn_signal_name, "%-threshold$") then
-    local cd = get_or_create_combinator_data(self.entity.unit_number)
+    local cd = get_or_create_combinator_data(self.entity)
     local req_prov = string.match(ltn_signal_name, "ltn%-(.-)%-")
 
     if not cd[req_prov] then
@@ -202,12 +208,12 @@ local function update_ui_all_ltn_signals(self)
 end -- update_ltn_signals()
 
 -- Checks if request/provide is enabled and returns the appropriate value to set on the combinator
---- @param unit_number uint Entity unit number
+--- @param entity LuaEntity Entity
 --- @param name LTNSignals LTN Threshold Signal name
 --- @param value integer Real threshold to store in global
 --- @return integer # Threshold to apply to combinator dependant on request/provide state
-local function get_threshold_from_global(unit_number, value, name)
-  local cd = get_or_create_combinator_data(unit_number)
+local function get_threshold_from_global(entity, value, name)
+  local cd = get_or_create_combinator_data(entity)
   if (string.match(name, "ltn%-requester") and cd.requester)
   or (string.match(name, "ltn%-provider") and cd.provider) then
     return value
@@ -233,7 +239,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   -- Need to store thresholds in global and set the correct values on the combinator
   -- dependant on provider/requester states
   if string.match(ltn_signal_name, "%-threshold$") then
-    local cd = get_or_create_combinator_data(ctl.entity.unit_number)
+    local cd = get_or_create_combinator_data(ctl.entity)
     cd[ltn_signal_name] = value ~= 0 and value or nil
     
     -- Remove default thresholds from global if explicit_default is not set
@@ -242,7 +248,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
     end
 
     if not is_depot(ctl) then
-      value = get_threshold_from_global(ctl.entity.unit_number, value, ltn_signal_name)
+      value = get_threshold_from_global(ctl.entity, value, ltn_signal_name)
     end
   end
 
@@ -458,7 +464,7 @@ local function update_ui(self)
   update_ui_network_id_buttons(self)
   -- update Misc signals
   update_ui_all_misc_signals(self)
-  local cd = get_or_create_combinator_data(self.entity.unit_number)
+  local cd = get_or_create_combinator_data(self.entity)
   self.elems.check__provider.state = cd.provider
   self.elems.check__requester.state = cd.requester
   if is_depot(self.control) then
@@ -583,7 +589,7 @@ end -- player_setting_changed()
 --- @param name string
 --- @param state boolean
 local function toggle_service_by_ctl(ctl, name, state)
-  local cd = get_or_create_combinator_data(ctl.entity.unit_number)
+  local cd = get_or_create_combinator_data(ctl.entity)
   cd[name] = state
   for _, sig in ipairs{"threshold", "stack-threshold"} do
     local signal = "ltn-" .. name .. "-" .. sig
@@ -1609,7 +1615,7 @@ end -- on_gui_opened()
 local function create_global_data_from_combinator(entity)
   sort_signals(entity)
   local ltn_signals = config.ltn_signals
-  local cd = get_or_create_combinator_data(entity.unit_number)
+  local cd = get_or_create_combinator_data(entity)
   local ctl = entity.get_control_behavior()
   --- @cast ctl LuaConstantCombinatorControlBehavior
   -- If depot is set, all provider and requester signals are ignored.
@@ -1737,7 +1743,7 @@ local function on_player_setup_blueprint(e)
     end
 
     -- CD to tags...
-    bp.set_blueprint_entity_tag(i, "LTNC", get_or_create_combinator_data(real_entity.unit_number))
+    bp.set_blueprint_entity_tag(i, "LTNC", get_or_create_combinator_data(real_entity))
     ::continue::
   end
 
