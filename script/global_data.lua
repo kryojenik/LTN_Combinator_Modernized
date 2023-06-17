@@ -11,6 +11,10 @@
 ---@field ltn-requester-threshold number?
 ---@field ltn-requester-stack-threshold number?
 
+---@class Replacement
+---@field combinator_data CombinatorData
+---@field no_auto_disable boolean
+
 local global_data = {}
 
 function global_data.init()
@@ -20,7 +24,7 @@ function global_data.init()
   global.network_descriptions = {}
   ---@type CombinatorData[]
   global.combinators = {}
-  ---@type CombinatorData[]
+  ---@type Replacement[]
   global.replacements = {}
 end
 

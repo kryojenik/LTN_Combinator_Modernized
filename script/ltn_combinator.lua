@@ -24,15 +24,12 @@ local tt = {
 ---@param entity LuaEntity 
 ---@return CombinatorData
 local function get_or_create_combinator_data(entity)
-  if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
-    -- Not a real, valid LTN_Combinator in the world, provide the data only
+  if not entity or not entity.valid or entity.name ~= "ltn-combinator"
+  or not global.combinators[entity.unit_number] then
+    -- Return a default value if not already stored in global.
     return { provider = true, requester = true }
   end
 
-  if not global.combinators[entity.unit_number] then
-    -- Real entity in the world.  Record the details in global first, then return it.
-    global.combinators[entity.unit_number] = { provider = true, requester = true }
-  end
   return global.combinators[entity.unit_number]
 end -- get_combinator_data()
 
@@ -588,17 +585,31 @@ end -- player_setting_changed()
 --- @param ctl LuaConstantCombinatorControlBehavior
 --- @param name string
 --- @param state boolean
+--- @return boolean # Something was actually disabled
 local function toggle_service_by_ctl(ctl, name, state)
+  local disabled = false
+  if name == "combinator" then
+    if ctl.enabled == true and state == false then
+      disabled = true
+    end
+
+    ctl.enabled = state
+    return disabled
+  end
+
   local cd = get_or_create_combinator_data(ctl.entity)
+  if cd[name] == true and state == false then
+    disabled = true
+  end
+
   cd[name] = state
   for _, sig in ipairs{"threshold", "stack-threshold"} do
     local signal = "ltn-" .. name .. "-" .. sig
     local count = cd[signal]
     set_ltn_signal_by_control(ctl, count, signal)
-    --update_ui_ltn_signal(self, signal)
   end
-  --self.elems["check__" .. name].state = cd[name]
-end -- toggle_service()
+  return disabled
+end -- toggle_service_by_ctl()
 
 --- Toggle the state of the provider / requester services
 --- @param self LTNC
@@ -1675,48 +1686,74 @@ end -- create_global_data_from_combinator()
 --- @param e BuildEvent
 local function on_built(e)
   local entity = e.created_entity or e.entity or e.destination
-  if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
+  if not entity or not entity.valid then
     return
   end
 
-  -- TODO:  Better thinking through.  It is disabling when fast-replacing const combinator
+  -- Only care about (ghosts of) LTN Combinators
+  local name = entity.name == "entity-ghost" and entity.ghost_name or entity.name
+  if name ~= "ltn-combinator" then
+    return
+  end
 
-  -- If tags exist, copy them to global 
-  local cd = e.tags and e.tags["LTNC"] or nil
-  --- @cast cd CombinatorData
-  local pos_int = util.pack_position(entity.position)
   -- Check to see if there was a recently removed LTNC at the same location that needs to have
-  -- its configuration restored.  (Remote rotate by robot? Undo?)
-  local old_cd = global.replacements[pos_int]
-  if old_cd then
-    cd = old_cd
-    global.replacements[pos_int] = nil
+  -- its configuration restored.
+  --   - Upgrade / replace?
+  --   - Rotate by robot?
+  --   - Undo?
+  local pos_int = util.pack_position(entity.position)
+  local rep = global.replacements[pos_int]
+  --- @type CombinatorData
+  local cd = rep and rep.combinator_data or nil
+
+  if entity.name == "entity-ghost" then
+    -- do ghostly things
+    -- If the ghost already has tags, presume they are correct. (likely from BP)
+    if not entity.tags and cd then
+      entity.tags = {
+        ltnc = cd,
+        no_auto_disable = rep.no_auto_disable
+      }
+    end
+  else
+    -- do corporeal things
+    if e.tags and e.tags.ltnc then
+      cd = e.tags.ltnc --[[@as CombinatorData]]
+    else
+      cd = cd or create_global_data_from_combinator(entity)
+    end
+    global.combinators[entity.unit_number] = cd
   end
 
-  if not cd then
-    cd = create_global_data_from_combinator(entity)
-  end
+  -- Remove any historical combinator data at this location if it existed.
+  global.replacements[pos_int] = nil
 
-  global.combinators[entity.unit_number] = cd
+  -- Don't toggle services when building ghosts or this entity has been tagged
+  -- when the ghost was created elsewhere.
+  if entity.name == "entity-ghost"
+  or e.tags and e.tags.no_auto_disable
+  or rep and rep.no_auto_disable then
+    return
+  end
 
   -- Disable services based on mod settings
   local build_disable = settings.global["ltnc-disable-built-combinators"].value
   local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
-  if build_disable == "off" then
-    ctl.enabled = false
+  local disabled_something = false
+  if build_disable == "off" and ctl.enabled then
+    disabled_something = toggle_service_by_ctl(ctl, "combinator", false)
   elseif build_disable == "requester" then
-    toggle_service_by_ctl(ctl, "requester", false)
+    disabled_something = toggle_service_by_ctl(ctl, "requester", false)
   elseif build_disable == "provider" then
-    toggle_service_by_ctl(ctl, "provider", false)
+    disabled_something = toggle_service_by_ctl(ctl, "provider", false)
   elseif build_disable == "all" then
-    toggle_service_by_ctl(ctl, "provider", false)
-    toggle_service_by_ctl(ctl, "requester", false)
+    disabled_something = toggle_service_by_ctl(ctl, "provider", false)
+    disabled_something = toggle_service_by_ctl(ctl, "requester", false)
   end
 
-  if build_disable ~= "none" and settings.global["ltnc-alert-build-disable"].value then
+  if disabled_something and settings.global["ltnc-alert-build-disable"].value then
     add_to_built_disabled(entity)
   end
-
 end -- on_built()
 
 --- @param e EventData.on_player_setup_blueprint
@@ -1743,7 +1780,7 @@ local function on_player_setup_blueprint(e)
     end
 
     -- CD to tags...
-    bp.set_blueprint_entity_tag(i, "LTNC", get_or_create_combinator_data(real_entity))
+    bp.set_blueprint_entity_tag(i, "ltnc", get_or_create_combinator_data(real_entity))
     ::continue::
   end
 
@@ -1781,28 +1818,36 @@ end -- on_settings_changed()
 
 --- @param e DestroyEvent
 local function on_destroy(e)
-  local entity = e.entity
+ local entity = e.entity
   if not entity or not entity.valid then
     return
   end
 
-  local name = entity.name
+  local name = entity.name == "entity-ghost" and entity.ghost_name or entity.name
+  -- Only interested in (ghosts of) ltn-combinators
+  -- and constant-combinators if getting replaced by ltn-combinator
+  if name ~= "ltn-combinator" and name ~= "constant-combinator" then
+    dlog(string.format("Abort: %s (%s)\n",name, entity.name))
+    return
+  end
+
   local unit_number = entity.unit_number
-  -- Keep track of additional data from global if this ltn-combinator is being replaced by another
-  -- ltn-combinator (i.e. being rotated by a robot)
-  if e.name == defines.events.on_robot_mined_entity and name == "ltn-combinator"
-  and entity.to_be_upgraded() and entity.get_upgrade_target().name == "ltn-combinator"
-  and entity.direction ~= entity.get_upgrade_direction() then
-    local old_cd = global.combinators[entity.unit_number]
-    global.replacements[util.pack_position(entity.position)] = old_cd
-  end
-
-  -- De-ghostify variables
-  if name == "entity-ghost" then
-    name = entity.ghost_name
+  local rep = {}
+  rep.tick = e.tick
+  rep.name = name
+  if entity.name == "entity-ghost" then
     unit_number = entity.ghost_unit_number
+    if entity.tags then
+      rep.combinator_data = entity.tags.ltnc or nil
+      rep.no_auto_disable = entity.tags.no_auto_disable or nil
+    end
+  elseif entity.name == "ltn-combinator" then
+    rep.combinator_data = global.combinators[entity.unit_number]
+    rep.no_auto_disable = true
   end
 
+  global.replacements[util.pack_position(entity.position)] = rep
+  
   if name ~= "ltn-combinator" or not unit_number then
     return
   end
@@ -1825,10 +1870,15 @@ local function on_post_died(e)
 
   local ghost = e.ghost
   if not ghost or not ghost.valid or not e.unit_number then
+    global.combinators[e.unit_number] = nil
     return
   end
 
-  ghost.tags = { ["LTNC"] = global.combinators[e.unit_number] }
+  ghost.tags = {
+    ltnc = global.combinators[e.unit_number],
+    no_auto_disable = true
+  }
+
   global.combinators[e.unit_number] = nil
 end -- on_post_died()
 
@@ -2026,7 +2076,7 @@ function ltnc.add_remote_interface()
 end -- add_remote_interfaces()
 
 ltnc.on_nth_tick = {
-  [180] = function()
+  [180] = function() -- 3 Seconds
     if not global.built_disabled then
       return
     end
@@ -2053,6 +2103,10 @@ ltnc.on_nth_tick = {
     if not next(global.built_disabled) then
       global.built_disabled = nil
     end
+  end,
+
+  [18000] = function() -- 5 Minutes
+    -- Cleanup replacements in global
   end
 }
 
@@ -2073,7 +2127,8 @@ ltnc.events = {
   [defines.events.script_raised_destroy] = on_destroy,
   [defines.events.on_post_entity_died] = on_post_died,
   [defines.events.on_entity_settings_pasted] = on_settings_pasted,
-  [defines.events.on_pre_build] = on_pre_build,
+-- May not need this.  Now handling with removal history
+--  [defines.events.on_pre_build] = on_pre_build,
   ["ltnc-linked-open-gui"] = on_linked_open_gui,
   ["ltnc-linked-paste-settings"] = on_linked_paste_settings,
 }

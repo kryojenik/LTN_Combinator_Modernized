@@ -5,18 +5,23 @@
 - [ ] Slider for fluids should be based on taker sizes
 - [ ] Add text to alert, setting to include surface
 - [ ] Add chat message to force for adding combi and setting
+- [ ] Remove register from remote open command.  Not doing pinning.
 - [ ] Does on_linked_open and open_gui need to be revisited?
   - Can I get it so it doesn't open/close/open the UI?
   - Should it be non-openable and only respond to the linked-control?
+- [ ] Add note to tool tip info that combi-ghost will be disabled when built?
 - [ ] If creating new, don't disable
 - [ ] Setting - auto delete non-depot signals (fun create_global_data...)
 - [ ] Really need to update all players with same combi open
+- [ ] Placing combinator triggers on_linked_open...  Bug
+  - Trying to open a non-LTN Combinator too quickly after opening LTN combinator (latency)
 - [ ] Change background of misc signal when it is working slot
 - [ ] Better handling of pasting signals from Plain Constant combi
 - [ ] Update UI when settings pasted
 - [ ] Raise / process data changed event
 - [ ] Add access to player config settings
 - [ ] Sort - combine same LTN signals.  Leave misc sigs in same relative slot
+- [ ] Notice for behavioral changes
 - [ ] Remove global.player_settings for player.settings
 - [ ] Remote interface to get network descriptions
 - [x] Make signal sprite a return to default button
