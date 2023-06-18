@@ -1934,25 +1934,15 @@ local function on_pre_build(e)
     return
   end
 
-  -- If holding ltn-combinator or ghost of ltn-combinator
+  -- If holding a ghost of ltn-combinator or shift-building with ltn-combinator
   -- if position has a ghost of an ltn combinator and the direction is different than the hand
   -- change the direction of the ghost-entity on the surface
-  --- @type LuaItemStack | LuaItemPrototype | string
-  local cs = player.cursor_stack
-  if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
-    goto found
-  end
-
-  cs = player.cursor_ghost
-  if cs and cs.name == "ltn-combinator" then
-    goto found
-  end
-
-  do
+  --- @type (LuaItemStack | LuaItemPrototype | string)?
+  local cs = player.cursor_ghost or e.shift_build and player.cursor_stack or nil
+  if not cs or cs.name ~= "ltn-combinator" then
     return
   end
 
-  ::found::
   local entities = player.surface.find_entities_filtered{position = e.position, ghost_name = "ltn-combinator"}
 
   if not next(entities) or entities[1].direction == e.direction then
@@ -2113,10 +2103,13 @@ ltnc.on_nth_tick = {
 ltnc.events = {
   [defines.events.on_player_setup_blueprint] = on_player_setup_blueprint,
   [defines.events.on_runtime_mod_setting_changed] = on_settings_changed,
+  [defines.events.on_entity_settings_pasted] = on_settings_pasted,
   [defines.events.on_gui_opened] = on_gui_opened,
   [defines.events.on_player_removed] = on_player_removed,
   [defines.events.on_player_created] = on_player_created,
   [defines.events.on_player_joined_game] = on_player_joined,
+  --  Need this to overcome https://forums.factorio.com/viewtopic.php?f=7&t=106710
+  [defines.events.on_pre_build] = on_pre_build,
   [defines.events.on_built_entity] = on_built,
   [defines.events.on_entity_cloned] = on_built,
   [defines.events.on_robot_built_entity] = on_built,
@@ -2126,9 +2119,6 @@ ltnc.events = {
   [defines.events.on_player_mined_entity] = on_destroy,
   [defines.events.script_raised_destroy] = on_destroy,
   [defines.events.on_post_entity_died] = on_post_died,
-  [defines.events.on_entity_settings_pasted] = on_settings_pasted,
--- May not need this.  Now handling with removal history
---  [defines.events.on_pre_build] = on_pre_build,
   ["ltnc-linked-open-gui"] = on_linked_open_gui,
   ["ltnc-linked-paste-settings"] = on_linked_paste_settings,
 }
