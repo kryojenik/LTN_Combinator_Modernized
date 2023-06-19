@@ -16,7 +16,7 @@
 - [ ] Placing combinator triggers on_linked_open...  Bug
   - Trying to open a non-LTN Combinator too quickly after opening LTN combinator (latency)
 - [ ] Change background of misc signal when it is working slot
-- [ ] Better handling of pasting signals from Plain Constant combi
+- [x] Better handling of pasting signals from Plain Constant combi
 - [ ] Update UI when settings pasted
 - [ ] Raise / process data changed event
 - [ ] Add access to player config settings

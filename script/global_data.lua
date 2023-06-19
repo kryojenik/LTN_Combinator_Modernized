@@ -14,6 +14,9 @@
 ---@class Replacement
 ---@field combinator_data CombinatorData
 ---@field no_auto_disable boolean
+---@field pos MapPosition
+---@field tick uint
+---@field name string
 
 local global_data = {}
 
@@ -24,7 +27,7 @@ function global_data.init()
   global.network_descriptions = {}
   ---@type CombinatorData[]
   global.combinators = {}
-  ---@type Replacement[]
+  ---@type Replacement[][]
   global.replacements = {}
 end
 

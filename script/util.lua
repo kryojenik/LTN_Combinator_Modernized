@@ -168,7 +168,7 @@ local normalize = 1000000
 --- Pack a position into 42 bits.  This will give plenty of space for
 --- the fully possible factorio map of 2,000,000 x 2,000,000 tiles
 --- with half tile resolution.
---- @param expr { x: number, y: number } | number[]
+--- @param expr MapPosition
 --- @return integer # Return 0 if not a valid coordinate
 function M.pack_position(expr)
   local x = expr.x or expr[1]
@@ -186,7 +186,7 @@ end -- pack_position()
 
 --- Unpack an integer representation of a tile location
 --- @param posint integer
---- @return { x: number, y: number } # Return origin if posint == nil
+--- @return MapPosition # Return origin if posint == nil
 function M.unpack_position(posint)
 if not posint then
   return { x = 0, y = 0 }

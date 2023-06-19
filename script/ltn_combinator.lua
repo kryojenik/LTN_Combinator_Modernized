@@ -1702,7 +1702,8 @@ local function on_built(e)
   --   - Rotate by robot?
   --   - Undo?
   local pos_int = util.pack_position(entity.position)
-  local rep = global.replacements[pos_int]
+  local gr = global.replacements[entity.surface_index]
+  local rep = gr and gr[pos_int]
   --- @type CombinatorData
   local cd = rep and rep.combinator_data or nil
 
@@ -1726,7 +1727,12 @@ local function on_built(e)
   end
 
   -- Remove any historical combinator data at this location if it existed.
-  global.replacements[pos_int] = nil
+  if gr then
+    gr[pos_int] = nil
+    if not next(gr) then
+      global.replacements[entity.surface_index] = nil
+    end
+  end
 
   -- Don't toggle services when building ghosts or this entity has been tagged
   -- when the ghost was created elsewhere.
@@ -1823,6 +1829,7 @@ local function add_replacement(entity, e)
   local rep = {}
   rep.tick = e.tick
   rep.name = entity.name
+  rep.pos = entity.position
 
   if entity.type == "entity-ghost" and entity.ghost_name == "ltn-combinator" then
     rep.name = entity.ghost_name
@@ -1840,7 +1847,9 @@ local function add_replacement(entity, e)
     rep.no_auto_disable = true
   end
 
-  global.replacements[util.pack_position(entity.position)] = rep
+  local gr = global.replacements[entity.surface_index] or {}
+  gr[util.pack_position(entity.position)] = rep
+  global.replacements[entity.surface_index] = gr
 end -- add_replacement()
 
 --- @param e DestroyEvent
@@ -2129,8 +2138,28 @@ ltnc.on_nth_tick = {
     end
   end,
 
-  [18000] = function() -- 5 Minutes
+  [18000] = function () -- 5 minutes
     -- Cleanup replacements in global
+    dlog("Replacement cleanup\n")
+    if not next(global.replacements) then
+      dlog("Short out\n")
+      return
+    end
+    
+    for surface_index, reps in pairs(global.replacements) do
+      for pos_int, rep in pairs(reps) do
+        local tick = game.tick
+        if tick - rep.tick > 216000 then -- 1 hour
+          reps[pos_int] = nil
+          dlog(string.format("Removed pos: %d\n", pos_int))
+        end
+      end
+
+      if not next(reps) then
+        global.replacements[surface_index] = nil
+        dlog(string.format("Removed surface: %d\n", surface_index))
+      end
+    end
   end
 }
 
