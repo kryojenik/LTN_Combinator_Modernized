@@ -1816,38 +1816,54 @@ local function on_settings_changed(e)
   end
 end -- on_settings_changed()
 
---- @param e DestroyEvent
-local function on_destroy(e)
- local entity = e.entity
-  if not entity or not entity.valid then
-    return
-  end
-
-  local name = entity.name == "entity-ghost" and entity.ghost_name or entity.name
-  -- Only interested in (ghosts of) ltn-combinators
-  -- and constant-combinators if getting replaced by ltn-combinator
-  if name ~= "ltn-combinator" and name ~= "constant-combinator" then
-    dlog(string.format("Abort: %s (%s)\n",name, entity.name))
-    return
-  end
-
-  local unit_number = entity.unit_number
+--- Add custom settings from the combinator to global to track for undo, rotations, and upgrades
+---@param entity LuaEntity # LuaEntity making a replacement of
+---@param e EventData # Calling event
+local function add_replacement(entity, e)
   local rep = {}
   rep.tick = e.tick
-  rep.name = name
-  if entity.name == "entity-ghost" then
-    unit_number = entity.ghost_unit_number
+  rep.name = entity.name
+
+  if entity.type == "entity-ghost" and entity.ghost_name == "ltn-combinator" then
+    rep.name = entity.ghost_name
     if entity.tags then
       rep.combinator_data = entity.tags.ltnc or nil
       rep.no_auto_disable = entity.tags.no_auto_disable or nil
     end
+
   elseif entity.name == "ltn-combinator" then
     rep.combinator_data = global.combinators[entity.unit_number]
+    rep.no_auto_disable = true
+
+  elseif entity.name == "constant-combinator" then
+    rep.combinator_data = create_global_data_from_combinator(entity)
     rep.no_auto_disable = true
   end
 
   global.replacements[util.pack_position(entity.position)] = rep
-  
+end -- add_replacement()
+
+--- @param e DestroyEvent
+local function on_destroy(e)
+local entity = e.entity
+  if not entity or not entity.valid then
+    return
+  end
+
+  -- Only interested in (ghosts of) ltn-combinators
+  --if name ~= "ltn-combinator" and name ~= "constant-combinator" then
+  local name = entity.name
+  local unit_number = entity.unit_number
+  if entity.type == "entity-ghost" then
+    name = entity.ghost_name
+    unit_number = entity.ghost_unit_number
+  end
+
+  if name ~= "ltn-combinator" then
+    return
+  end
+
+  add_replacement(entity, e)
   if name ~= "ltn-combinator" or not unit_number then
     return
   end
@@ -1926,7 +1942,8 @@ local function on_linked_paste_settings(e)
   end
 end -- on_linked_paste_settings
 
---- Handle pasting a rotated ghost over an existing ghost
+--- Handle putting an ltn-combinator ghost down over existing ltn-combinator ghosts
+--- or over existing constant-combinators (and ghosts)
 ---@param e EventData.on_pre_build
 local function on_pre_build(e)
   local player = game.get_player(e.player_index)
@@ -1934,22 +1951,39 @@ local function on_pre_build(e)
     return
   end
 
-  -- If holding a ghost of ltn-combinator or shift-building with ltn-combinator
-  -- if position has a ghost of an ltn combinator and the direction is different than the hand
-  -- change the direction of the ghost-entity on the surface
   --- @type (LuaItemStack | LuaItemPrototype | string)?
-  local cs = player.cursor_ghost or e.shift_build and player.cursor_stack or nil
-  if not cs or cs.name ~= "ltn-combinator" then
+  local cs = player.cursor_ghost or player.cursor_stack
+  if not cs or not cs.valid or not cs.valid_for_read or cs.name ~= "ltn-combinator" then
     return
   end
 
-  local entities = player.surface.find_entities_filtered{position = e.position, ghost_name = "ltn-combinator"}
+  local entities = {}
+  if not e.shift_build and player.cursor_stack.name == "ltn-combinator" then
+    goto constant_only
+  end
 
-  if not next(entities) or entities[1].direction == e.direction then
+  -- For ltn-combinator ghosts need to handle a change in rotation so the tags don't get lost
+  entities = player.surface.find_entities_filtered{
+    position = e.position,
+    ghost_name = "ltn-combinator"
+  }
+
+  if next(entities) then
+    if entities[1].ghost_name == "ltn-combinator" then
+      entities[1].direction = e.direction
+    end
+
     return
   end
 
-  entities[1].direction = e.direction
+  ::constant_only::
+  entities = player.surface.find_entities_filtered{
+    position = e.position,
+    name = "constant-combinator"
+  }
+  if next(entities) and entities[1].name == "constant-combinator" then
+    add_replacement(entities[1], e)
+  end
 end -- on_pre_build()
 
 --- @class LTNC
