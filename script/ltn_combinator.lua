@@ -24,10 +24,14 @@ local tt = {
 ---@param entity LuaEntity 
 ---@return CombinatorData
 local function get_or_create_combinator_data(entity)
-  if not entity or not entity.valid or entity.name ~= "ltn-combinator"
-  or not global.combinators[entity.unit_number] then
-    -- Return a default value if not already stored in global.
-    return { provider = true, requester = true }
+  local default_cd = { provider = true, requester = true }
+  if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
+    -- Return a default value
+    return default_cd
+  end
+
+  if not global.combinators[entity.unit_number] then
+    global.combinators[entity.unit_number] = default_cd
   end
 
   return global.combinators[entity.unit_number]
@@ -238,7 +242,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   if string.match(ltn_signal_name, "%-threshold$") then
     local cd = get_or_create_combinator_data(ctl.entity)
     cd[ltn_signal_name] = value ~= 0 and value or nil
-    
+
     -- Remove default thresholds from global if explicit_default is not set
     if value == signal_data.default and not explicit_default then
       cd[ltn_signal_name] = nil
@@ -583,8 +587,8 @@ end -- player_setting_changed()
 
 --- Toggle the state of the provider / requester services
 --- @param ctl LuaConstantCombinatorControlBehavior
---- @param name string
---- @param state boolean
+--- @param name string # Service to toggle, ("requester", "provider", or "combinator")
+--- @param state boolean # false := disable service, true := enable service
 --- @return boolean # Something was actually disabled
 local function toggle_service_by_ctl(ctl, name, state)
   local disabled = false
@@ -618,6 +622,36 @@ end -- toggle_service_by_ctl()
 local function toggle_service(self, name, state)
   toggle_service_by_ctl(self.control, name, state)
 end -- toggle_service()
+
+---Toggle the network config panel
+---@param self LTNC
+---@param display boolean? # true := Turn on Net Panel, false:= Turn off Net Panel, nil := toggle
+local function toggle_network_config(self, display)
+  local nf = self.elems.net_encode_flow
+  local ef = self.elems.entity_preview_frame
+  local function neton()
+    nf.visible = true
+    ef.visible = false
+  end
+
+  local function netoff()
+    nf.visible = false
+    ef.visible = true
+  end
+
+  if display == nil then
+    if nf.visible then
+      netoff()
+    else
+      neton()
+    end
+
+  elseif display == true then
+    neton()
+  elseif display == false then
+    netoff()
+  end
+end -- toggle_network_config()
 ----------------------------------------------------------------------------------------------------
 --#region Handlers
 
@@ -626,15 +660,7 @@ local handlers = {
 --- @param e EventData.on_gui_click
 --- @param self LTNC
 network_id_config = function(self, e)
-  local nf = self.elems.net_encode_flow
-  local ef = self.elems.entity_preview_frame
-  if nf.visible then
-    nf.visible = false
-    ef.visible = true
-  else
-    nf.visible = true
-    ef.visible = false
-  end
+  toggle_network_config(self)
 end, -- network_id_config()
 
 --- @param e EventData.on_gui_click
@@ -1502,6 +1528,10 @@ local function open_gui(player, entity)
   sort_signals(entity)
   update_ui(new_ui)
 
+  if player.mod_settings["ltnc-show-net-panel"].value then
+    toggle_network_config(new_ui, true)
+  end
+
   pt.uis.main = new_ui
   pt.main_elems = new_ui.elems
   pt.unit_number = new_ui.entity.unit_number
@@ -1625,60 +1655,34 @@ end -- on_gui_opened()
 ---@return CombinatorData
 local function create_global_data_from_combinator(entity)
   sort_signals(entity)
-  local ltn_signals = config.ltn_signals
-  local cd = get_or_create_combinator_data(entity)
   local ctl = entity.get_control_behavior()
   --- @cast ctl LuaConstantCombinatorControlBehavior
+  --  Save non-zero thresholds into global
+  local cd = get_or_create_combinator_data(entity)
+  for _, service in ipairs{ "provider", "requester" } do
+    -- If threshold is set to high-threshold, disable the service in global_data
+    local name = "ltn-" .. service .. "-threshold"
+    local value = get_ltn_signal_from_control(ctl, name)
+    if value == config.high_threshold then
+      cd[service] = false
+    else
+      -- Normalize based on mod-settings (i.e. remove if default value and not storing explicitly)
+      set_ltn_signal_by_control(ctl, value.value, name)
+    end
+
+    -- Normalize the stack threshold in global if one exists.
+    name = "ltn-" .. service .. "-stack-threshold"
+    value = get_ltn_signal_from_control(ctl, name)
+    set_ltn_signal_by_control(ctl, value.value, name)
+  end
+
   -- If depot is set, all provider and requester signals are ignored.
   -- Disable requester and provider and clear requester provider signals
-  local sig = ctl.get_signal(ltn_signals["ltn-depot"].slot)
-  if sig.signal and sig.signal.name == "ltn-depot" and sig.count > 0 then
-    cd = { provider = false, requester = false }
-    for signal_name, details in pairs(ltn_signals) do
-      if details.group == "provider" or details.group == "requester" then
-        ctl.set_signal(details.slot, nil)
-      end
-    end
-    goto continue
+  if is_depot(ctl) then
+    toggle_service_by_ctl(ctl, "provider", false)
+    toggle_service_by_ctl(ctl, "requester", false)
   end
 
-  -- Not a depot, save non-zero thresholds into global
-  for _, service in ipairs{ "provider", "requester" } do
-    -- First check if service is "disabled" from high threshold
-    -- The high threshold used in pre-2.0 combinator was 50000000
-    local name = "ltn-" .. service .. "-threshold"
-    sig = ctl.get_signal(config.ltn_signals[name].slot)
-    -- If threshold is above <old_high_threshold> set the service to off
-    -- and set the new high threshold
-    if sig.signal and sig.signal.name == name then
-      if sig.count >= config.old_high_threshold then
-        cd[service] = false
-        ctl.set_signal(config.ltn_signals[name].slot, {
-          signal = { name = name, type = "virtual" },
-          count = config.high_threshold
-        })
-      else
-        --- @type int
-        cd[name] = sig.count
-      end
-    end
-
-    -- Store the stack threshold in global if one exists.
-    name = "ltn-" .. service .. "-stack-threshold"
-    sig = ctl.get_signal(config.ltn_signals[name].slot)
-    -- If stack threshold is set, save it in global
-    -- If the service is "disabled" (high value set in non-stack threshold
-    -- make sure actual stack-threshold signal is removed
-    if sig.signal and sig.signal.name == name and sig.count ~= 0 then
-      --- @type integer
-      cd[name] = sig.count
-      if not cd[service] then
-        ctl.set_signal(config.ltn_signals[name].slot, nil)
-      end
-    end
-  end
-
-  ::continue::
   return cd
 end -- create_global_data_from_combinator()
 
@@ -1843,7 +1847,7 @@ local function add_replacement(entity, e)
     rep.no_auto_disable = true
 
   elseif entity.name == "constant-combinator" then
-    rep.combinator_data = create_global_data_from_combinator(entity)
+    --rep.combinator_data = create_global_data_from_combinator(entity)
     rep.no_auto_disable = true
   end
 
@@ -2140,9 +2144,7 @@ ltnc.on_nth_tick = {
 
   [18000] = function () -- 5 minutes
     -- Cleanup replacements in global
-    dlog("Replacement cleanup\n")
     if not next(global.replacements) then
-      dlog("Short out\n")
       return
     end
     

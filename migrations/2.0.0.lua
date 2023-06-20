@@ -1,10 +1,9 @@
-local global_data = require("__LTN_Combinator_Modernized__/script/global_data")
-local player_data = require("__LTN_Combinator_Modernized__/script/player_data")
-
 local old_global = global or {}
 
 global = {}
-global_data.init()
+global.players = {}
+global.network_descriptions = {}
+global.combinators = {}
 
 for _, player in pairs(game.players) do
   for _, gui in pairs({ player.gui.top, player.gui.left, player.gui.center, player.gui.screen, player.gui.relative }) do
@@ -14,7 +13,15 @@ for _, player in pairs(game.players) do
       end
     end
   end
-  player_data.init(player)
+
+  local player_table = {
+    uis = {},
+    settings = {},
+  }
+
+  player_table.settings["ltnc-use-stacks"] = player.mod_settings["ltnc-use-stacks"].value
+  player_table.settings["ltnc-negative-signals"] = player.mod_settings["ltnc-negative-signals"].value
+  global.players[player.index] = player_table
 end
 
 -- Migrate any network descriptions and icons

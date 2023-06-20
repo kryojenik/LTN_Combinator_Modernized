@@ -18,13 +18,6 @@ data:extend({
   },
   {
     type = "bool-setting",
-    name = "ltnc-show-net-panel",
-    setting_type = "runtime-per-user",
-    order = "ub",
-    default_value = false
-  },
-  {
-    type = "bool-setting",
     name = "ltnc-upgradable",
     order = "sa",
     setting_type = "startup",
@@ -111,5 +104,12 @@ data:extend({
     setting_type = "runtime-per-user",
     order = "ub",
     default_value = true
+  },
+  {
+    type = "bool-setting",
+    name = "ltnc-show-net-panel",
+    setting_type = "runtime-per-user",
+    order = "uc",
+    default_value = false
   },
 })

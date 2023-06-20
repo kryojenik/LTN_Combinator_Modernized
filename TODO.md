@@ -1,7 +1,7 @@
 # TODOs
 
 - [ ] Add documentation in informatron
-- [ ] Show network config panel by default
+- [x] Show network config panel by default
 - [ ] Slider for fluids should be based on taker sizes
 - [ ] Add text to alert, setting to include surface
 - [ ] Add chat message to force for adding combi and setting

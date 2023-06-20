@@ -1,6 +1,16 @@
 ---------------------------------------------------------------------------------------------------
-Version: 2.0.7
+Version: 2.1.0
 Date: ????
+  Info:
+    - ***  There is significant rework done to the logic when placing combinators.  This is
+      ***  based on much of the feedback I received after the 2.0 release.  I believe things
+      ***  Will be more sane, and more intuitive.  As always, please let me know if things
+      ***  need additional adjustments.  I hope I was able to test enough scenarios to cover
+      ***  possible pit-falls.  I'm sure some corner cases still exist.  See below for
+      ***  Changes.
+      ***
+      ***  Please back-up your save game and check your combinators before saving over an
+      ***  active save game.
   Bugfixes:
     - Several spelling errors corrected in English locale
     - Fix not disabling signal edit controls when modifying stop type creating an opportunity
@@ -8,19 +18,20 @@ Date: ????
     - Fix crash when switching entities while LTN Combinator is opening in map view and latency
       to the game server exists.
   Changes:
-    - *** Behavioral changes - should be more intuitive when combinators are placed.
-      New combinators from blueprints, or copy/paste will follow rules in Mod Settings
-      Replacing standard constant combinators will not auto-disable anything.
-      Rotating combinators by robot will not loose thresholds or disable services
-      Thresholds and service state will be restored on undo up to 1 hour
-      Thresholds and service state will be restored when reviving a destroyed combinator ghost
     - Will not remove signals when converting to depot by default.  Hold Shift when clicking depot
       checkbox to remove Requester/Provider related signals
+    - New combinators from blueprints, or copy/paste will follow rules in Mod Settings
+    - Replacing standard constant combinators will not auto-disable anything.
+    - Rotating combinators by robot will not loose thresholds or disable services
+    - Thresholds and service state will be restored on undo up to 1 hour
+    - Thresholds and service state will be restored when reviving a destroyed combinator ghost
   Features:
     - Added reset buttons for LTN signals that will clear the signal to use the LTN default (#12)
     - Now able to store a positive signal by holding SHIFT when clicking the confirm button.
     - Will add an alert when placing new combinators that have something auto-disabled based on 
       Mod-settings.
+    - Per-user setting to display the network config panel as the default view when opening the
+      combinator
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.6
 Date: 2023-05-15
