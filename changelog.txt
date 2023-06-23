@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.1
+Date: 2023-06-23
+  Bugfixes:
+    - Just for fun I had to leave a crash bug in there.  Fixed crash when placing true ghosts
+      (Nothing in inventory)
+---------------------------------------------------------------------------------------------------
 Version: 2.1.0
 Date: 2023-06-23
   Info:

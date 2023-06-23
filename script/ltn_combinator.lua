@@ -1965,15 +1965,18 @@ local function on_pre_build(e)
     return
   end
 
-  --- @type (LuaItemStack | LuaItemPrototype | string)?
-  local cs = player.cursor_ghost or player.cursor_stack
-  if not cs or not cs.valid or not cs.valid_for_read or cs.name ~= "ltn-combinator" then
-    return
+  local entities = {}
+  local cs = player.cursor_stack
+  if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
+    if not e.shift_build then
+      goto constant_only
+    end
+  else
+    cs = nil
   end
 
-  local entities = {}
-  if not e.shift_build and player.cursor_stack.name == "ltn-combinator" then
-    goto constant_only
+  if not cs and not player.cursor_ghost and player.cursor_ghost ~= "ltn-combinator" then
+    return
   end
 
   -- For ltn-combinator ghosts need to handle a change in rotation so the tags don't get lost
