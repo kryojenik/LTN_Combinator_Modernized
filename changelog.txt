@@ -21,6 +21,7 @@ Date: ????
     - Will not remove signals when converting to depot by default.  Hold Shift when clicking depot
       checkbox to remove Requester/Provider related signals
     - New combinators from blueprints, or copy/paste will follow rules in Mod Settings
+    - New non-blueprinted combinators will not auto-disable anything.
     - Replacing standard constant combinators will not auto-disable anything.
     - Rotating combinators by robot will not loose thresholds or disable services
     - Thresholds and service state will be restored on undo up to 1 hour

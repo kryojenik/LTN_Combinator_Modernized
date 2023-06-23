@@ -1706,8 +1706,8 @@ local function on_built(e)
   --   - Rotate by robot?
   --   - Undo?
   local pos_int = util.pack_position(entity.position)
-  local gr = global.replacements[entity.surface_index]
-  local rep = gr and gr[pos_int]
+  local sreps = global.replacements[entity.surface_index]
+  local rep = sreps and sreps[pos_int] or nil
   --- @type CombinatorData
   local cd = rep and rep.combinator_data or nil
 
@@ -1731,18 +1731,19 @@ local function on_built(e)
   end
 
   -- Remove any historical combinator data at this location if it existed.
-  if gr then
-    gr[pos_int] = nil
-    if not next(gr) then
+  if sreps then
+    sreps[pos_int] = nil
+    if not next(sreps) then
       global.replacements[entity.surface_index] = nil
     end
   end
 
   -- Don't toggle services when building ghosts or this entity has been tagged
-  -- when the ghost was created elsewhere.
-  if entity.name == "entity-ghost"
-  or e.tags and e.tags.no_auto_disable
-  or rep and rep.no_auto_disable then
+  -- "no_auto_disable" when the ghost was created.
+  if entity.name == "entity-ghost"        -- Ghost
+  or not e.tags and not rep               -- Just placing item from inventory
+  or e.tags and e.tags.no_auto_disable    -- Likely an undo
+  or rep and rep.no_auto_disable then     -- Likely an upgrade / fast replace / rotation by robot
     return
   end
 
