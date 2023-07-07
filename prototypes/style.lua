@@ -56,7 +56,8 @@ styles.ltnc_entry_sprite = {
 styles.ltnc_entry_text = {
   type   = "textbox_style",
   parent = "short_number_textfield",
-  minimal_width = 108,
+  --minimal_width = 108,
+  minimal_width = 94,
   horizontal_align = "right",
   horizontally_stretchable = "off",
 }
@@ -80,7 +81,8 @@ styles.ltnc_entry_text_not_transmitted = {
 styles.ltnc_entry_text_invalid_value = {
   type = "textbox_style",
   parent = "invalid_value_short_number_textfield",
-  minimal_width = 108,
+  --minimal_width = 108,
+  minimal_width = 94,
   horizontal_align = "right",
   horizontally_stretchable = "off",
 }

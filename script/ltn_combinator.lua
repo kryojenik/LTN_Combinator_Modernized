@@ -74,13 +74,14 @@ end -- is_depot()
 local function toggle_ui_req_prov_panels(self, set_enable)
   local services = { "provider", "requester" }
   for _, service in ipairs(services) do
-    for _, elem in ipairs(self.elems["table_" .. service].children) do
+    local table_name = "table_" .. service
+    for _, elem in ipairs(self.elems[table_name].children) do
       elem.enabled = set_enable
     end
 
     -- Set the provider and requester states to false in global data
     local chkbox = self.elems["check__" .. service]
-    chkbox.enabled =set_enable
+    chkbox.enabled = set_enable
   end
 end -- toggle_ui_req_prov_panels()
 
@@ -1224,7 +1225,11 @@ local function build(player)
             }
           },
           { -- Network Encode Pane
-            type = "flow",
+            type = "frame",
+            style = "flib_shallow_frame_in_shallow_frame",
+            style_mods = {
+              padding = 8,
+            },
             name = "net_encode_flow",
             visible = false,
             direction = "vertical",
@@ -1234,7 +1239,6 @@ local function build(player)
                 horizontally_stretchable = true,
                 minimal_height = 128,
                 vertical_align = "center",
-                bottom_margin = 8
               },
               net_encode_toggle_buttons(32),
               {
@@ -1250,6 +1254,7 @@ local function build(player)
                 {
                   type = "button",
                   name = "net_id_all",
+                  style_mods = { minimal_width = 94 },
                   handler = { [defines.events.on_gui_click] = handlers.network_id_toggle },
                   caption = { "ltnc.btn-all" },
                   tooltip = { "ltnc-signal-tips.ltn-network-id-all" }
@@ -1257,6 +1262,7 @@ local function build(player)
                 {
                   type = "button",
                   name = "net_id_none",
+                  style_mods = { minimal_width = 94 },
                   handler = { [defines.events.on_gui_click] = handlers.network_id_toggle },
                   caption = { "ltnc.btn-none" },
                   tooltip = { "", { "ltnc-signal-tips.ltn-network-id-none" }, { "ltnc-signal-tips.zero-value" } },
@@ -1269,7 +1275,6 @@ local function build(player)
             type = "frame",
             name = "entity_preview_frame",
             style = "flib_shallow_frame_in_shallow_frame",
-            style_mods = { bottom_margin = 8 },
             {
               type = "entity-preview",
               name = "entity_preview",
@@ -1284,7 +1289,7 @@ local function build(player)
             type = "table",
             name = "netid",
             column_count = 2,
-            style_mods = { cell_padding = 2, horizontally_stretchable = true },
+            style_mods = { top_margin = 8, cell_padding = 2, horizontally_stretchable = true },
             {
               type = "sprite-button",
               style = "ltnc_small_button",
