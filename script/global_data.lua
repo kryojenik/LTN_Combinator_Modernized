@@ -1,7 +1,7 @@
 
 ---@class NetworkData
----@field icon SpritePath
----@field tip string 
+---@field icon? SpritePath
+---@field tip? string 
 
 ---@class CombinatorData
 ---@field provider boolean

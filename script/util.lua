@@ -19,6 +19,7 @@ end
 ---Set slider value and stacks textbox value from the items text box
 ---@param player LuaPlayer
 function M.from_items(player)
+  ---@type WorkingSlot
   local ws = global.players[player.index].working_slot
   local value = tonumber(ws.items.text) --[[@as number]]
   if not value then
@@ -32,6 +33,7 @@ end -- M.from_items()
 ---Set slider value and stacks textbox value from the items text box
 ---@param player LuaPlayer
 function M.from_stacks(player)
+  ---@type WorkingSlot
   local ws = global.players[player.index].working_slot
   local value = tonumber(ws.stacks.text)
   if not value then
@@ -48,6 +50,7 @@ end -- M.from_stacks()
 ---Set slider value and stacks textbox value from the items text box
 ---@param player LuaPlayer
 function M.from_slider(player)
+  ---@type WorkingSlot
   local ws = global.players[player.index].working_slot
   local value = ws.slider.slider_value
   ws.stacks.text = tostring(value / ws.stack_size)

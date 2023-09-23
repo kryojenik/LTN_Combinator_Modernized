@@ -1,11 +1,8 @@
 local libgui = require("__flib__/gui-lite")
---local table = require("__flib__/table")
-
---local config = require("__LTN_Combinator_Modernized__/config")
 
 ---@class NetUI
----@field elems table<string, LuaGuiElement>
----@field network uint @ The network id must be between 1 - 32 inclusive
+---@field elems? table<string, LuaGuiElement>
+---@field network? uint @ The network id must be between 1 - 32 inclusive
 ---@field update_ui_network_id_buttons_callback? fun(o: LTNC)
 local net_ui = {}
 
@@ -15,13 +12,15 @@ local function update_ui(self)
   if gni then
     if gni.icon and self.elems.icon.gui.is_valid_sprite_path(gni.icon) then
       local _, _, type, name = string.find(gni.icon, "(.*)/(.*)")
-      
+
       ---@type SignalID
       local signal = {type = type, name = name}
       self.elems.icon.elem_value = signal
     end
+
     self.elems.tip.text = gni.tip or ""
   end
+
 end
 
 local handlers = {
@@ -45,6 +44,7 @@ local handlers = {
       type = self.elems.icon.elem_value.type
       name = self.elems.icon.elem_value.name
     end
+
     local path = type .. "/" .. name
     if game.is_valid_sprite_path(path) then
       desc.icon = path
@@ -65,8 +65,11 @@ local handlers = {
         if p.uis.main then
           self.update_ui_network_id_buttons_callback(p.uis.main)
         end
+
       end
+
     end
+
     net_ui.close(self, e.player_index)
 
   end,
@@ -185,7 +188,7 @@ function net_ui.open_single(e, callback)
   new_ui.update_ui_network_id_buttons_callback = callback
 
   update_ui(new_ui)
-  
+
   pt.uis.netui = new_ui
   pt.uis.netui.elems.net_config_main.force_auto_center()
 
@@ -205,7 +208,7 @@ function net_ui.close(self, input)
     pt.uis.netui.elems.net_config_main.destroy()
     pt.uis.netui = nil
   end
-  
+
 end
 
 return net_ui

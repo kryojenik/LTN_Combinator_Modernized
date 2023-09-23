@@ -261,9 +261,10 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   end
 
   --- @type Signal
-  local signal = {}
-  signal.count = value
-  signal.signal = { name = ltn_signal_name, type = "virtual" }
+  local signal = {
+    count = value,
+    signal = { name = ltn_signal_name, type = "virtual" }
+  }
 
   -- Set the non-default values
   if signal.count ~= signal_data.default then
@@ -735,7 +736,9 @@ end, -- misc_signal_confirm()
 --- @param self LTNC
 misc_signal_cancel = function(self, e)
   local ws = global.players[e.player_index].working_slot
-  update_ui_misc_signal(self, ws.index)
+  if ws then
+    update_ui_misc_signal(self, ws.index)
+  end
   close_ui_misc_signal_edit_controls(self)
 end, -- misc_signal_cancel
 
@@ -1523,11 +1526,12 @@ local function open_gui(player, entity)
   end
 
   --- @type LTNC
-  local new_ui = {}
-  new_ui.player = player
-  new_ui.entity = entity
-  new_ui.control = new_ui.entity.get_or_create_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
-  new_ui.elems = build(player)
+  local new_ui = {
+    player = player,
+    entity = entity,
+    control = entity.get_or_create_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]],
+    elems = build(player)
+  }
   new_ui.elems.entity_preview.entity = new_ui.entity
   new_ui.elems.ltnc_main_window.force_auto_center()
   sort_signals(entity)
@@ -2009,10 +2013,10 @@ local function on_pre_build(e)
 end -- on_pre_build()
 
 --- @class LTNC
+--- @field player LuaPlayer Player operating this UI
 --- @field entity LuaEntity
 --- @field control LuaConstantCombinatorControlBehavior
 --- @field elems table<string, LuaGuiElement>
---- @field player LuaPlayer Player operating this UI
 local ltnc = {}
 
 function ltnc.on_init()
