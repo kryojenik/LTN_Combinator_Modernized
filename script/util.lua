@@ -1,6 +1,8 @@
 local math = require("__flib__/math")
 
 local config = require("__LTN_Combinator_Modernized__/script/config")
+local flib_box = require("__flib__/bounding-box")
+local table = require("__flib__/table")
 
 local M = {}
 
@@ -86,14 +88,9 @@ function M.is_valid(name, value)
   return value >= signal.min and value <= signal.max
 end
 
---- @param e EventData.on_player_setup_blueprint
+--- @param player LuaPlayer
 --- @return LuaItemStack?
-function M.get_blueprint(e)
-  local player = game.get_player(e.player_index)
-  if not player then
-    return
-  end
-
+function M.get_blueprint(player)
   local bp = player.blueprint_to_setup
   if bp and bp.valid_for_read then
     return bp
@@ -114,6 +111,48 @@ function M.get_blueprint(e)
   end
 
   return bp
+end
+
+---@param entities BlueprintEntity[]
+---@param pos MapPosition
+---@return BoundingBox
+---@return MapPosition
+function M.get_blueprint_bounding_box(entities, pos)
+  local box = flib_box.from_position(entities[1].position, true)
+  local names = {}
+  for _, e in ipairs(entities) do
+    names[e.name] = true
+  end
+
+  local name_filter = {}
+  for k, _ in pairs(names) do
+    table.insert(name_filter, k)
+  end
+
+  ---@diagnostic disable-next-line
+  local protos = game.get_filtered_entity_prototypes{{filter = "name", name = name_filter}}
+  for _, entity in pairs(entities) do
+    local collision_box = protos[entity.name].collision_box
+    box = flib_box.expand_to_contain_box(
+      box,
+      flib_box.from_dimensions(
+        entity.position,
+        flib_box.width(collision_box),
+        flib_box.height(collision_box)
+      )
+    )
+  end
+
+  box = flib_box.ceil(box)
+  local pos_x = pos.x or pos[1]
+  local pos_y = pos.y or pos[2]
+  local width = flib_box.width(box)
+  local height = flib_box.height(box)
+  pos_x = width % 2 == 0 and math.floor(pos_x + .5) or math.floor(pos_x) + .5
+  pos_y = height % 2 == 0 and math.floor(pos_y + .5) or math.floor(pos_y) + .5
+  local center = { x = pos_x, y = pos_y }
+  box = flib_box.recenter_on(box, center)
+  return box, center
 end
 
   --- Recursive function to find combinator up to <max_depth> connections away

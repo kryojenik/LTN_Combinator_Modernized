@@ -1,6 +1,7 @@
 local flib_gui = require("__flib__/gui-lite")
 local flib_format = require("__flib__/format")
 local flib_position = require("__flib__/position")
+local flib_box = require("__flib__/bounding-box")
 local table = require("__flib__/table")
 local math = require("__flib__/math")
 
@@ -1780,7 +1781,12 @@ end -- on_built()
 
 --- @param e EventData.on_player_setup_blueprint
 local function on_player_setup_blueprint(e)
-  local bp = util.get_blueprint(e)
+  local player = game.get_player(e.player_index)
+  if not player then
+    return
+  end
+
+  local bp = util.get_blueprint(player)
   if not bp then
     return
   end
@@ -1974,6 +1980,36 @@ local function on_pre_build(e)
   local player = game.get_player(e.player_index)
   if not player or not player.valid then
     return
+  end
+
+  if player.is_cursor_blueprint() then
+    local entities = player.get_blueprint_entities()
+    if not entities then
+      return
+    end
+
+    local combinators = table.filter(
+      entities,
+      function(v)
+        return v.name == "ltn-combinator"
+      end,
+      false
+    )
+    if not next(combinators) then
+      return
+    end
+
+    local box, center = util.get_blueprint_bounding_box(entities, e.position)
+    local id = rendering.draw_rectangle{
+      surface = 1,
+      color = {0,255,0},
+      left_top = box.left_top,
+      right_bottom = box.right_bottom,
+      filled = false
+    }
+
+    game.print(id)
+    local offset = flib_position.sub(e.position, center)
   end
 
   local entities = {}
