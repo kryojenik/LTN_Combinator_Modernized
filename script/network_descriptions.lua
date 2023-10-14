@@ -90,6 +90,7 @@ end)
 ---@param player LuaPlayer
 ---@param self NetUI
 ---@return GuiElemDef
+---@diagnostic disable:missing-fields
 local function build_single_description(self, player)
   local elems = libgui.add(player.gui.screen, {
     {
@@ -166,6 +167,7 @@ local function build_single_description(self, player)
   })
   return elems
 end -- build_single_description()
+---@diagnostic enable:missing-fields
 
 ---Open the network description editor
 ---@param e EventData.on_gui_click

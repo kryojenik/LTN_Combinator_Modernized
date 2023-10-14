@@ -1172,6 +1172,7 @@ end
 --- Build the LTN Main UI window
 --- @param player LuaPlayer @ Player object that is opening the combinator
 --- @return GuiElemDef
+---@diagnostic disable:missing-fields
 local function build(player)
   local elems = flib_gui.add(player.gui.screen, {
     { -- Main Window Frame
@@ -1493,6 +1494,7 @@ local function build(player)
   })
   return elems
 end -- build()
+---@diagnostic enable:missing-fields
 --#endregion
 ----------------------------------------------------------------------------------------------------
 
