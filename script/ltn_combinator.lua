@@ -351,6 +351,8 @@ end -- update_misc_signal()
 local function open_ui_misc_signal_edit_controls(self, slot)
   local pt = global.players[self.player.index]
   local ws = pt.working_slot
+  -- Changing from an already active working slot.
+  -- Reset UI and prepare to work on newly selected slot
   if ws and ws.index ~= slot then
     update_ui_misc_signal(self, ws.index)
     pt.working_slot = nil
@@ -363,18 +365,18 @@ local function open_ui_misc_signal_edit_controls(self, slot)
 
   -- Record the slot player is working with in global so that values can be
   -- updated with later events
-  ws = {}
+  ws = {
+    index = slot,
+    panel = self.elems.stack_item_flow,
+    slider = self.elems.misc_signal_slider,
+    stacks = self.elems.text_entry__stacks,
+    items = self.elems.text_entry__item_fluid,
+    confirm = self.elems.signal_quantity_confirm,
+    cancel = self.elems.signal_quantity_cancel
+  }
   pt.working_slot = ws
   local slider_max
   local slider_increment
-
-  ws.index = slot
-  ws.panel = self.elems.stack_item_flow
-  ws.slider = self.elems.misc_signal_slider
-  ws.stacks = self.elems.text_entry__stacks
-  ws.items = self.elems.text_entry__item_fluid
-  ws.confirm = self.elems.signal_quantity_confirm
-  ws.cancel = self.elems.signal_quantity_cancel
 
   ws.slider.enabled = true
   ws.stacks.enabled = true
