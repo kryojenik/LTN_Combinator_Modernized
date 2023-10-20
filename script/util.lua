@@ -129,10 +129,13 @@ function M.get_blueprint_bounding_box(entities, pos)
     table.insert(name_filter, k)
   end
 
-  ---@diagnostic disable-next-line
+  -- Define a bounding box the size of the blueprint to be placed
+  local grid_size = 1
+  ---@diagnostic disable-next-line:missing-fields
   local protos = game.get_filtered_entity_prototypes{{filter = "name", name = name_filter}}
   for _, entity in pairs(entities) do
     local collision_box = protos[entity.name].collision_box
+    grid_size = math.max(grid_size, protos[entity.name].building_grid_bit_shift)
     box = flib_box.expand_to_contain_box(
       box,
       flib_box.from_dimensions(
@@ -143,14 +146,23 @@ function M.get_blueprint_bounding_box(entities, pos)
     )
   end
 
-  box = flib_box.ceil(box)
+  -- Expand bounding box to be full tiles based on the entity with the largest building grid size
+  box.left_top.x = grid_size * math.floor(box.left_top.x / grid_size)
+  box.left_top.y = grid_size * math.floor(box.left_top.y / grid_size)
+  box.right_bottom.x = grid_size * math.ceil(box.right_bottom.x / grid_size)
+  box.right_bottom.y = grid_size * math.ceil(box.right_bottom.y / grid_size)
   local pos_x = pos.x or pos[1]
   local pos_y = pos.y or pos[2]
-  local width = flib_box.width(box)
-  local height = flib_box.height(box)
-  pos_x = width % 2 == 0 and math.floor(pos_x + .5) or math.floor(pos_x) + .5
-  pos_y = height % 2 == 0 and math.floor(pos_y + .5) or math.floor(pos_y) + .5
-  local center = { x = pos_x, y = pos_y }
+  pos_x = (flib_box.width(box) / grid_size) % 2 == 0
+          and math.floor(pos_x / grid_size + .5 ) * grid_size
+          or math.floor(pos_x / grid_size) * grid_size + grid_size / 2
+  pos_y = (flib_box.height(box) / grid_size) % 2 == 0
+          and math.floor(pos_y / grid_size + .5 ) * grid_size
+          or math.floor(pos_y / grid_size) * grid_size + grid_size / 2
+  local center = {
+    x = pos_x,
+    y = pos_y
+  }
   box = flib_box.recenter_on(box, center)
   return box, center
 end

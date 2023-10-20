@@ -2002,6 +2002,7 @@ local function on_pre_build(e)
     end
 
     local box, center = util.get_blueprint_bounding_box(entities, e.position)
+    --[[
     local id = rendering.draw_rectangle{
       surface = 1,
       color = {0,255,0},
@@ -2009,8 +2010,26 @@ local function on_pre_build(e)
       right_bottom = box.right_bottom,
       filled = false
     }
-
     game.print(id)
+    box = flib_box.from_dimensions(center, 1, 1)
+    id = rendering.draw_rectangle{
+      surface = 1,
+      color = {255,0,0},
+      left_top = box.left_top,
+      right_bottom = box.right_bottom,
+      filled = false
+    }
+    game.print(id)
+    box = flib_box.from_dimensions(e.position, .1, .1)
+    id = rendering.draw_rectangle{
+      surface = 1,
+      color = {0,0,255},
+      left_top = box.left_top,
+      right_bottom = box.right_bottom,
+      filled = false
+    }
+    game.print(id)
+    ]]
     local offset = flib_position.sub(e.position, center)
   end
 
