@@ -114,10 +114,9 @@ function M.get_blueprint(player)
 end
 
 ---@param entities BlueprintEntity[]
----@param pos MapPosition
----@return BoundingBox
----@return MapPosition
-function M.get_blueprint_bounding_box(entities, pos)
+---@return BoundingBox # Box that contains all blueprint entities
+---@return uint # The building grid size needed to build this blueprint
+function M.get_blueprint_bounding_box(entities)
   local box = flib_box.from_position(entities[1].position, true)
   local names = {}
   for _, e in ipairs(entities) do
@@ -151,6 +150,17 @@ function M.get_blueprint_bounding_box(entities, pos)
   box.left_top.y = grid_size * math.floor(box.left_top.y / grid_size)
   box.right_bottom.x = grid_size * math.ceil(box.right_bottom.x / grid_size)
   box.right_bottom.y = grid_size * math.ceil(box.right_bottom.y / grid_size)
+  return box, grid_size
+end
+
+
+---@param box BoundingBox # Source bounding box to move
+---@param pos MapPosition # Position to center new bounding box around
+---@param grid_size uint? # Building grid size to base centering.  Default: 1
+---@return BoundingBox # New bounding box that will contain all placed entities
+---@return MapPosition # Center position of new bounding box
+function M.recenter_blueprint_box_on(box, pos, grid_size)
+  local grid_size = grid_size or 1
   local pos_x = pos.x or pos[1]
   local pos_y = pos.y or pos[2]
   pos_x = (flib_box.width(box) / grid_size) % 2 == 0

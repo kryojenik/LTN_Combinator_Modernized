@@ -1977,6 +1977,7 @@ end -- on_linked_paste_settings
 
 --- Handle putting an ltn-combinator ghost down over existing ltn-combinator ghosts
 --- or over existing constant-combinators (and ghosts)
+--- Handle blueprint copy-pasting
 ---@param e EventData.on_pre_build
 local function on_pre_build(e)
   local player = game.get_player(e.player_index)
@@ -2001,36 +2002,27 @@ local function on_pre_build(e)
       return
     end
 
-    local box, center = util.get_blueprint_bounding_box(entities, e.position)
-    --[[
-    local id = rendering.draw_rectangle{
-      surface = 1,
-      color = {0,255,0},
-      left_top = box.left_top,
-      right_bottom = box.right_bottom,
-      filled = false
-    }
-    game.print(id)
-    box = flib_box.from_dimensions(center, 1, 1)
-    id = rendering.draw_rectangle{
-      surface = 1,
-      color = {255,0,0},
-      left_top = box.left_top,
-      right_bottom = box.right_bottom,
-      filled = false
-    }
-    game.print(id)
-    box = flib_box.from_dimensions(e.position, .1, .1)
-    id = rendering.draw_rectangle{
-      surface = 1,
-      color = {0,0,255},
-      left_top = box.left_top,
-      right_bottom = box.right_bottom,
-      filled = false
-    }
-    game.print(id)
-    ]]
-    local offset = flib_position.sub(e.position, center)
+    -- Calculate where blueprint will be stamped down and figure out
+    -- if any ltn-combinators will be re-stamped.  Make sure
+    -- global.combinators data get updated accordingly.
+    local bp_box, grid_size = util.get_blueprint_bounding_box(entities)
+    local bp_center = flib_box.center(bp_box)
+    local _, center = util.recenter_blueprint_box_on(bp_box, e.position, grid_size)
+    local offset = flib_position.sub(bp_center, center)
+    local surface = player.surface
+    for _, c in pairs(combinators) do
+      local dest_positions = flib_position.sub(c.position, offset)
+      -- TODO: Based on e.direction and e.flipped...  Adjust position
+      local existing_entity = surface.find_entity(
+        "ltn-combinator",
+        dest_positions
+      )
+      if existing_entity then
+        global.combinators[existing_entity.unit_number] = c.tags.ltnc --[[@as CombinatorData]]
+      end
+    end
+
+    return
   end
 
   local entities = {}
