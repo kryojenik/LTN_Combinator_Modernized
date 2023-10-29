@@ -575,11 +575,15 @@ local ltn_setting_to_signal = {
 --- Update the semi-constant "config"table with the new LTN settings
 --- @param name string LTN Setting name that changed
 local function runtime_setting_changed(name)
-  if not ltn_setting_to_signal[name] then
-    return
+  if ltn_setting_to_signal[name] then
+    config.ltn_signals[ltn_setting_to_signal[name]].default
+      = settings.global[name].value --[[@as number]]
+  elseif name == "ltnc-alert-build-disable"
+  and not settings.global[name].value
+  then
+    global.built_disabled = nil
   end
-  config.ltn_signals[ltn_setting_to_signal[name]].default
-    = settings.global[name].value --[[@as number]]
+  
 end -- runtime_setting_changed()
 
 --- Update the player runtime setting cache in global if the player changes their settings

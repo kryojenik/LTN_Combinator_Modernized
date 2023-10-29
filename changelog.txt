@@ -9,6 +9,7 @@ Date: ????
       Note: You can only use select new contents when the blueprint is in the players inventory.
             If the blueprint is in the blueprint library when you "Select new contents" the
             blueprint will be broken.  See: https://forums.factorio.com/viewtopic.php?f=182&t=88100
+    - After unchecking the "Create disabled alert" setting, all existing alerts will be removed. 
   Changes:
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.1
