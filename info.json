@@ -7,13 +7,13 @@
     "factorio_version": "1.1",
     "dependencies": [
         "base >= 1.1.74",
-        "flib >= 0.12.6",
+        "flib >= 0.13.0",
         "LogisticTrainNetwork >= 1.15.0",
         "!LTN_Combinator_Fix"
     ],
     "package": {
         "git_publish_branch": "master",
-        "ignore": ["TODO.md"],
+        "ignore": ["TODO.md", "trace-string.txt", "types.lua"],
         "sync_portal_details": true
     },
     "description": "Adds a new type of Constant Combinator to the game. It has a custom GUI to ease the control of LTN signals."
