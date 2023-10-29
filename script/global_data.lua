@@ -18,6 +18,10 @@
 ---@field tick uint
 ---@field name string
 
+---@class PreviousBlueprint
+---@field tick uint32
+---@field blueprint LuaItemStack
+
 local global_data = {}
 
 function global_data.init()
@@ -29,6 +33,8 @@ function global_data.init()
   global.combinators = {}
   ---@type Replacement[][]
   global.replacements = {}
+  ---@type PreviousBlueprint[]
+  global.previous_opened_blueprint_for = {}
 end
 
 return global_data

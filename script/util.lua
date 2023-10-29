@@ -92,28 +92,35 @@ end
 --- @return LuaItemStack?
 function M.get_blueprint(player)
   local bp = player.blueprint_to_setup
-  if bp and bp.valid_for_read then
+  if bp
+  and bp.valid_for_read then
     return bp
   end
 
   bp = player.cursor_stack
-  if not bp or not bp.valid_for_read then
-    return
-  end
-
-  if bp.type == "blueprint-book" then
-    local item_inventory = bp.get_inventory(defines.inventory.item_main)
-    if item_inventory then
-      bp = item_inventory[bp.active_index]
-    else
-      return
+  if bp
+  and bp.valid_for_read
+  and bp.is_blueprint
+  and bp.is_blueprint_setup() then
+    while bp.is_blueprint_book do
+      bp = bp.get_inventory(defines.inventory.item_main)[bp.active_index]
     end
+
+    return bp
   end
 
-  return bp
+  local prev_bp = global.previous_opened_blueprint_for[player.index]
+  if prev_bp
+  and prev_bp.tick == game.tick
+  and prev_bp.blueprint
+  and prev_bp.blueprint.valid_for_read
+  and prev_bp.blueprint.is_blueprint_setup()
+  then
+    return prev_bp.blueprint
+  end
 end
 
----@param entities BlueprintEntity[]
+---@param entities BlueprintEntity[] # E.g. from LuaPlayer.get_blueprint_entities()
 ---@return BoundingBox # Box that contains all blueprint entities
 ---@return uint # The building grid size needed to build this blueprint
 function M.get_blueprint_bounding_box(entities)
@@ -154,12 +161,11 @@ function M.get_blueprint_bounding_box(entities)
 end
 
 
----@param box BoundingBox # Source bounding box to move
+---@param box BoundingBox # Bounding box of blueprint to place
 ---@param pos MapPosition # Position to center new bounding box around
 ---@param grid_size uint? # Building grid size to base centering.  Default: 1
----@return BoundingBox # New bounding box that will contain all placed entities
 ---@return MapPosition # Center position of new bounding box
-function M.recenter_blueprint_box_on(box, pos, grid_size)
+function M.get_placed_blueprint_center(box, pos, grid_size)
   local grid_size = grid_size or 1
   local pos_x = pos.x or pos[1]
   local pos_y = pos.y or pos[2]
@@ -169,12 +175,11 @@ function M.recenter_blueprint_box_on(box, pos, grid_size)
   pos_y = (flib_box.height(box) / grid_size) % 2 == 0
           and math.floor(pos_y / grid_size + .5 ) * grid_size
           or math.floor(pos_y / grid_size) * grid_size + grid_size / 2
-  local center = {
-    x = pos_x,
-    y = pos_y
-  }
-  box = flib_box.recenter_on(box, center)
-  return box, center
+  if pos.x then
+    return { x = pos_x, y = pos_y }
+  else
+    return { pos_x, pos_y }
+  end
 end
 
   --- Recursive function to find combinator up to <max_depth> connections away

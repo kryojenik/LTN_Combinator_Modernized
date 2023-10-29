@@ -1790,6 +1790,15 @@ local function on_player_setup_blueprint(e)
 
   local bp = util.get_blueprint(player)
   if not bp then
+    local source_entities = e.mapping.get() --[=[@as LuaEntity[]]=]
+    for _, entity in ipairs(source_entities) do
+      if entity.name == "ltn-combinator" then
+        player.print{"ltnc.blueprint-bug"}
+        goto out
+      end
+    end
+
+    ::out::
     return
   end
 
@@ -2007,7 +2016,7 @@ local function on_pre_build(e)
     -- global.combinators data get updated accordingly.
     local bp_box, grid_size = util.get_blueprint_bounding_box(entities)
     local bp_center = flib_box.center(bp_box)
-    local _, center = util.recenter_blueprint_box_on(bp_box, e.position, grid_size)
+    local center = util.get_placed_blueprint_center(bp_box, e.position, grid_size)
     local offset = flib_position.sub(bp_center, center)
     local surface = player.surface
     for _, c in pairs(combinators) do
@@ -2018,6 +2027,16 @@ local function on_pre_build(e)
         dest_positions
       )
       if existing_entity then
+        if not c.tags then
+          -- This BP is broken - Likely from selecting new contents for a Blueprint
+          -- that was in the Blueprint Library
+          -- https://forums.factorio.com/viewtopic.php?f=182&t=88100
+          -- Attempt to make the resulting combinator less broken
+          log("[LTNC] Pasted over existing combinator with broken Blueprint.  https://forums.factorio.com/viewtopic.php?f=182&t=88100\n")
+          c.tags = {
+            ltnc = create_global_data_from_combinator(existing_entity)
+          }
+        end
         global.combinators[existing_entity.unit_number] = c.tags.ltnc --[[@as CombinatorData]]
       end
     end
@@ -2062,6 +2081,27 @@ local function on_pre_build(e)
     add_replacement(entities[1], e)
   end
 end -- on_pre_build()
+
+---
+---@param e EventData.on_gui_closed
+local function on_closed(e)
+  local player = game.get_player(e.player_index) --[[@as LuaPlayer]]
+  if e.gui_type == defines.gui_type.item
+  and e.item.is_blueprint
+  and e.item.is_blueprint_setup()
+  and player.cursor_stack
+  and player.cursor_stack.valid_for_read
+  and player.cursor_stack.is_blueprint
+  and not player.cursor_stack.is_blueprint_setup()
+  then
+    global.previous_opened_blueprint_for[e.player_index] = {
+      blueprint = e.item,
+      tick = e.tick
+    }
+  else
+    global.previous_opened_blueprint_for[e.player_index] = nil
+  end
+end -- on_closed()
 
 --- @class LTNC
 --- @field player LuaPlayer Player operating this UI
@@ -2250,6 +2290,7 @@ ltnc.events = {
   [defines.events.on_post_entity_died] = on_post_died,
   ["ltnc-linked-open-gui"] = on_linked_open_gui,
   ["ltnc-linked-paste-settings"] = on_linked_paste_settings,
+  [defines.events.on_gui_closed] = on_closed,
 }
 
 return ltnc
