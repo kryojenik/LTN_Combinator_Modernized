@@ -2091,6 +2091,7 @@ end -- on_pre_build()
 local function on_closed(e)
   local player = game.get_player(e.player_index) --[[@as LuaPlayer]]
   if e.gui_type == defines.gui_type.item
+  and e.item
   and e.item.is_blueprint
   and e.item.is_blueprint_setup()
   and player.cursor_stack

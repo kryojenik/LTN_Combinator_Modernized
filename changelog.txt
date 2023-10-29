@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.3
+Date: 2023-10-29
+  Bugfixes:
+    - Fixed crash in blueprinting workaround code that appears when closing various GUIs.
+---------------------------------------------------------------------------------------------------
 Version: 2.1.2
 Date: 2023-10-29
   Bugfixes:
@@ -10,7 +15,6 @@ Date: 2023-10-29
             If the blueprint is in the blueprint library when you "Select new contents" the
             blueprint will be broken.  See: https://forums.factorio.com/viewtopic.php?f=182&t=88100
     - After unchecking the "Create disabled alert" setting, all existing alerts will be removed. 
-  Changes:
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.1
 Date: 2023-06-23
