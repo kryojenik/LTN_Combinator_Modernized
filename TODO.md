@@ -11,7 +11,7 @@
 - [ ] Add note to tool tip info that combi-ghost will be disabled when built?
 - [ ] Setting - auto delete non-depot signals (fun create_global_data...)
 - [ ] Really need to update all players with same combi open
-- [ ] Placing combinator triggers on_linked_open...  Bug
+- [x] Placing combinator triggers on_linked_open...  Bug
   - Trying to open a non-LTN Combinator too quickly after opening LTN combinator (latency)
 - [ ] Change background of misc signal when it is working slot
 - [ ] Update UI when settings pasted

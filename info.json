@@ -1,9 +1,11 @@
 {
     "name": "LTN_Combinator_Modernized",
-    "version": "2.1.3",
+    "version": "2.1.4",
     "title": "LTN Combinator Modernized",
+    "description": "Add a combinator with friendly GUI to manage LTN Control Signals for each LTN Train Stop",
     "author": "kryojenik",
-    "homepage": "",
+    "contact": "https://github.com/kryojenik/LTN_Combinator_Modernized",
+    "homepage": "https://github.com/kryojenik/LTN_Combinator_Modernized",
     "factorio_version": "1.1",
     "dependencies": [
         "base >= 1.1.74",
@@ -12,9 +14,13 @@
         "!LTN_Combinator_Fix"
     ],
     "package": {
-        "git_publish_branch": "master",
-        "ignore": ["TODO.md", "trace-string.txt", "types.lua"],
+        "git_publish_branch": "main",
+        "ignore": [
+            "TODO.md",
+            "trace-string.txt",
+            "types.lua",
+            "screenshots/*"
+        ],
         "sync_portal_details": true
-    },
-    "description": "Adds a new type of Constant Combinator to the game. It has a custom GUI to ease the control of LTN signals."
+    }
 }
