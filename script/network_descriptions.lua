@@ -45,7 +45,7 @@ local handlers = {
       name = self.elems.icon.elem_value.name
     end
 
-    local path = type .. "/" .. name
+    local path = (type == "virtual" and "virtual-signal" or type) .. "/" .. name
     if game.is_valid_sprite_path(path) then
       desc.icon = path
     else
