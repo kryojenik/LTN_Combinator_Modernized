@@ -1,3 +1,7 @@
+# Repo is archived and readonly.
+
+Logistic Train Network (why this mod exists) is retired and will not be ported to Factorio 2.0 / Space Age!  Therefore this mod will also be retired.
+
 [![shield](https://img.shields.io/badge/Ko--fi-Donate%20-hotpink?logo=kofi&logoColor=white)](https://ko-fi.com/M4M2LCWTH)
 [![shield](https://img.shields.io/badge/dynamic/json?color=orange&label=Factorio&query=downloads_count&suffix=%20downloads&url=https%3A%2F%2Fmods.factorio.com%2Fapi%2Fmods%2FLTN_Combinator_Modernized)](https://mods.factorio.com/mod/LTN_Combinator_Modernized)
 
