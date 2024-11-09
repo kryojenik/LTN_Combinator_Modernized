@@ -8,7 +8,7 @@ local net_ui = {}
 
 ---@param self NetUI
 local function update_ui(self)
-  local gni = global.network_descriptions[self.network]
+  local gni = storage.network_descriptions[self.network]
   if gni then
     if gni.icon and self.elems.icon.gui.is_valid_sprite_path(gni.icon) then
       local _, _, type, name = string.find(gni.icon, "(.*)/(.*)")
@@ -34,7 +34,7 @@ local handlers = {
   ---@param e EventData.on_gui_click
   ---@param self NetUI
   network_description_confirm = function(self, e)
-    local nd = global.network_descriptions
+    local nd = storage.network_descriptions
     ---@type NetworkData
     local desc = {}
     local tip = self.elems.tip.text
@@ -61,7 +61,7 @@ local handlers = {
     nd[self.network] = desc
 
     if self.update_ui_network_id_buttons_callback then
-      for _, p in ipairs(global.players) do
+      for _, p in ipairs(storage.players) do
         if p.uis.main then
           self.update_ui_network_id_buttons_callback(p.uis.main)
         end
@@ -80,7 +80,7 @@ local handlers = {
 }
 
 libgui.add_handlers(handlers, function(e, handler)
-  local self = global.players[e.player_index].uis.netui
+  local self = storage.players[e.player_index].uis.netui
   if self then
     handler(self, e)
   end
@@ -178,7 +178,7 @@ function net_ui.open_single(e, callback)
     return
   end
 
-  local pt = global.players[e.player_index]
+  local pt = storage.players[e.player_index]
   if pt.uis.netui then
     net_ui.close(pt.uis.netui, e.player_index)
   end
@@ -204,7 +204,7 @@ function net_ui.close(self, input)
   if type(input) == "table" then
     ndx = input.player_index
   end
-  local pt = global.players[ndx]
+  local pt = storage.players[ndx]
 
   if pt.uis.netui and pt.uis.netui.elems then
     pt.uis.netui.elems.net_config_main.destroy()
