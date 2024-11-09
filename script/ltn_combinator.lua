@@ -257,20 +257,19 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
 
   -- Remove the signal from combinator if it is zero or non-existent
   if not value or value == 0 then
-    ctl.set_signal(signal_data.slot, util.nilSignal)
+    ctl.get_section(1).set_slot(signal_data.slot, util.nilSignal)
     return
   end
 
   --- @type Signal
   local signal = {
     count = value,
-    signal = 
     signal = { name = ltn_signal_name, type = "virtual" }
   }
 
   -- Set the non-default values
   if signal.count ~= signal_data.default then
-    ctl.set_signal(signal_data.slot, signal)
+    ctl.get_section(1).set_slot(signal_data.slot, signal)
     return
   end
 
@@ -278,9 +277,9 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   -- Otherwise, default values are removed.
   if (ltn_signal_name == "ltn-network-id" and explicit_network)
       or (ltn_signal_name ~= "ltn-network-id" and explicit_default) then
-    ctl.set_signal(signal_data.slot, signal)
+    ctl.get_section(1).set_slot(signal_data.slot, signal)
   else
-    ctl.set_signal(signal_data.slot, util.nilSignal)
+    ctl.get_section(1).set_slot(signal_data.slot, util.nilSignal)
   end
 end -- set_ltn_signal_by_control()
 
@@ -437,7 +436,7 @@ end -- open_misc_signal_edit_controls()
 --- @param self LTNC
 local function clear_misc_signal(self, slot)
   local ctl = self.control
-  ctl.set_signal(slot + config.ltnc_ltn_signal_count, util.nilSignal)
+  ctl.get_section(1).set_slot(slot + config.ltnc_ltn_signal_count, util.nilSignal)
 end -- clear_misc_signal()
 
 --- @param signal Signal
@@ -445,7 +444,7 @@ end -- clear_misc_signal()
 --- @param self LTNC
 local function set_misc_signal(self, signal, slot)
   local ctl = self.control
-  ctl.set_signal(slot, signal)
+  ctl.get_section(1).set_slot(slot, signal)
 end -- set_misc_signal()
 
 --- Refresh the entire UI with current data
