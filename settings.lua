@@ -66,14 +66,14 @@ data:extend({
     name = "ltnc-emit-explicit-default",
     order = "ma",
     setting_type = "runtime-global",
-    default_value = "false"
+    default_value = false,
   },
   {
     type = "bool-setting",
     name = "ltnc-emit-default-network-id",
     order = "mb",
     setting_type = "runtime-global",
-    default_value = "false"
+    default_value = false,
   },
   {
     type = "string-setting",
@@ -88,7 +88,7 @@ data:extend({
     name = "ltnc-alert-build-disable",
     order = "md",
     setting_type = "runtime-global",
-    default_value = "true"
+    default_value = true,
   },
   -- USER SETTINGS
   {

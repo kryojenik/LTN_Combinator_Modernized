@@ -6,9 +6,9 @@
     "author": "kryojenik",
     "contact": "https://github.com/kryojenik/LTN_Combinator_Modernized",
     "homepage": "https://github.com/kryojenik/LTN_Combinator_Modernized",
-    "factorio_version": "1.1",
+    "factorio_version": "2.0",
     "dependencies": [
-        "base >= 1.1.74",
+        "base >= 2.0.14",
         "flib >= 0.15.0",
         "LogisticTrainNetwork >= 2.0.0",
         "!LTN_Combinator_Fix"
