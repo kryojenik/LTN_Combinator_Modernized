@@ -46,7 +46,7 @@ end -- get_combinator_data()
 local function get_ltn_signal_from_control(ctl, ltn_signal_name)
   local slot = config.ltn_signals[ltn_signal_name].slot
   local default = config.ltn_signals[ltn_signal_name].default
-  local signal = ctl.get_signal(slot)
+  local signal = ctl.get_section(1).get_slot(slot)
   if signal.signal then
     return { value = signal.count, is_default = false }
   else
@@ -264,6 +264,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   --- @type Signal
   local signal = {
     count = value,
+    signal = 
     signal = { name = ltn_signal_name, type = "virtual" }
   }
 
@@ -293,7 +294,7 @@ end -- set_ltn_signal()
 --- @return Signal
 local function get_misc_signal(self, slot)
   local ctl = self.control
-  return ctl.get_signal(slot + config.ltnc_ltn_signal_count)
+  return ctl.get_section(1).get_slot(slot + config.ltnc_ltn_signal_count)
 end -- get_misc_signal()
 
 --- @param self LTNC
@@ -487,8 +488,8 @@ local function sort_signals(entity)
 
   -- Validate signal slot locations, If sorting is not needed skip it.
   --- @type uint
-  for i = 1, ctl.signals_count do
-    local signal = ctl.get_signal(i)
+  for i = 1, ctl.get_section(1) do
+    local signal = ctl.get_section(1).get_slot(i);
     if signal.signal ~= nil then
       local name = signal.signal.name
       local type = signal.signal.type
@@ -499,7 +500,7 @@ local function sort_signals(entity)
         -- In the case of an LTN, absence of a control signal will result in the LTN default
         -- being used.  Remove LTN signals with a value of 0 to remove ambiguity.
         if signal.count == 0 then
-          ctl.set_signal(i, util.nilSignal)
+          ctl.get_section(1).set_slot(i, util.nilSignal)
         else
           needs_sorting = config.ltn_signals[name].slot ~= i or i > config.ltnc_ltn_signal_count --or needs_sorting
         end
@@ -516,11 +517,11 @@ local function sort_signals(entity)
   if needs_sorting then
     local temp_signals = {}
     --- @type uint
-    for j = 1, ctl.signals_count do
-      local signal = ctl.get_signal(j)
-      if signal.signal ~= nil then
+    for j = 1, ctl.get_section(1) do
+      local signal = ctl.get_section(1).get_slot(j)
+      if signal.value ~= nil then
         table.insert(temp_signals, signal)
-        ctl.set_signal(j, util.nilSignal)
+        ctl.get_section(1).set_slot(j, util.nilSignal)
       end
     end
     --- @type uint
@@ -528,9 +529,9 @@ local function sort_signals(entity)
     for _, s in pairs(temp_signals) do
       local name = s.signal.name
       if config.ltn_signals[name] ~= nil then
-        ctl.set_signal(config.ltn_signals[name].slot, s)
+        ctl.get_section(1).set_slot(config.ltn_signals[name].slot, s)
       else
-        ctl.set_signal(misc_slot, s)
+        ctl.get_section(1).set_slot(misc_slot, s)
         misc_slot = misc_slot + 1
       end
     end
@@ -2166,10 +2167,11 @@ function ltnc.add_commands()
     end
     for _, entity in ipairs(entities) do
       local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
+      if ctl.sections_count == 0 then ctl.add_section() end
       for i = config.ltnc_ltn_signal_count + 1, config.ltnc_slot_count do
         --- @cast i uint
-        local signal = ctl.get_signal(i)
-        if signal.signal and signal.count < 0 then
+        local signal = ctl.get_section(1).get_slot(i)
+        if signal.value and signal.value< 0 then
           goto continue
         end
       end
