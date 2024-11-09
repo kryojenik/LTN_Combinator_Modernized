@@ -1,5 +1,3 @@
-# Repo is archived and readonly.
-
 Logistic Train Network is ported to 2.0. https://github.com/PSR-J0740/Logistic-Train-Network 
 - download the zip file and move LogisticTrainNetwork_2.0.0.zip to %appdata%/factorio/mods
 
