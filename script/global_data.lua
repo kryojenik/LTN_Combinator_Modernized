@@ -26,15 +26,15 @@ local global_data = {}
 
 function global_data.init()
   ---@type PlayerTable[]
-  global.players = {}
+  storage.players = {}
   ---@type NetworkData[]
-  global.network_descriptions = {}
+  storage.network_descriptions = {}
   ---@type CombinatorData[]
-  global.combinators = {}
+  storage.combinators = {}
   ---@type Replacement[][]
-  global.replacements = {}
+  storage.replacements = {}
   ---@type PreviousBlueprint[]
-  global.previous_opened_blueprint_for = {}
+  storage.previous_opened_blueprint_for = {}
 end
 
 return global_data
