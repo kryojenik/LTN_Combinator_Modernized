@@ -396,7 +396,7 @@ local function open_ui_misc_signal_edit_controls(self, slot)
   end
 
   if cur.signal.type == "item" then
-    ws.stack_size = game.item_prototypes[cur.signal.name].stack_size
+    ws.stack_size = prototypes.item[cur.signal.name].stack_size
     ws.stacks.enabled = true
     slider_max = config.slider_max_stacks * ws.stack_size
     slider_increment = ws.stack_size
