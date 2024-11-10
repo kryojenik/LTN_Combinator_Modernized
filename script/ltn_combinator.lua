@@ -246,7 +246,6 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
     cd[ltn_signal_name] = value ~= 0 and value or nil
 
     -- Remove default thresholds from storage if explicit_default is not set
-    
     if value == signal_data.default and not explicit_default then
       cd[ltn_signal_name] = nil
     end
@@ -258,7 +257,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
 
   -- Remove the signal from combinator if it is zero or non-existent
   if not value or value == 0 then
-    ctl.get_section(1).set_slot(signal_data.slot, util.nilSignal)
+    ctl.get_section(1).clear_slot(signal_data.slot)
     return
   end
 
@@ -269,7 +268,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
       name = ltn_signal_name,
       quality="normal",
     },
-    count = signal.count,
+    count = value,
   }
   local index = 0; --uint8
 
@@ -289,7 +288,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
     ctl.get_section(1).set_slot(signal_data.slot,{index = index, signal = {type="virtual", name=signal.name, quality="normal", count= signal.count}})
   else
     index = index+1
-    ctl.get_section(1).set_slot(signal_data.slot, util.nilSignal)
+    ctl.get_section(1).clear_slot(signal_data.slot)
   end
 end -- set_ltn_signal_by_control()
 
@@ -459,7 +458,7 @@ end -- open_misc_signal_edit_controls()
 --- @param self LTNC
 local function clear_misc_signal(self, slot)
   local ctl = self.control
-  ctl.get_section(1).set_slot(slot + config.ltnc_ltn_signal_count, util.nilSignal)
+  ctl.get_section(1).clear_slot(slot + config.ltnc_ltn_signal_count)
 end -- clear_misc_signal()
 
 --- @param signal Signal
@@ -510,7 +509,7 @@ local function sort_signals(entity)
 
   -- Validate signal slot locations, If sorting is not needed skip it.
   --- @type uint
-  for i = 1, ctl.get_section(1) do
+  for i = 1, ctl.get_section(1).filters_count do
     local signal = ctl.get_section(1).get_slot(i);
     if signal.signal ~= nil then
       local name = signal.signal.name

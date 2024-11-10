@@ -6,10 +6,6 @@ local table = require("__flib__/table")
 
 local M = {}
 
--- Needed a variable to hide a nil param from the language server :/
----@type Signal
-M.nilSignal = nil
-
 function M.debug_log(expr)
   if not __DebugAdapter then
     return
