@@ -1,4 +1,4 @@
-local libgui = require("__flib__/gui-lite")
+local libgui = require("__flib__/gui")
 
 ---@class NetUI
 ---@field elems? table<string, LuaGuiElement>

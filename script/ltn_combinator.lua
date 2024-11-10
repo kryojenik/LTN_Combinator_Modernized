@@ -1,4 +1,4 @@
-local flib_gui = require("__flib__/gui-lite")
+local flib_gui = require("__flib__/gui")
 local flib_format = require("__flib__/format")
 local flib_position = require("__flib__/position")
 local flib_box = require("__flib__/bounding-box")
@@ -246,6 +246,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
     cd[ltn_signal_name] = value ~= 0 and value or nil
 
     -- Remove default thresholds from storage if explicit_default is not set
+    
     if value == signal_data.default and not explicit_default then
       cd[ltn_signal_name] = nil
     end
@@ -263,22 +264,31 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
 
   --- @type Signal
   local signal = {
-    count = value,
-    signal = { name = ltn_signal_name, type = "virtual" }
+    signal = {
+      type = "virtual",
+      name = ltn_signal_name,
+      quality="normal",
+    },
+    count = signal.count,
   }
+  local index = 0; --uint8
 
   -- Set the non-default values
   if signal.count ~= signal_data.default then
-    ctl.get_section(1).set_slot(signal_data.slot, signal)
+    index = index+1
+    ctl.get_section(1).set_slot(signal_data.slot, {index = index, signal = {type="virtual", name=signal.name, quality="normal", count= signal.count}})
     return
   end
+  
 
   -- Handle setting default values.  Map setting control if values are stored when default
   -- Otherwise, default values are removed.
   if (ltn_signal_name == "ltn-network-id" and explicit_network)
       or (ltn_signal_name ~= "ltn-network-id" and explicit_default) then
-    ctl.get_section(1).set_slot(signal_data.slot, signal)
+    index = index+1
+    ctl.get_section(1).set_slot(signal_data.slot,{index = index, signal = {type="virtual", name=signal.name, quality="normal", count= signal.count}})
   else
+    index = index+1
     ctl.get_section(1).set_slot(signal_data.slot, util.nilSignal)
   end
 end -- set_ltn_signal_by_control()
@@ -287,13 +297,26 @@ local function set_ltn_signal(self, value, ltn_signal_name)
   set_ltn_signal_by_control(self.control, value, ltn_signal_name)
 end -- set_ltn_signal()
 
+--- Filter to Signal.
+--- @param lFilter LogisticFilter
+--- @return Signal
+local function logisticFilterToSignal(lFilter)
+  return {
+    signal = {
+      type = lFilter.type,
+      name = lFilter.name,
+    },
+    count = lFilter.count
+  };
+end
+
 --- Retrieve a miscellaneous signal from the combinator
 --- @param slot uint @ The slot to get data from
 --- @param self LTNC
 --- @return Signal
 local function get_misc_signal(self, slot)
   local ctl = self.control
-  return ctl.get_section(1).get_slot(slot + config.ltnc_ltn_signal_count)
+  return logisticFilterToSignal(ctl.get_section(1).get_slot(slot + config.ltnc_ltn_signal_count))
 end -- get_misc_signal()
 
 --- @param self LTNC
@@ -321,7 +344,7 @@ end -- close_misc_signal_edit_controls()
 --- @param self LTNC
 local function update_ui_misc_signal(self, slot)
   local ctl = self.control
-  local ret = ctl.get_signal(slot + config.ltnc_ltn_signal_count)
+  local ret = ctl.get_section(1).get_slot(slot + config.ltnc_ltn_signal_count)
   local button = self.elems["misc_signal_slot__" .. slot]
   local value = button.children[1]
   if ret.signal then
@@ -499,7 +522,7 @@ local function sort_signals(entity)
         -- In the case of an LTN, absence of a control signal will result in the LTN default
         -- being used.  Remove LTN signals with a value of 0 to remove ambiguity.
         if signal.count == 0 then
-          ctl.get_section(1).set_slot(i, util.nilSignal)
+          ctl.get_section(1).clear_slot(i)
         else
           needs_sorting = config.ltn_signals[name].slot ~= i or i > config.ltnc_ltn_signal_count --or needs_sorting
         end
@@ -520,7 +543,7 @@ local function sort_signals(entity)
       local signal = ctl.get_section(1).get_slot(j)
       if signal.value ~= nil then
         table.insert(temp_signals, signal)
-        ctl.get_section(1).set_slot(j, util.nilSignal)
+        ctl.get_section(1).clear_slot(j)
       end
     end
     --- @type uint

@@ -4,7 +4,7 @@ local config = {}
 local startup_settings = settings.startup
 
 ---@type uint
-config.ltnc_ltn_signal_count      = 14
+config.ltnc_ltn_signal_count = 14
 ---@type uint
 config.ltnc_misc_signal_count = 10 * startup_settings["ltnc-misc-signal-rows"].value --[[@as uint]]
 ---@type uint
