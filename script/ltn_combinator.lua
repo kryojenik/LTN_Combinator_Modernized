@@ -1200,7 +1200,7 @@ end
 
 --- Build the LTN Main UI window
 --- @param player LuaPlayer @ Player object that is opening the combinator
---- @return GuiElemDef
+--- @return GuiElementType
 ---@diagnostic disable:missing-fields
 local function build(player)
   local elems = flib_gui.add(player.gui.screen, {
@@ -2021,11 +2021,18 @@ local function on_pre_build(e)
   end
 
   if player.is_cursor_blueprint() then
-    local entities = player.get_blueprint_entities()
+    -- Fetch blueprint entities using the updated method
+    local blueprint = player.cursor_stack and player.cursor_stack.is_blueprint_setup()
+    if not blueprint then
+      return
+    end
+
+    local entities = player.cursor_stack.get_blueprint_entities()
     if not entities then
       return
     end
 
+    -- Filter for ltn-combinators
     local combinators = table.filter(
       entities,
       function(v)
@@ -2037,28 +2044,27 @@ local function on_pre_build(e)
       return
     end
 
-    -- Calculate where blueprint will be stamped down and figure out
-    -- if any ltn-combinators will be re-stamped.  Make sure
-    -- storage.combinators data get updated accordingly.
-    local bp_box, grid_size = util.get_blueprint_bounding_box(entities)
-    local bp_center = flib_box.center(bp_box)
-    local center = util.get_placed_blueprint_center(bp_box, e.position, grid_size)
-    local offset = flib_position.sub(bp_center, center)
-    local surface = player.surface
+  -- Calculate where blueprint will be stamped down and figure out
+  -- if any ltn-combinators will be re-stamped.  Make sure
+  -- storage.combinators data get updated accordingly.
+  local bp_box, grid_size = util.get_blueprint_bounding_box(entities)
+  local bp_center = flib_box.center(bp_box)
+  local center = util.get_placed_blueprint_center(bp_box, e.position, grid_size)
+  local offset = flib_position.sub(bp_center, center)
+  local surface = player.surface
+
+    -- Handle overlapping combinators
     for _, c in pairs(combinators) do
-      local dest_positions = flib_position.sub(c.position, offset)
-      -- TODO: Based on e.direction and e.flipped...  Adjust position
-      local existing_entity = surface.find_entity(
-        "ltn-combinator",
-        dest_positions
-      )
+      local dest_position = flib_position.sub(c.position, offset)
+      -- TODO: Adjust position based on direction and flipped state
+      local existing_entity = surface.find_entity("ltn-combinator", dest_position)
       if existing_entity then
         if not c.tags then
-          -- This BP is broken - Likely from selecting new contents for a Blueprint
-          -- that was in the Blueprint Library
-          -- https://forums.factorio.com/viewtopic.php?f=182&t=88100
-          -- Attempt to make the resulting combinator less broken
-          log("[LTNC] Pasted over existing combinator with broken Blueprint.  https://forums.factorio.com/viewtopic.php?f=182&t=88100\n")
+        -- This BP is broken - Likely from selecting new contents for a Blueprint
+        -- that was in the Blueprint Library
+        -- https://forums.factorio.com/viewtopic.php?f=182&t=88100
+        -- Attempt to make the resulting combinator less broken
+        log("[LTNC] Pasted over existing combinator with broken Blueprint.  https://forums.factorio.com/viewtopic.php?f=182&t=88100\n")
           c.tags = {
             ltnc = create_storage_data_from_combinator(existing_entity)
           }
@@ -2070,22 +2076,22 @@ local function on_pre_build(e)
     return
   end
 
-  local entities = {}
+  -- Handle non-blueprint cases
   local cs = player.cursor_stack
   if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
-    if not e.shift_build then
+    if not eshift_build then
       goto constant_only
     end
   else
     cs = nil
   end
 
-  if not cs and not player.cursor_ghost and player.cursor_ghost ~= "ltn-combinator" then
+  if not cs and (not player.cursor_ghost or player.cursor_ghost.name ~= "ltn-combinator") then
     return
   end
 
-  -- For ltn-combinator ghosts need to handle a change in rotation so the tags don't get lost
-  entities = player.surface.find_entities_filtered{
+  -- Handle ltn-combinator ghosts
+  local entities = player.surface.find_entities_filtered{
     position = e.position,
     ghost_name = "ltn-combinator"
   }
@@ -2106,7 +2112,7 @@ local function on_pre_build(e)
   if next(entities) and entities[1].name == "constant-combinator" then
     add_replacement(entities[1], e)
   end
-end -- on_pre_build()
+end -- on_pre_build
 
 ---
 ---@param e EventData.on_gui_closed
