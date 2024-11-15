@@ -178,54 +178,53 @@ function M.get_placed_blueprint_center(box, pos, grid_size)
   end
 end
 
-  --- Recursive function to find combinator up to <max_depth> connections away
-  --- @param find_name string # The entity to look for
-  --- @param start_list table<uint, LuaEntity> # List of entities to start search from
-  --- @param max_depth uint # Max number of connections away to search (Poles are a connection)
+  --- Recursive function to find a connected entity up to <max_depth> connections away.
+  --- @param find_name string # The entity name to search for.
+  --- @param start_list table<uint, LuaEntity> # The starting entities to begin the search.
+  --- @param max_depth uint # Maximum number of connection levels to search. (Poles are a connection)
   --- @return LuaEntity?
-function M.find_connected_entity(find_name, start_list, max_depth)
-  local seen = {}
-  local walk_entities
-  walk_entities = function(name, entity_list, depth)
-    local next_entity_list = {}
-    for unit, e in pairs(entity_list) do
-      if e.name == name then
-        -- We've found the closest entity <name>
-        return e
-      end
+  function M.find_connected_entity(find_name, start_list, max_depth)
+    local seen = {}
+    local walk_entities
 
-      -- Mark this entity as processed so we don't process it again.
-      -- This it is seen on the next entity or if there are loops in the circuit network
-      seen[unit] = true
-      if not e.circuit_connected_entities then
-        return
-      end
+    walk_entities = function(name, entity_list, depth)
+        local next_entity_list = {}
 
-      -- Outer loop get are the possible wire connections (red / green)
-      for _, connected_entities in pairs(e.circuit_connected_entities) do
-        --- @cast connected_entities LuaEntity[]
-        -- Inner loop works through all the adjacent entities on a network.
-        for _, connected_entity in ipairs(connected_entities) do
-          if not seen[connected_entity.unit_number] then
-            next_entity_list[connected_entity.unit_number] = connected_entity
-          end
+        for _, e in pairs(entity_list) do
+            if e.name == name then
+                -- Found the matching entity
+                return e
+            end
+
+            -- Mark this entity as processed
+            seen[e.unit_number] = true
+
+            -- Iterate through circuit networks on red and green wires
+            for _, wire in pairs({"red", "green"}) do
+                local network = e.get_circuit_network(defines.wire_type[wire])
+                if network then
+                    for _, connected_entity in pairs(network.connected_entities) do
+                        if not seen[connected_entity.unit_number] then
+                            next_entity_list[connected_entity.unit_number] = connected_entity
+                        end
+                    end
+                end
+            end
         end
-      end
+
+        -- Stop if maximum depth is reached
+        if depth == max_depth then
+            return
+        end
+
+        -- Recurse if there are more entities to process
+        if next(next_entity_list) then
+            return walk_entities(name, next_entity_list, depth + 1)
+        end
     end
 
-    if depth == max_depth then
-      -- Reached the maximum depth and did't find an LTN combinator.
-      return
-    end
-
-    -- If there are more un-seen entities another connection away, recurse
-    if next(next_entity_list) then
-      return walk_entities(name, next_entity_list, depth + 1)
-    end
+    return walk_entities(find_name, start_list, 0)
   end
-
-  return walk_entities(find_name, start_list, 0)
-end
 
 local shift = 0x1000000
 local normalize = 1000000
