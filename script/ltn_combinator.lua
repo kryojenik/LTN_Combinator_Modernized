@@ -46,11 +46,13 @@ end -- get_combinator_data()
 local function get_ltn_signal_from_control(ctl, ltn_signal_name)
   local slot = config.ltn_signals[ltn_signal_name].slot
   local default = config.ltn_signals[ltn_signal_name].default
-  local signal = ctl.get_section(1).get_slot(slot)
-  if signal.signal then
-    return { value = signal.count, is_default = false }
-  else
+
+  -- get value that is saved inside the LTN combinator.
+  local value = storage.combinators[ctl.entity.unit_number][ltn_signal_name]
+  if value == default or value == nil then
     return { value = default, is_default = true }
+  else
+    return { value = storage.combinators[ctl.entity.unit_number][ltn_signal_name], is_default = false }
   end
 end -- get_ltn_signal_from_control()
 
@@ -241,7 +243,6 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
 
   -- Need to store thresholds in global and set the correct values on the combinator
   -- dependant on provider/requester states
-  if string.match(ltn_signal_name, "%-threshold$") then
     local cd = get_or_create_combinator_data(ctl.entity)
     cd[ltn_signal_name] = value ~= 0 and value or nil
 
@@ -253,7 +254,6 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
     if not is_depot(ctl) then
       value = get_threshold_from_storage(ctl.entity, value, ltn_signal_name)
     end
-  end
 
   -- Remove the signal from combinator if it is zero or non-existent
   if not value or value == 0 then
@@ -278,7 +278,6 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
     ctl.get_section(1).set_slot(signal_data.slot, {index = index, signal = {type="virtual", name=signal.name, quality="normal", count= signal.count}})
     return
   end
-  
 
   -- Handle setting default values.  Map setting control if values are stored when default
   -- Otherwise, default values are removed.
