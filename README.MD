@@ -1,4 +1,12 @@
-Logistic Train Network is ported to 2.0. https://github.com/PSR-J0740/Logistic-Train-Network 
+=======
+# Speculative 2.0 Port.
+
+There are a few efforts to attempt to port LTN to 2.0 underway.  Assuming any of them pass muster
+and earn survival on the Mod Portal, this will low-key track a porting effort of
+LTN Combinator Modernized to be ready if needed.
+- Colaborating with Jasper to port LTN Combinator Modernized and have it track to the Logistic Train Network port efforts below
+ 
+The primary LTN port this is tracking to is: Logistic Train Network is ported to 2.0. https://github.com/PSR-J0740/Logistic-Train-Network 
 - download the zip file and move LogisticTrainNetwork_2.0.0.zip to %appdata%/factorio/mods
 
 [![shield](https://img.shields.io/badge/Ko--fi-Donate%20-hotpink?logo=kofi&logoColor=white)](https://ko-fi.com/M4M2LCWTH)
