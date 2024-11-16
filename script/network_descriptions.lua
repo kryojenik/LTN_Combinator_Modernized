@@ -25,7 +25,7 @@ end
 
 local handlers = {
 
-  ---@param e GuiEventData.on_gui_click.on_gui_click
+  ---@param e EventData.on_gui_click
   ---@param self NetUI
   netui_close = function(self, e)
     net_ui.close(self, e)
