@@ -1227,7 +1227,7 @@ local function build(player)
         {
           type = "sprite-button",
           style = "frame_action_button",
-          sprite = "utility/close_white",
+          sprite = "utility/close",
           hovered_sprite = "utility/close_black",
           clicked_sprite = "utility/close_black",
           mouse_button_filter = { "left" },
@@ -2079,8 +2079,14 @@ local function on_pre_build(e)
   -- Handle non-blueprint cases
   local cs = player.cursor_stack
   if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
-    if not eshift_build then
-      goto constant_only
+    if not e.shift then
+      entities = player.surface.find_entities_filtered{
+        position = e.position,
+        name = "constant-combinator"
+      }
+      if next(entities) and entities[1].name == "constant-combinator" then
+        add_replacement(entities[1], e)
+      end
     end
   else
     cs = nil
@@ -2100,17 +2106,7 @@ local function on_pre_build(e)
     if entities[1].ghost_name == "ltn-combinator" then
       entities[1].direction = e.direction
     end
-
     return
-  end
-
-  ::constant_only::
-  entities = player.surface.find_entities_filtered{
-    position = e.position,
-    name = "constant-combinator"
-  }
-  if next(entities) and entities[1].name == "constant-combinator" then
-    add_replacement(entities[1], e)
   end
 end -- on_pre_build
 

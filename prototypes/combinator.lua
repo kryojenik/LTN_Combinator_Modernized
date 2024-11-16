@@ -1,5 +1,6 @@
 local flib = require("__flib__/data-util")
 local config = require("__LTN_Combinator_Modernized__/script/config")
+local util = require("__LTN_Combinator_Modernized__/script/util")
 
 local ltnc_entity = flib.copy_prototype(data.raw["constant-combinator"]["constant-combinator"], "ltn-combinator")
 
@@ -9,44 +10,64 @@ ltnc_entity.icon_mipmaps = nil
 ltnc_entity.next_upgrade = nil
 ltnc_entity.item_slot_count = config.ltnc_slot_count
 ltnc_entity.fast_replaceable_group = "constant-combinator"
-ltnc_entity.sprites = make_4way_animation_from_spritesheet(
-  { layers =
-    {
-      {
-        filename = "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png",
-        width = 58,
-        height = 52,
-        frame_count = 1,
-        shift = util.by_pixel(0, 5),
-        hr_version = {
-          scale = 0.5,
-          filename = "__LTN_Combinator_Modernized__/graphics/hr-ltn-combinator.png",
-          width = 114,
-          height = 102,
-          frame_count = 1,
-          shift = util.by_pixel(0, 5),
-        },
-      },
-      {
-        filename = "__base__/graphics/entity/combinator/constant-combinator-shadow.png",
-        width = 50,
-        height = 30,
-        frame_count = 1,
-        shift = util.by_pixel(9,6),
-        draw_as_shadow = true,
-        hr_version = {
-          scale = 0.5,
-          filename = "__base__/graphics/entity/combinator/hr-constant-combinator-shadow.png",
-          width = 98,
-          height = 66,
-          frame_count = 1,
-          shift = util.by_pixel(8.5, 5.5),
-          draw_as_shadow = true,
-        },
-      },
+ltnc_entity.sprites = {
+  north = {
+    layers = {
+      util.create_sprite_sheet(
+        "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png",
+        "__LTN_Combinator_Modernized__/graphics/hr-ltn-combinator.png",
+        58, 52, util.by_pixel(0, 5)
+      ),
+      util.create_sprite_sheet(
+        "__base__/graphics/entity/combinator/constant-combinator-shadow.png",
+        "__base__/graphics/entity/combinator/hr-constant-combinator-shadow.png",
+        50, 30, util.by_pixel(9, 6)
+      ),
     },
-  }
-)
+  },
+  east = {
+    layers = {
+      util.create_sprite_sheet(
+        "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png",
+        "__LTN_Combinator_Modernized__/graphics/hr-ltn-combinator.png",
+        58, 52, util.by_pixel(0, 5)
+      ),
+      util.create_sprite_sheet(
+        "__base__/graphics/entity/combinator/constant-combinator-shadow.png",
+        "__base__/graphics/entity/combinator/hr-constant-combinator-shadow.png",
+        50, 30, util.by_pixel(9, 6)
+      ),
+    },
+  },
+  south = {
+    layers = {
+      util.create_sprite_sheet(
+        "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png",
+        "__LTN_Combinator_Modernized__/graphics/hr-ltn-combinator.png",
+        58, 52, util.by_pixel(0, 5)
+      ),
+      util.create_sprite_sheet(
+        "__base__/graphics/entity/combinator/constant-combinator-shadow.png",
+        "__base__/graphics/entity/combinator/hr-constant-combinator-shadow.png",
+        50, 30, util.by_pixel(9, 6)
+      ),
+    },
+  },
+  west = {
+    layers = {
+      util.create_sprite_sheet(
+        "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png",
+        "__LTN_Combinator_Modernized__/graphics/hr-ltn-combinator.png",
+        58, 52, util.by_pixel(0, 5)
+      ),
+      util.create_sprite_sheet(
+        "__base__/graphics/entity/combinator/constant-combinator-shadow.png",
+        "__base__/graphics/entity/combinator/hr-constant-combinator-shadow.png",
+        50, 30, util.by_pixel(9, 6)
+      ),
+    },
+  },
+}
 
 local ltnc_item = flib.copy_prototype(data.raw["item"]["constant-combinator"], "ltn-combinator")
 ltnc_item.icon = "__LTN_Combinator_Modernized__/graphics/ltn-combinator-item.png"

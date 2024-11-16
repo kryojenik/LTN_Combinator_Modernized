@@ -248,6 +248,35 @@ function M.pack_position(expr)
   return x * shift + y
 end -- pack_position()
 
+--- create_sprite_sheet for a direction
+--- @param filename data.FileName
+--- @param hr_filename data.FileName
+--- @param width int8
+--- @param height int8
+--- @param shift_sprite int8
+--- @param scale int8
+function M.create_sprite_sheet(filename, hr_filename, width, height, shift_sprite, scale)
+  return {
+    filename = filename,
+    width = width,
+    height = height,
+    frame_count = 1,
+    shift = shift_sprite,
+    hr_version = {
+      filename = hr_filename,
+      width = width * 2,
+      height = height * 2,
+      frame_count = 1,
+      shift = shift_sprite,
+      scale = scale or 0.5,
+    },
+  }
+end
+
+function M.by_pixel(x, y)
+  return {x = x / 32, y = y / 32}
+end
+
 --- Unpack an integer representation of a tile location
 --- @param posint integer
 --- @return MapPosition # Return origin if posint == nil

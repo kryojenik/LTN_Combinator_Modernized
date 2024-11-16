@@ -25,7 +25,7 @@ end
 
 local handlers = {
 
-  ---@param e EventData.on_gui_click
+  ---@param e GuiEventData.on_gui_click.on_gui_click
   ---@param self NetUI
   netui_close = function(self, e)
     net_ui.close(self, e)
@@ -46,7 +46,7 @@ local handlers = {
     end
 
     local path = (type == "virtual" and "virtual-signal" or type) .. "/" .. name
-    if game.is_valid_sprite_path(path) then
+    if helpers.is_valid_sprite_path(path) then
       desc.icon = path
     else
       desc.icon = nil
@@ -89,7 +89,7 @@ end)
 ---Create the Network Description Editor for a single network
 ---@param player LuaPlayer
 ---@param self NetUI
----@return GuiElemDef
+---@return GuiElementType
 ---@diagnostic disable:missing-fields
 local function build_single_description(self, player)
   local elems = libgui.add(player.gui.screen, {
@@ -116,7 +116,7 @@ local function build_single_description(self, player)
         {
           type = "sprite-button",
           style = "frame_action_button",
-          sprite = "utility/close_white",
+          sprite = "utility/close",
           hovered_sprite = "utility/close_black",
           clicked_sprite = "utility/close_black",
           mouse_button_filter = { "left" },
