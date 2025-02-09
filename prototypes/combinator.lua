@@ -55,8 +55,8 @@ ltnc_item.icon_mipmaps = 4
 
 local ltnc_recipe = flib.copy_prototype(data.raw["recipe"]["constant-combinator"], "ltn-combinator")
 ltnc_recipe.ingredients = {
-  {"constant-combinator", 1},
-  {"electronic-circuit", 1},
+  {type = "item", name = "constant-combinator", amount = 1},
+  {type = "item", name = "electronic-circuit", amount = 1},
 }
 
 data:extend({

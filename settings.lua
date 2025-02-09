@@ -1,47 +1,6 @@
 local math = require("__flib__/math")
 
 data:extend({
-  --[[
-  {
-    type = "bool-setting",
-    name = "ltnc-high-provide-threshold",
-    setting_type = "runtime-global",
-    order = "ma",
-    default_value = true
-  },
-  {
-    type = "bool-setting",
-    name = "ltnc-show-all-panels",
-    setting_type = "runtime-per-user",
-    order = "ua",
-    default_value = false
-  },
-  {
-    type = "bool-setting",
-    name = "ltnc-upgradable",
-    order = "sa",
-    setting_type = "startup",
-    default_value = false
-  },
-  {
-    type = "int-setting",
-    name = "ltnc-slider-max-items",
-    setting_type = "runtime-per-user",
-    order = "uc",
-    default_value = 256,
-    minimum_value = 0,
-    maximum_value = maxint --prevent overflow
-  },
-  {
-    type = "int-setting",
-    name = "ltnc-slider-max-fluid",
-    setting_type = "runtime-per-user",
-    order = "uc",
-    default_value = 500000,
-    minimum_value = 0,
-    maximum_value = maxint --prevent overflow
-  },
-  ]]
   -- STARTUP SETTINGS
   {
     type = "int-setting",
@@ -66,14 +25,14 @@ data:extend({
     name = "ltnc-emit-explicit-default",
     order = "ma",
     setting_type = "runtime-global",
-    default_value = "false"
+    default_value = false
   },
   {
     type = "bool-setting",
     name = "ltnc-emit-default-network-id",
     order = "mb",
     setting_type = "runtime-global",
-    default_value = "false"
+    default_value = false
   },
   {
     type = "string-setting",
@@ -88,7 +47,7 @@ data:extend({
     name = "ltnc-alert-build-disable",
     order = "md",
     setting_type = "runtime-global",
-    default_value = "true"
+    default_value = true
   },
   -- USER SETTINGS
   {
