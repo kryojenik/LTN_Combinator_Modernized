@@ -7,7 +7,7 @@ local math = require("__flib__/math")
 
 local util = require("__LTN_Combinator_Modernized__/script/util")
 local netui = require("__LTN_Combinator_Modernized__/script/network_descriptions")
-local global_data = require("__LTN_Combinator_Modernized__/script/global_data")
+local storage_data = require("__LTN_Combinator_Modernized__/script/storage_data")
 local player_data = require("__LTN_Combinator_Modernized__/script/player_data")
 
 local config = require("__LTN_Combinator_Modernized__/script/config")
@@ -21,7 +21,7 @@ local tt = {
   off = 3
 }
 
---- Get the combinator data from global.  Create it if it doesn't exist
+--- Get the combinator data from storage.  Create it if it doesn't exist
 ---@param entity LuaEntity 
 ---@return CombinatorData
 local function get_or_create_combinator_data(entity)
@@ -31,11 +31,11 @@ local function get_or_create_combinator_data(entity)
     return default_cd
   end
 
-  if not global.combinators[entity.unit_number] then
-    global.combinators[entity.unit_number] = default_cd
+  if not storage.combinators[entity.unit_number] then
+    storage.combinators[entity.unit_number] = default_cd
   end
 
-  return global.combinators[entity.unit_number]
+  return storage.combinators[entity.unit_number]
 end -- get_combinator_data()
 
 --- Retrieve an LTN signal from specified entity 
@@ -80,7 +80,7 @@ local function toggle_ui_req_prov_panels(self, set_enable)
       elem.enabled = set_enable
     end
 
-    -- Set the provider and requester states to false in global data
+    -- Set the provider and requester states to false in storage data
     local chkbox = self.elems["check__" .. service]
     chkbox.enabled = set_enable
   end
@@ -96,7 +96,7 @@ end -- update_ui_network_id_label()
 --- @param type ToggleType? @ How should buttons be updated?
 local function update_ui_network_id_buttons(self, type)
   type = type or tt.bits
-  local gni = global.network_descriptions
+  local gni = storage.network_descriptions
   local btns = self.elems.net_encode_table.children
   local netid = get_ltn_signal(self, "ltn-network-id").value
   update_ui_network_id_label(self, netid)
@@ -213,9 +213,9 @@ end -- update_ltn_signals()
 -- Checks if request/provide is enabled and returns the appropriate value to set on the combinator
 --- @param entity LuaEntity Entity
 --- @param name LTNSignals LTN Threshold Signal name
---- @param value integer Real threshold to store in global
+--- @param value integer Real threshold to store in storage
 --- @return integer # Threshold to apply to combinator dependant on request/provide state
-local function get_threshold_from_global(entity, value, name)
+local function get_threshold_from_storage(entity, value, name)
   local cd = get_or_create_combinator_data(entity)
   if (string.match(name, "ltn%-requester") and cd.requester)
   or (string.match(name, "ltn%-provider") and cd.provider) then
@@ -239,19 +239,19 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   local signal_data = config.ltn_signals[ltn_signal_name]
 
 
-  -- Need to store thresholds in global and set the correct values on the combinator
+  -- Need to store thresholds in storage and set the correct values on the combinator
   -- dependant on provider/requester states
   if string.match(ltn_signal_name, "%-threshold$") then
     local cd = get_or_create_combinator_data(ctl.entity)
     cd[ltn_signal_name] = value ~= 0 and value or nil
 
-    -- Remove default thresholds from global if explicit_default is not set
+    -- Remove default thresholds from storage if explicit_default is not set
     if value == signal_data.default and not explicit_default then
       cd[ltn_signal_name] = nil
     end
 
     if not is_depot(ctl) then
-      value = get_threshold_from_global(ctl.entity, value, ltn_signal_name)
+      value = get_threshold_from_storage(ctl.entity, value, ltn_signal_name)
     end
   end
 
@@ -299,7 +299,7 @@ end -- get_misc_signal()
 --- @param self LTNC
 local function close_ui_misc_signal_edit_controls(self)
   local elems = self.elems
-  local pt = global.players[self.player.index]
+  local pt = storage.players[self.player.index]
   if not elems then
     return
   end
@@ -349,7 +349,7 @@ end -- update_misc_signal()
 --- @param slot uint
 --- @param self LTNC
 local function open_ui_misc_signal_edit_controls(self, slot)
-  local pt = global.players[self.player.index]
+  local pt = storage.players[self.player.index]
   local ws = pt.working_slot
   -- Changing from an already active working slot.
   -- Reset UI and prepare to work on newly selected slot
@@ -363,7 +363,7 @@ local function open_ui_misc_signal_edit_controls(self, slot)
     return
   end
 
-  -- Record the slot player is working with in global so that values can be
+  -- Record the slot player is working with in storage so that values can be
   -- updated with later events
   ws = {
     index = slot,
@@ -547,7 +547,7 @@ local function close(input)
   else
     ndx = input --[[@as uint]]
   end
-  local pt = global.players[ndx]
+  local pt = storage.players[ndx]
   local player = game.get_player(ndx)
   if player and player.valid then
     player.play_sound({path = "entity-close/ltn-combinator"})
@@ -581,16 +581,16 @@ local function runtime_setting_changed(name)
   elseif name == "ltnc-alert-build-disable"
   and not settings.global[name].value
   then
-    global.built_disabled = nil
+    storage.built_disabled = nil
   end
   
 end -- runtime_setting_changed()
 
---- Update the player runtime setting cache in global if the player changes their settings
+--- Update the player runtime setting cache in storage if the player changes their settings
 --- @param name string The setting that was changed
 --- @param player_index uint Index of the player that changed their setting
 local function player_setting_changed(name, player_index)
-  local player_settings = global.players[player_index].settings
+  local player_settings = storage.players[player_index].settings
   player_settings[name] = settings.get_player_settings(player_index)[name].value
 end -- player_setting_changed()
 
@@ -700,7 +700,7 @@ end, -- network_id_toggle()
 --- @param e EventData.on_gui_click
 --- @param self LTNC
 misc_signal_confirm = function(self, e)
-  local ws = global.players[e.player_index].working_slot
+  local ws = storage.players[e.player_index].working_slot
   local loc_settings = settings.get_player_settings(e.player_index)
   -- Prevent a crash is somehow the working slot becomes invalid 
   if not ws then
@@ -742,7 +742,7 @@ end, -- misc_signal_confirm()
 --- @param e EventData.on_gui_click
 --- @param self LTNC
 misc_signal_cancel = function(self, e)
-  local ws = global.players[e.player_index].working_slot
+  local ws = storage.players[e.player_index].working_slot
   if ws then
     update_ui_misc_signal(self, ws.index)
   end
@@ -963,7 +963,7 @@ end, -- close_ltnc_ui()
 }
 
 flib_gui.add_handlers(handlers, function(e, handler)
-  local self = global.players[e.player_index].uis.main
+  local self = storage.players[e.player_index].uis.main
   if self then
     handler(self, e)
   end
@@ -1506,12 +1506,12 @@ end -- build()
 ----------------------------------------------------------------------------------------------------
 
 local function add_to_built_disabled(entity)
-  global.built_disabled = global.built_disabled or {}
-  global.built_disabled[entity.unit_number] = entity
+  storage.built_disabled = storage.built_disabled or {}
+  storage.built_disabled[entity.unit_number] = entity
 end -- add_to_built_disabled()
 
 local function remove_from_built_disabled(unit_number)
-  local bd = global.built_disabled
+  local bd = storage.built_disabled
   if bd and bd[unit_number] then
     bd[unit_number] = nil
   end
@@ -1521,7 +1521,7 @@ end -- remove_from_built_disabled()
 --- @param player LuaPlayer
 --- @param entity LuaEntity
 local function open_gui(player, entity)
-  local pt = global.players[player.index]
+  local pt = storage.players[player.index]
   -- Check to see if the player has an LTNC open already.
   if pt.unit_number then
     if pt.unit_number == entity.unit_number then
@@ -1567,7 +1567,7 @@ local function increase_reach(player, entity)
     return
   end
 
-  local pt = global.players[player.index]
+  local pt = storage.players[player.index]
   local new_reach_bonus = flib_position.distance(player.position, entity.position)
   pt.original_reach_bonus = player.character_reach_distance_bonus
   player.character_reach_distance_bonus = new_reach_bonus
@@ -1579,7 +1579,7 @@ local function reset_reach(player)
     return
   end
 
-  local pt = global.players[player.index]
+  local pt = storage.players[player.index]
   if not pt.original_reach_bonus then
     return
   end
@@ -1667,18 +1667,18 @@ local function on_gui_opened(e)
   reset_reach(player)
 end -- on_gui_opened()
 
---- Create the global data from an existing combinator
+--- Create the storage data from an existing combinator
 --- This will address Pre-2.0 Blueprints that don't have this data in stored tags.
 ---@param entity LuaEntity
 ---@return CombinatorData
-local function create_global_data_from_combinator(entity)
+local function create_storage_data_from_combinator(entity)
   sort_signals(entity)
   local ctl = entity.get_control_behavior()
   --- @cast ctl LuaConstantCombinatorControlBehavior
-  --  Save non-zero thresholds into global
+  --  Save non-zero thresholds into storage
   local cd = get_or_create_combinator_data(entity)
   for _, service in ipairs{ "provider", "requester" } do
-    -- If threshold is set to high-threshold, disable the service in global_data
+    -- If threshold is set to high-threshold, disable the service in storage_data
     local name = "ltn-" .. service .. "-threshold"
     local value = get_ltn_signal_from_control(ctl, name)
     if value == config.high_threshold then
@@ -1688,7 +1688,7 @@ local function create_global_data_from_combinator(entity)
       set_ltn_signal_by_control(ctl, value.value, name)
     end
 
-    -- Normalize the stack threshold in global if one exists.
+    -- Normalize the stack threshold in storage if one exists.
     name = "ltn-" .. service .. "-stack-threshold"
     value = get_ltn_signal_from_control(ctl, name)
     set_ltn_signal_by_control(ctl, value.value, name)
@@ -1702,7 +1702,7 @@ local function create_global_data_from_combinator(entity)
   end
 
   return cd
-end -- create_global_data_from_combinator()
+end -- create_storage_data_from_combinator()
 
 --- When building a new entity set defaults according to mod settings
 --- @param e BuildEvent
@@ -1724,7 +1724,7 @@ local function on_built(e)
   --   - Rotate by robot?
   --   - Undo?
   local pos_int = util.pack_position(entity.position)
-  local sreps = global.replacements[entity.surface_index]
+  local sreps = storage.replacements[entity.surface_index]
   local rep = sreps and sreps[pos_int] or nil
   --- @type CombinatorData
   local cd = rep and rep.combinator_data or nil
@@ -1743,16 +1743,16 @@ local function on_built(e)
     if e.tags and e.tags.ltnc then
       cd = e.tags.ltnc --[[@as CombinatorData]]
     else
-      cd = cd or create_global_data_from_combinator(entity)
+      cd = cd or create_storage_data_from_combinator(entity)
     end
-    global.combinators[entity.unit_number] = cd
+    storage.combinators[entity.unit_number] = cd
   end
 
   -- Remove any historical combinator data at this location if it existed.
   if sreps then
     sreps[pos_int] = nil
     if not next(sreps) then
-      global.replacements[entity.surface_index] = nil
+      storage.replacements[entity.surface_index] = nil
     end
   end
 
@@ -1766,7 +1766,7 @@ local function on_built(e)
   end
 
   -- Disable services based on mod settings
-  local build_disable = settings.global["ltnc-disable-built-combinators"].value
+  local build_disable = settings.storage["ltnc-disable-built-combinators"].value
   local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
   local disabled_something = false
   if build_disable == "off" and ctl.enabled then
@@ -1780,7 +1780,7 @@ local function on_built(e)
     disabled_something = toggle_service_by_ctl(ctl, "requester", false)
   end
 
-  if disabled_something and settings.global["ltnc-alert-build-disable"].value then
+  if disabled_something and settings.storage["ltnc-alert-build-disable"].value then
     add_to_built_disabled(entity)
   end
 end -- on_built()
@@ -1830,7 +1830,7 @@ local function on_player_setup_blueprint(e)
 end -- on_player_setup_blueprint()
 
 local function on_player_removed(e)
-  global.players[e.player_index] = nil
+  storage.players[e.player_index] = nil
 end -- on_player_removed()
 
 --- @param e EventData.on_player_created
@@ -1841,7 +1841,7 @@ end -- on_player_created()
 
 --- @param e EventData.on_player_joined_game
 local function on_player_joined(e)
-  local pt = global.players[e.player_index]
+  local pt = storage.players[e.player_index]
   if pt.uis.main or pt.uis.netui then
     -- bug hunting
     log(string.format("[LTNC] Closing existing LTNC UIs for: %s as they're joining.\n", game.get_player(e.player_index).name))
@@ -1859,7 +1859,7 @@ local function on_settings_changed(e)
   end
 end -- on_settings_changed()
 
---- Add custom settings from the combinator to global to track for undo, rotations, and upgrades
+--- Add custom settings from the combinator to storage to track for undo, rotations, and upgrades
 ---@param entity LuaEntity # LuaEntity making a replacement of
 ---@param e EventData # Calling event
 local function add_replacement(entity, e)
@@ -1876,17 +1876,17 @@ local function add_replacement(entity, e)
     end
 
   elseif entity.name == "ltn-combinator" then
-    rep.combinator_data = global.combinators[entity.unit_number]
+    rep.combinator_data = storage.combinators[entity.unit_number]
     rep.no_auto_disable = true
 
   elseif entity.name == "constant-combinator" then
-    --rep.combinator_data = create_global_data_from_combinator(entity)
+    --rep.combinator_data = create_storage_data_from_combinator(entity)
     rep.no_auto_disable = true
   end
 
-  local gr = global.replacements[entity.surface_index] or {}
+  local gr = storage.replacements[entity.surface_index] or {}
   gr[util.pack_position(entity.position)] = rep
-  global.replacements[entity.surface_index] = gr
+  storage.replacements[entity.surface_index] = gr
 end -- add_replacement()
 
 --- @param e DestroyEvent
@@ -1915,13 +1915,13 @@ local entity = e.entity
   end
 
   -- Close the UI for all players that have this entity open
-  for ndx, p in ipairs(global.players) do
+  for ndx, p in ipairs(storage.players) do
     if p.unit_number == unit_number then
       close(ndx)
     end
   end
 
-  global.combinators[unit_number] = nil
+  storage.combinators[unit_number] = nil
 end -- on_destroy()
 
 --- @param e EventData.on_post_entity_died
@@ -1932,16 +1932,16 @@ local function on_post_died(e)
 
   local ghost = e.ghost
   if not ghost or not ghost.valid or not e.unit_number then
-    global.combinators[e.unit_number] = nil
+    storage.combinators[e.unit_number] = nil
     return
   end
 
   ghost.tags = {
-    ltnc = global.combinators[e.unit_number],
+    ltnc = storage.combinators[e.unit_number],
     no_auto_disable = true
   }
 
-  global.combinators[e.unit_number] = nil
+  storage.combinators[e.unit_number] = nil
 end -- on_post_died()
 
 --- @param e EventData.on_entity_settings_pasted
@@ -1960,7 +1960,7 @@ local function on_settings_pasted(e)
     return
   end
 
-  local cd = global.combinators
+  local cd = storage.combinators
   cd[destination.unit_number] = table.deep_copy(cd[source.unit_number])
 end -- on_settings_pasted()
 
@@ -2017,7 +2017,7 @@ local function on_pre_build(e)
 
     -- Calculate where blueprint will be stamped down and figure out
     -- if any ltn-combinators will be re-stamped.  Make sure
-    -- global.combinators data get updated accordingly.
+    -- storage.combinators data get updated accordingly.
     local bp_box, grid_size = util.get_blueprint_bounding_box(entities)
     local bp_center = flib_box.center(bp_box)
     local center = util.get_placed_blueprint_center(bp_box, e.position, grid_size)
@@ -2038,10 +2038,10 @@ local function on_pre_build(e)
           -- Attempt to make the resulting combinator less broken
           log("[LTNC] Pasted over existing combinator with broken Blueprint.  https://forums.factorio.com/viewtopic.php?f=182&t=88100\n")
           c.tags = {
-            ltnc = create_global_data_from_combinator(existing_entity)
+            ltnc = create_storage_data_from_combinator(existing_entity)
           }
         end
-        global.combinators[existing_entity.unit_number] = c.tags.ltnc --[[@as CombinatorData]]
+        storage.combinators[existing_entity.unit_number] = c.tags.ltnc --[[@as CombinatorData]]
       end
     end
 
@@ -2099,12 +2099,12 @@ local function on_closed(e)
   and player.cursor_stack.is_blueprint
   and not player.cursor_stack.is_blueprint_setup()
   then
-    global.previous_opened_blueprint_for[e.player_index] = {
+    storage.previous_opened_blueprint_for[e.player_index] = {
       blueprint = e.item,
       tick = e.tick
     }
   else
-    global.previous_opened_blueprint_for[e.player_index] = nil
+    storage.previous_opened_blueprint_for[e.player_index] = nil
   end
 end -- on_closed()
 
@@ -2116,7 +2116,7 @@ end -- on_closed()
 local ltnc = {}
 
 function ltnc.on_init()
-  global_data.init()
+  storage_data.init()
   for _, player in pairs(game.players) do
     player_data.init(player)
   end
@@ -2131,13 +2131,13 @@ function ltnc.on_load()
     runtime_setting_changed(k)
   end
   -- Bug hunting
-  for i, pt in pairs(global.players) do
+  for i, pt in pairs(storage.players) do
     if pt.uis.main then
       local ws = pt.working_slot and pt.working_slot.index or nil
       local unit = pt.unit_number
       local logstring =
         string.format(
-          "[LTNC] Player index %d has an LTNC UI open in global. Unit: %s, WS: %s\n",
+          "[LTNC] Player index %d has an LTNC UI open in storage. Unit: %s, WS: %s\n",
           i, tostring(unit), tostring(ws)
         )
       log(logstring)
@@ -2223,14 +2223,14 @@ end -- add_remote_interfaces()
 
 ltnc.on_nth_tick = {
   [180] = function() -- 3 Seconds
-    if not global.built_disabled then
+    if not storage.built_disabled then
       return
     end
 
-    for i, entity in pairs(global.built_disabled) do
+    for i, entity in pairs(storage.built_disabled) do
       --- @cast entity LuaEntity
       if not entity.valid then
-        global.built_disabled[i] = nil
+        storage.built_disabled[i] = nil
         goto continue
       end
 
@@ -2246,18 +2246,18 @@ ltnc.on_nth_tick = {
     ::continue::
     end
 
-    if not next(global.built_disabled) then
-      global.built_disabled = nil
+    if not next(storage.built_disabled) then
+      storage.built_disabled = nil
     end
   end,
 
   [18000] = function () -- 5 minutes
-    -- Cleanup replacements in global
-    if not next(global.replacements) then
+    -- Cleanup replacements in storage
+    if not next(storage.replacements) then
       return
     end
     
-    for surface_index, reps in pairs(global.replacements) do
+    for surface_index, reps in pairs(storage.replacements) do
       for pos_int, rep in pairs(reps) do
         local tick = game.tick
         if tick - rep.tick > 216000 then -- 1 hour
@@ -2267,7 +2267,7 @@ ltnc.on_nth_tick = {
       end
 
       if not next(reps) then
-        global.replacements[surface_index] = nil
+        storage.replacements[surface_index] = nil
         dlog(string.format("Removed surface: %d\n", surface_index))
       end
     end

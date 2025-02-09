@@ -30,7 +30,7 @@ function player_data.init(player)
   player_table.settings["ltnc-use-stacks"] = settings["ltnc-use-stacks"].value
   player_table.settings["ltnc-negative-signals"] = settings["ltnc-negative-signals"].value
 
-  global.players[player.index] = player_table
+  storage.players[player.index] = player_table
 end
 
 return player_data

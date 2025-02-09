@@ -1,6 +1,6 @@
 local config = require("__LTN_Combinator_Modernized__/script/config")
 
--- Find all the combinators and create an entry in global
+-- Find all the combinators and create an entry in storage
 local combinator_count = 0
 for _, surface in pairs(game.surfaces) do
   local entities = surface.find_entities_filtered({name = "ltn-combinator"})
@@ -25,7 +25,7 @@ for _, surface in pairs(game.surfaces) do
       goto continue
     end
 
-    -- Not a depot, save non-zero thresholds into global
+    -- Not a depot, save non-zero thresholds into storage
     for _, service in ipairs{ "provider", "requester" } do
       -- First check if service is "disabled" from high threshold
       -- The high threshold used in pre-2.0 combinator was 50000000
@@ -46,10 +46,10 @@ for _, surface in pairs(game.surfaces) do
         end
       end
 
-      -- Store the stack threshold in global if one exists.
+      -- Store the stack threshold in storage if one exists.
       name = "ltn-" .. service .. "-stack-threshold"
       sig = ctl.get_signal(config.ltn_signals[name].slot)
-      -- If stack threshold is set, save it in global
+      -- If stack threshold is set, save it in storage
       -- If the service is "disabled" (high value set in non-stack threshold
       -- make sure actual stack-threshold signal is removed
       if sig.signal and sig.signal.name == name and sig.count ~= 0 then
@@ -62,7 +62,7 @@ for _, surface in pairs(game.surfaces) do
     end
 
     ::continue::
-    global.combinators[entity.unit_number] = cd
+    storage.combinators[entity.unit_number] = cd
   end
 end
 if combinator_count > 0 then

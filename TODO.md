@@ -9,7 +9,7 @@
   - Can I get it so it doesn't open/close/open the UI?
   - Should it be non-openable and only respond to the linked-control?
 - [ ] Add note to tool tip info that combi-ghost will be disabled when built?
-- [ ] Setting - auto delete non-depot signals (fun create_global_data...)
+- [ ] Setting - auto delete non-depot signals (fun create_storage_data...)
 - [ ] Really need to update all players with same combi open
 - [x] Placing combinator triggers on_linked_open...  Bug
   - Trying to open a non-LTN Combinator too quickly after opening LTN combinator (latency)
@@ -18,7 +18,7 @@
 - [ ] Raise / process data changed event
 - [ ] Add access to player config settings
 - [ ] Sort - combine same LTN signals.  Leave misc sigs in same relative slot
-- [ ] Remove global.player_settings for player.settings
+- [ ] Remove storage.player_settings for player.settings
 - [ ] Remote interface to get network descriptions
 - [x] Notice for behavioral changes
 - [x] If creating new, don't disable

@@ -22,7 +22,7 @@ end
 ---@param player LuaPlayer
 function M.from_items(player)
   ---@type WorkingSlot
-  local ws = global.players[player.index].working_slot
+  local ws = storage.players[player.index].working_slot
   local value = tonumber(ws.items.text) --[[@as number]]
   if not value then
     return
@@ -36,7 +36,7 @@ end -- M.from_items()
 ---@param player LuaPlayer
 function M.from_stacks(player)
   ---@type WorkingSlot
-  local ws = global.players[player.index].working_slot
+  local ws = storage.players[player.index].working_slot
   local value = tonumber(ws.stacks.text)
   if not value then
     return
@@ -53,7 +53,7 @@ end -- M.from_stacks()
 ---@param player LuaPlayer
 function M.from_slider(player)
   ---@type WorkingSlot
-  local ws = global.players[player.index].working_slot
+  local ws = storage.players[player.index].working_slot
   local value = ws.slider.slider_value
   ws.stacks.text = tostring(value / ws.stack_size)
   ws.items.text = tostring(value)
@@ -63,7 +63,7 @@ end --M.from_slider()
 ---Encode the Network ID from the buttons that are enabled
 ---@param player LuaPlayer @ Player operating the combinator
 function M.from_netid_buttons(player)
-  local pt = global.players[player.index]
+  local pt = storage.players[player.index]
   local netid_textbox = pt.main_elems["text_entry__ltn-network-id"]
   local netid_buttons = pt.main_elems.net_encode_table
   local netid = 0
@@ -109,7 +109,7 @@ function M.get_blueprint(player)
     return bp
   end
 
-  local prev_bp = global.previous_opened_blueprint_for[player.index]
+  local prev_bp = storage.previous_opened_blueprint_for[player.index]
   if prev_bp
   and prev_bp.tick == game.tick
   and prev_bp.blueprint

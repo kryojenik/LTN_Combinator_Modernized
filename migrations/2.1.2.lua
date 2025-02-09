@@ -1,1 +1,1 @@
-global.previous_opened_blueprint_for = {}
+storage.previous_opened_blueprint_for = {}

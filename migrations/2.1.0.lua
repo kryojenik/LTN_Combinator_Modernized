@@ -1,2 +1,2 @@
 
-global.replacements = {}
+storage.replacements = {}
