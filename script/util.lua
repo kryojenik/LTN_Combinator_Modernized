@@ -193,6 +193,7 @@ function M.find_connected_entity(find_name, start_list, max_depth)
   walk_entities = function(name, entity_list, depth)
     local next_entity_list = {}
     for unit, e in pairs(entity_list) do
+      --- @cast e LuaEntity
       if e.name == name then
         -- We've found the closest entity <name>
         return e
@@ -201,17 +202,17 @@ function M.find_connected_entity(find_name, start_list, max_depth)
       -- Mark this entity as processed so we don't process it again.
       -- This it is seen on the next entity or if there are loops in the circuit network
       seen[unit] = true
-      if not e.circuit_connected_entities then
+      local connectors = e.get_wire_connectors(false)
+      if not connectors then
         return
       end
 
       -- Outer loop get are the possible wire connections (red / green)
-      for _, connected_entities in pairs(e.circuit_connected_entities) do
-        --- @cast connected_entities LuaEntity[]
+      for _, connector in pairs(connectors) do
         -- Inner loop works through all the adjacent entities on a network.
-        for _, connected_entity in ipairs(connected_entities) do
-          if not seen[connected_entity.unit_number] then
-            next_entity_list[connected_entity.unit_number] = connected_entity
+        for _, connection in ipairs(connector.connections) do
+          if not seen[connection.target.owner.unit_number] then
+            next_entity_list[connection.target.owner.unit_number] = connection.target.owner
           end
         end
       end

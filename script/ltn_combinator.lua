@@ -46,9 +46,10 @@ end -- get_combinator_data()
 local function get_ltn_signal_from_control(ctl, ltn_signal_name)
   local slot = config.ltn_signals[ltn_signal_name].slot
   local default = config.ltn_signals[ltn_signal_name].default
-  local signal = ctl.get_signal(slot)
-  if signal.signal then
-    return { value = signal.count, is_default = false }
+  local section = ctl.get_section(1)
+  local filter = section.get_slot(slot)
+  if filter.value then
+    return { value = filter.min, is_default = false }
   else
     return { value = default, is_default = true }
   end
@@ -237,6 +238,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   local explicit_network = loc_settings["ltnc-emit-default-network-id"].value
   local explicit_default = loc_settings["ltnc-emit-explicit-default"].value
   local signal_data = config.ltn_signals[ltn_signal_name]
+  local section = ctl.get_section(1)
 
 
   -- Need to store thresholds in storage and set the correct values on the combinator
@@ -257,19 +259,19 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
 
   -- Remove the signal from combinator if it is zero or non-existent
   if not value or value == 0 then
-    ctl.set_signal(signal_data.slot, util.nilSignal)
+    section.clear_slot(signal_data.slot)
     return
   end
 
-  --- @type Signal
-  local signal = {
-    count = value,
-    signal = { name = ltn_signal_name, type = "virtual" }
+  --- @type LogisticFilter
+  local filter = {
+    min = value,
+    value = { type = "virtual", name = ltn_signal_name, comparator = "=", quality = "normal" }
   }
 
   -- Set the non-default values
-  if signal.count ~= signal_data.default then
-    ctl.set_signal(signal_data.slot, signal)
+  if filter.min ~= signal_data.default then
+    section.set_slot(signal_data.slot, filter)
     return
   end
 
@@ -277,9 +279,9 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   -- Otherwise, default values are removed.
   if (ltn_signal_name == "ltn-network-id" and explicit_network)
       or (ltn_signal_name ~= "ltn-network-id" and explicit_default) then
-    ctl.set_signal(signal_data.slot, signal)
+    section.set_slot(signal_data.slot, signal)
   else
-    ctl.set_signal(signal_data.slot, util.nilSignal)
+    section.clear_slot(signal_data.slot)
   end
 end -- set_ltn_signal_by_control()
 
@@ -293,7 +295,7 @@ end -- set_ltn_signal()
 --- @return Signal
 local function get_misc_signal(self, slot)
   local ctl = self.control
-  return ctl.get_signal(slot + config.ltnc_ltn_signal_count)
+  return ctl.sections[1].get_slot(slot + config.ltnc_ltn_signal_count)
 end -- get_misc_signal()
 
 --- @param self LTNC
@@ -321,7 +323,8 @@ end -- close_misc_signal_edit_controls()
 --- @param self LTNC
 local function update_ui_misc_signal(self, slot)
   local ctl = self.control
-  local ret = ctl.get_signal(slot + config.ltnc_ltn_signal_count)
+  local section = ctl.get_section(1)
+  local ret = section.get_slot(slot + config.ltnc_ltn_signal_count)
   local button = self.elems["misc_signal_slot__" .. slot]
   local value = button.children[1]
   if ret.signal then
@@ -436,7 +439,8 @@ end -- open_misc_signal_edit_controls()
 --- @param self LTNC
 local function clear_misc_signal(self, slot)
   local ctl = self.control
-  ctl.set_signal(slot + config.ltnc_ltn_signal_count, util.nilSignal)
+  local section = ctl.get_section(1)
+  section.clear_slot(slot + config.ltnc_ltn_signal_count)
 end -- clear_misc_signal()
 
 --- @param signal Signal
@@ -444,7 +448,8 @@ end -- clear_misc_signal()
 --- @param self LTNC
 local function set_misc_signal(self, signal, slot)
   local ctl = self.control
-  ctl.set_signal(slot, signal)
+  local section = ctl.get_section(1)
+  section.set_slot(slot, signal)
 end -- set_misc_signal()
 
 --- Refresh the entire UI with current data
@@ -482,55 +487,56 @@ end -- update_ui()
 --- @param entity LuaEntity
 local function sort_signals(entity)
   local needs_sorting = false
-  local ctl = entity.get_control_behavior()
-  --- @cast ctl LuaConstantCombinatorControlBehavior
+  local cb = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
+  local section = cb.get_section(1)
 
   -- Validate signal slot locations, If sorting is not needed skip it.
   --- @type uint
-  for i = 1, ctl.signals_count do
-    local signal = ctl.get_signal(i)
-    if signal.signal ~= nil then
-      local name = signal.signal.name
-      local type = signal.signal.type
-
-      -- If LTN Signal, make sure it's in the proper slot.
+  for i = 1, section.filters_count do
+    local filter = section.get_slot(i)
+    if filter.value ~= nil then
+      local name = filter.value.name
+      local type = filter.value.type
+      -- If LTN Signal, make sure it is in the correct slot.
       if type == "virtual" and config.ltn_signals[name] ~= nil then
         -- Signals with a value of 0 are not emitted on the wire.
         -- In the case of an LTN, absence of a control signal will result in the LTN default
         -- being used.  Remove LTN signals with a value of 0 to remove ambiguity.
-        if signal.count == 0 then
-          ctl.set_signal(i, util.nilSignal)
+        if filter.min == 0 then
+          section.clear_slot(i)
         else
-          needs_sorting = config.ltn_signals[name].slot ~= i or i > config.ltnc_ltn_signal_count --or needs_sorting
+          needs_sorting = config.ltn_signals[name].slot ~= i or i > config.ltnc_ltn_signal_count
         end
+
       else
-        -- If it is not an LTN Signal, make sure its not in an LTN slot.
-        needs_sorting = i <= config.ltnc_ltn_signal_count --or needs_sorting
+        -- Not an LTN signal, make sure it is not in an LTN slot
+        needs_sorting = i <= config.ltnc_ltn_signal_count
       end
     end
-    -- No need to check all the signals if we found one requiring sorting.
+
+    -- No need to check everything if we already need sorting.
     if needs_sorting then break end
   end
 
-  --Sort the signals if needed.
   if needs_sorting then
-    local temp_signals = {}
+    local temp_filters = {}
     --- @type uint
-    for j = 1, ctl.signals_count do
-      local signal = ctl.get_signal(j)
-      if signal.signal ~= nil then
-        table.insert(temp_signals, signal)
-        ctl.set_signal(j, util.nilSignal)
+    for j = 1, section.filters_count do
+      local filter = section.get_slot(j)
+      if filter.value ~= nil then
+        table.insert(temp_filters, filter)
+        section.clear_slot(j)
       end
     end
+
     --- @type uint
     local misc_slot = config.ltnc_ltn_signal_count + 1
-    for _, s in pairs(temp_signals) do
-      local name = s.signal.name
+    for _, f in pairs(temp_filters) do
+      local name = filter.value.name
       if config.ltn_signals[name] ~= nil then
-        ctl.set_signal(config.ltn_signals[name].slot, s)
+        section.set_slot(config.ltn_signals[name].slot, f)
       else
-        ctl.set_signal(misc_slot, s)
+        section.set_slot(misc_slot, f)
         misc_slot = misc_slot + 1
       end
     end
@@ -1205,9 +1211,9 @@ local function build(player)
         {
           type = "sprite-button",
           style = "frame_action_button",
-          sprite = "utility/close_white",
-          hovered_sprite = "utility/close_black",
-          clicked_sprite = "utility/close_black",
+          sprite = "utility/close",
+          --hovered_sprite = "utility/close_black",
+          --clicked_sprite = "utility/close_black",
           mouse_button_filter = { "left" },
           handler = { [defines.events.on_gui_click] = handlers.close_ltnc_ui },
         }
@@ -1619,16 +1625,18 @@ local function on_linked_open_gui(e)
     return
   end
 
-  local lamp = util.find_connected_entity("logistic-train-stop-input", {[entity.unit_number] = entity}, 10)
+  --local lamp = util.find_connected_entity("logistic-train-stop-input", {[entity.unit_number] = entity}, 10)
   if player.render_mode == defines.render_mode.chart_zoomed_in then
     if player.cursor_stack and player.cursor_stack.valid_for_read then
       return
     end
 
+    --[[
     if not lamp or not lamp.valid then
       player.create_local_flying_text({ text = {"ltnc.not-connected"}, create_at_cursor = true })
       return
     end
+    ]]
 
     open_gui(player, entity)
     return
