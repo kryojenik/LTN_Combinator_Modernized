@@ -327,9 +327,9 @@ local function update_ui_misc_signal(self, slot)
   local ret = section.get_slot(slot + config.ltnc_ltn_signal_count)
   local button = self.elems["misc_signal_slot__" .. slot]
   local value = button.children[1]
-  if ret.signal then
-    value.caption = flib_format.number(ret.count, true)
-    button.elem_value = ret.signal
+  if ret.value then
+    value.caption = flib_format.number(ret.min, true)
+    button.elem_value = ret.value
     button.locked = true
   else
     value.caption = ""
@@ -532,7 +532,7 @@ local function sort_signals(entity)
     --- @type uint
     local misc_slot = config.ltnc_ltn_signal_count + 1
     for _, f in pairs(temp_filters) do
-      local name = filter.value.name
+      local name = f.value.name
       if config.ltn_signals[name] ~= nil then
         section.set_slot(config.ltn_signals[name].slot, f)
       else
