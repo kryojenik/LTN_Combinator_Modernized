@@ -393,13 +393,14 @@ local function open_ui_misc_signal_edit_controls(self, slot)
     local elem = self.elems["misc_signal_slot__" .. slot]
     cur.signal = {
       name = elem.elem_value.name,
-      type = elem.elem_value.type
+      type = elem.elem_value.type or "item",
+      quality = elem.elem_value.quality
     }
     is_new = true
   end
 
   if cur.signal.type == "item" then
-    ws.stack_size = game.item_prototypes[cur.signal.name].stack_size
+    ws.stack_size = prototypes.item[cur.signal.name].stack_size
     ws.stacks.enabled = true
     slider_max = config.slider_max_stacks * ws.stack_size
     slider_increment = ws.stack_size
@@ -727,7 +728,12 @@ misc_signal_confirm = function(self, e)
   end
 
   local name = elem.elem_value.name
-  local type = elem.elem_value.type
+  local type = elem.elem_value.type or "item"
+  local quality = "normal"
+  if type == "item" and elem.elem_value.quality then
+    quality = elem.elem_value.quality
+  end
+
   if value > 0
   and (
     loc_settings["ltnc-negative-signals"].value and not e.shift
@@ -738,7 +744,7 @@ misc_signal_confirm = function(self, e)
 
   set_misc_signal(
     self,
-    {count = value, signal = { name = name, type = type}},
+    {min = value, value = { name = name, type = type, quality = quality}},
     ws.index + config.ltnc_ltn_signal_count
   )
   update_ui_misc_signal(self, ws.index)
