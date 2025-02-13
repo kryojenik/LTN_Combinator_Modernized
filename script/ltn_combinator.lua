@@ -388,19 +388,20 @@ local function open_ui_misc_signal_edit_controls(self, slot)
   ws.cancel.enabled = true
 
   local is_new = false
-  if not cur.signal then
+  if not cur.value then
     -- Must be setting up a new signal slot
     local elem = self.elems["misc_signal_slot__" .. slot]
-    cur.signal = {
+    cur.value = {
       name = elem.elem_value.name,
       type = elem.elem_value.type or "item",
       quality = elem.elem_value.quality
     }
+    cur.min = 1
     is_new = true
   end
 
-  if cur.signal.type == "item" then
-    ws.stack_size = prototypes.item[cur.signal.name].stack_size
+  if cur.value.type == "item" then
+    ws.stack_size = prototypes.item[cur.value.name].stack_size
     ws.stacks.enabled = true
     slider_max = config.slider_max_stacks * ws.stack_size
     slider_increment = ws.stack_size
@@ -412,12 +413,12 @@ local function open_ui_misc_signal_edit_controls(self, slot)
     slider_increment = 1000
   end
 
-  ws.items.text = tostring(cur.count)
+  ws.items.text = tostring(cur.min)
   ws.stacks.text = "1"
   ws.slider.set_slider_minimum_maximum(0, slider_max)
   ws.slider.set_slider_value_step(slider_increment)
 
-  if cur.signal.type == "item" and pt.settings["ltnc-use-stacks"] then
+  if cur.value.type == "item" and pt.settings["ltnc-use-stacks"] then
     if is_new then
       util.from_stacks(self.player)
     else
