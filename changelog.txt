@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.0
-Date: ????
+Date: 2025-02-13
   Changes:
     - Initial port to Factorio 2.0
     - Only items and fluids will be auto-converted to negative numbers.
