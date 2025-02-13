@@ -735,7 +735,8 @@ misc_signal_confirm = function(self, e)
     quality = elem.elem_value.quality
   end
 
-  if value > 0
+  if (type == "item" or type == "fluid")
+  and value > 0
   and (
     loc_settings["ltnc-negative-signals"].value and not e.shift
     or e.shift and not loc_settings["ltnc-negative-signals"].value
