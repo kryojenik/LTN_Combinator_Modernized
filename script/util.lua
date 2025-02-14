@@ -1,8 +1,8 @@
-local math = require("__flib__/math")
+local math = require("__flib__.math")
 
-local config = require("__LTN_Combinator_Modernized__/script/config")
-local flib_box = require("__flib__/bounding-box")
-local table = require("__flib__/table")
+local config = require("script.config")
+local flib_box = require("__flib__.bounding-box")
+local table = require("__flib__.table")
 
 local M = {}
 

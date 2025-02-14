@@ -1,5 +1,5 @@
-local flib = require("__flib__/data-util")
-local config = require("__LTN_Combinator_Modernized__/script/config")
+local flib = require("__flib__.data-util")
+local config = require("script.config")
 
 local ltnc_entity = flib.copy_prototype(data.raw["constant-combinator"]["constant-combinator"], "ltn-combinator")
 
