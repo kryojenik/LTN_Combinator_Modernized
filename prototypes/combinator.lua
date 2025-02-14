@@ -9,40 +9,24 @@ ltnc_entity.icon_mipmaps = nil
 ltnc_entity.next_upgrade = nil
 --ltnc_entity.item_slot_count = config.ltnc_slot_count
 ltnc_entity.fast_replaceable_group = "constant-combinator"
+---@diagnostic disable-next-line: undefined-global
 ltnc_entity.sprites = make_4way_animation_from_spritesheet(
   { layers =
     {
       {
+        scale = 0.5,
         filename = "__LTN_Combinator_Modernized__/graphics/ltn-combinator.png",
-        width = 58,
-        height = 52,
-        frame_count = 1,
+        width = 114,
+        height = 102,
         shift = util.by_pixel(0, 5),
-        hr_version = {
-          scale = 0.5,
-          filename = "__LTN_Combinator_Modernized__/graphics/hr-ltn-combinator.png",
-          width = 114,
-          height = 102,
-          frame_count = 1,
-          shift = util.by_pixel(0, 5),
-        },
       },
       {
-        filename = "__base__/graphics/entity/combinator/constant-combinator-shadow.png",
-        width = 50,
-        height = 30,
-        frame_count = 1,
-        shift = util.by_pixel(9,6),
+        scale = 0.5,
+        filename = '__base__/graphics/entity/combinator/constant-combinator-shadow.png',
+        width = 98,
+        height = 66,
+        shift = util.by_pixel(8.5, 5.5),
         draw_as_shadow = true,
-        hr_version = {
-          scale = 0.5,
-          filename = "__base__/graphics/entity/combinator/hr-constant-combinator-shadow.png",
-          width = 98,
-          height = 66,
-          frame_count = 1,
-          shift = util.by_pixel(8.5, 5.5),
-          draw_as_shadow = true,
-        },
       },
     },
   }
