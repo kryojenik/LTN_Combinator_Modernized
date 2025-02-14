@@ -138,7 +138,7 @@ function M.get_blueprint_bounding_box(entities)
   -- Define a bounding box the size of the blueprint to be placed
   local grid_size = 1
   ---@diagnostic disable-next-line:missing-fields
-  local protos = game.get_filtered_entity_prototypes{{filter = "name", name = name_filter}}
+  local protos = prototypes.get_entity_filtered{{filter = "name", name = name_filter}}
   for _, entity in pairs(entities) do
     local collision_box = protos[entity.name].collision_box
     grid_size = math.max(grid_size, protos[entity.name].building_grid_bit_shift)

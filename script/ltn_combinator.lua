@@ -1782,7 +1782,7 @@ local function on_built(e)
   end
 
   -- Disable services based on mod settings
-  local build_disable = settings.storage["ltnc-disable-built-combinators"].value
+  local build_disable = settings.global["ltnc-disable-built-combinators"].value
   local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
   local disabled_something = false
   if build_disable == "off" and ctl.enabled then
@@ -1796,7 +1796,7 @@ local function on_built(e)
     disabled_something = toggle_service_by_ctl(ctl, "requester", false)
   end
 
-  if disabled_something and settings.storage["ltnc-alert-build-disable"].value then
+  if disabled_something and settings.global["ltnc-alert-build-disable"].value then
     add_to_built_disabled(entity)
   end
 end -- on_built()
@@ -2015,7 +2015,7 @@ local function on_pre_build(e)
   end
 
   if player.is_cursor_blueprint() then
-    local entities = player.get_blueprint_entities()
+    local entities = player.cursor_stack.get_blueprint_entities()
     if not entities then
       return
     end
