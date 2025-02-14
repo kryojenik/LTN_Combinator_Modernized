@@ -2015,7 +2015,12 @@ local function on_pre_build(e)
   end
 
   if player.is_cursor_blueprint() then
-    local entities = player.cursor_stack.get_blueprint_entities()
+    local entities =
+      -- BP in inventory or CTRL-C/X (copy/cut)
+      player.cursor_stack.valid_for_read and player.cursor_stack.get_blueprint_entities()
+      --  BP in library
+      or player.cursor_record.get_blueprint_entities()
+
     if not entities then
       return
     end
