@@ -2027,7 +2027,7 @@ local function on_pre_build(e)
           if next.is_blueprint then
             entities = next.get_blueprint_entities()
             break
-          elseif next.is_blueprint_book then
+          elseif not next.is_blueprint_book then
             break
           end
           book = next
