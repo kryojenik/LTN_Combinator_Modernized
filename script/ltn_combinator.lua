@@ -113,7 +113,7 @@ local function update_ui_network_id_buttons(self, type)
     end
 
     if gni[i] then
-      if gni[i].icon and btns[i].gui.is_valid_sprite_path(gni[i].icon) then
+      if gni[i].icon and helpers.is_valid_sprite_path(gni[i].icon) then
         btns[i].sprite = gni[i].icon
         btns[i].caption = ""
       end

@@ -10,7 +10,7 @@ local net_ui = {}
 local function update_ui(self)
   local gni = storage.network_descriptions[self.network]
   if gni then
-    if gni.icon and self.elems.icon.gui.is_valid_sprite_path(gni.icon) then
+    if gni.icon and helpers.is_valid_sprite_path(gni.icon) then
       local _, _, type, name = string.find(gni.icon, "(.*)/(.*)")
 
       ---@type SignalID
@@ -41,12 +41,12 @@ local handlers = {
     local type = "bad"
     local name = "path"
     if self.elems.icon.elem_value then
-      type = self.elems.icon.elem_value.type
+      type = self.elems.icon.elem_value.type or "item"
       name = self.elems.icon.elem_value.name
     end
 
     local path = (type == "virtual" and "virtual-signal" or type) .. "/" .. name
-    if game.is_valid_sprite_path(path) then
+    if helpers.is_valid_sprite_path(path) then
       desc.icon = path
     else
       desc.icon = nil
