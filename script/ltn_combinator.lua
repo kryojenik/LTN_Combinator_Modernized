@@ -2015,11 +2015,43 @@ local function on_pre_build(e)
   end
 
   if player.is_cursor_blueprint() then
-    local entities =
-      -- BP in inventory or CTRL-C/X (copy/cut)
-      player.cursor_stack.valid_for_read and player.cursor_stack.get_blueprint_entities()
-      --  BP in library
-      or player.cursor_record.get_blueprint_entities()
+    local entities
+    if player.cursor_record == nil then
+      if player.cursor_stack.is_blueprint then
+        entities = player.cursor_stack.get_blueprint_entities()
+      elseif player.cursor_stack.is_blueprint_book then
+        local book = player.cursor_stack
+        while true do
+          local index = book.active_index
+          local next = book.get_inventory(defines.inventory.item_main)[index]
+          if next.is_blueprint then
+            entities = next.get_blueprint_entities()
+            break
+          elseif next.is_blueprint_book then
+            break
+          end
+          book = next
+        end
+      end
+    else
+      if player.cursor_record.type == "blueprint-book" then
+        --Handle blueprint books in blueprint books
+        local book = player.cursor_record
+        while true do
+          local index = book.get_active_index(player)
+          local next = book.contents[index]
+          if next.type == "blueprint" then
+            entities = next.get_blueprint_entities()
+            break
+          elseif next.type ~= "blueprint-book" then
+            break
+          end
+          book = next
+        end
+      elseif player.cursor_record.type == "blueprint" then
+        entities = player.cursor_record.get_blueprint_entities()
+      end
+    end
 
     if not entities then
       return
