@@ -20,6 +20,6 @@
             "types.lua",
             "screenshots/*"
         ],
-        "sync_portal_details": true
+        "sync_portal_details": false
     }
 }
