@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
-Date: ????
+Date: 2025-02-14
   Bugfixes:
     - More crashes dealing with blueprints from the library
     - Typo in a mod-setting description
