@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.3
-Date: ????
+Date: 2025-02-15
   Bugfixes:
     - Crash when updating network descriptions
     - Temporary workaround to avoid crashes when building blueprints while holding a blueprint book.
