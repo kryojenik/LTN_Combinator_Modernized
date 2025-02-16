@@ -1,16 +1,16 @@
-local flib_gui = require("__flib__/gui")
-local flib_format = require("__flib__/format")
-local flib_position = require("__flib__/position")
-local flib_box = require("__flib__/bounding-box")
-local table = require("__flib__/table")
-local math = require("__flib__/math")
+local flib_gui = require("__flib__.gui")
+local flib_format = require("__flib__.format")
+local flib_position = require("__flib__.position")
+local flib_box = require("__flib__.bounding-box")
+local table = require("__flib__.table")
+local math = require("__flib__.math")
 
-local util = require("__LTN_Combinator_Modernized__/script/util")
-local netui = require("__LTN_Combinator_Modernized__/script/network_descriptions")
-local storage_data = require("__LTN_Combinator_Modernized__/script/storage_data")
-local player_data = require("__LTN_Combinator_Modernized__/script/player_data")
+local util = require("script.util")
+local netui = require("script.network_descriptions")
+local storage_data = require("script.storage_data")
+local player_data = require("script.player_data")
 
-local config = require("__LTN_Combinator_Modernized__/script/config")
+local config = require("script.config")
 
 local dlog = util.debug_log
 

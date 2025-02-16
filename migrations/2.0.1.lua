@@ -1,4 +1,4 @@
-local config = require("__LTN_Combinator_Modernized__/script/config")
+local config = require("script.config")
 
 -- Find all the combinators and create an entry in storage
 local combinator_count = 0
