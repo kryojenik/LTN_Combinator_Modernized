@@ -1781,6 +1781,8 @@ local function on_built(e)
     return
   end
 
+  sort_signals(entity)
+
   -- Disable services based on mod settings
   local build_disable = settings.global["ltnc-disable-built-combinators"].value
   local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
