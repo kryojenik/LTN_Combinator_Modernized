@@ -4,6 +4,7 @@ Date: ????
   Bugfixes:
     - Crash when pasting old (1.1) blueprints with LTN combinator
   Changes:
+    - Removed low-res graphics
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.3
 Date: 2025-02-15
