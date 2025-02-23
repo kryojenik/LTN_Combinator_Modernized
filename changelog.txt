@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.4
-Date: ????
+Date: 2025-02-23
   Bugfixes:
     - Crash when pasting old (1.1) blueprints with LTN combinator
     - Fix building while holding blueprint books.  Some corner cases may not work properly if you
