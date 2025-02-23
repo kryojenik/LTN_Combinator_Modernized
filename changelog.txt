@@ -3,6 +3,9 @@ Version: 2.2.4
 Date: ????
   Bugfixes:
     - Crash when pasting old (1.1) blueprints with LTN combinator
+    - Fix building while holding blueprint books.  Some corner cases may not work properly if you
+      not running Factorio 2.0.35 or later.
+    - Fix crash when setting for explicit defaults is enabled.
   Changes:
     - Removed low-res graphics
 ---------------------------------------------------------------------------------------------------

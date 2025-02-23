@@ -279,7 +279,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   -- Otherwise, default values are removed.
   if (ltn_signal_name == "ltn-network-id" and explicit_network)
       or (ltn_signal_name ~= "ltn-network-id" and explicit_default) then
-    section.set_slot(signal_data.slot, signal)
+    section.set_slot(signal_data.slot, filter)
   else
     section.clear_slot(signal_data.slot)
   end
@@ -445,13 +445,13 @@ local function clear_misc_signal(self, slot)
   section.clear_slot(slot + config.ltnc_ltn_signal_count)
 end -- clear_misc_signal()
 
---- @param signal Signal
+--- @param filter Signal
 --- @param slot uint
 --- @param self LTNC
-local function set_misc_signal(self, signal, slot)
+local function set_misc_signal(self, filter, slot)
   local ctl = self.control
   local section = ctl.get_section(1)
-  section.set_slot(slot, signal)
+  section.set_slot(slot, filter)
 end -- set_misc_signal()
 
 --- Refresh the entire UI with current data
@@ -1810,17 +1810,8 @@ local function on_player_setup_blueprint(e)
     return
   end
 
-  local bp = util.get_blueprint(player)
+  local bp = e.stack or e.record
   if not bp then
-    local source_entities = e.mapping.get() --[=[@as LuaEntity[]]=]
-    for _, entity in ipairs(source_entities) do
-      if entity.name == "ltn-combinator" then
-        player.print{"ltnc.blueprint-bug"}
-        goto out
-      end
-    end
-
-    ::out::
     return
   end
 
@@ -2017,16 +2008,13 @@ local function on_pre_build(e)
   end
 
   if player.is_cursor_blueprint() then
-    
-    -- TODO: Temp workaround because we can't see the BP in a BP book if it comes from the library
-    local entities
-      if player.cursor_stack.valid_for_read and player.cursor_stack.name == "blueprint" then
-        -- BP in inventory or CTRL-C/X (copy/cut)
-        entities = player.cursor_stack.get_blueprint_entities()
-      elseif player.cursor_record and player.cursor_record.type == "blueprint" then
-        --  BP in library
-        entities = player.cursor_record.get_blueprint_entities()
-      end
+    local bp = util.get_blueprint(player)
+
+    if not bp then
+      return
+    end
+
+    local entities = bp.get_blueprint_entities()
 
     if not entities then
       return

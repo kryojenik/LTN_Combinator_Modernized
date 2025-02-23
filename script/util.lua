@@ -3,6 +3,7 @@ local math = require("__flib__.math")
 local config = require("script.config")
 local flib_box = require("__flib__.bounding-box")
 local table = require("__flib__.table")
+local migration = require("__flib__.migration")
 
 local M = {}
 
@@ -89,7 +90,7 @@ function M.is_valid(name, value)
 end
 
 --- @param player LuaPlayer
---- @return LuaItemStack?
+--- @return (LuaItemStack|LuaRecord)?
 function M.get_blueprint(player)
   local bp = player.blueprint_to_setup
   if bp
@@ -99,11 +100,24 @@ function M.get_blueprint(player)
 
   bp = player.cursor_stack
   if bp
-  and bp.valid_for_read
-  and bp.is_blueprint
-  and bp.is_blueprint_setup() then
-    while bp.is_blueprint_book do
+  and bp.valid_for_read then
+    while bp.type == "blueprint-book" do
       bp = bp.get_inventory(defines.inventory.item_main)[bp.active_index]
+    end
+
+    return bp
+  end
+  
+  bp = player.cursor_record
+  if bp then
+    if not migration.is_newer_version("2.0.34", script.active_mods["base"])
+    and bp.type == "blueprint-book" then
+      game.print("Factorio version 2.0.35 required for this to work properly.  Please copy BP book to your inventory, or select the specific BP from your book.")
+      return
+    end
+
+    while bp.type == "blueprint-book" do
+      bp = bp.contents[bp.get_active_index(player)]
     end
 
     return bp
