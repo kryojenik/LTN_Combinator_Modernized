@@ -4,7 +4,7 @@ local config = {}
 local startup_settings = settings.startup
 
 ---@type uint
-config.ltnc_ltn_signal_count      = 14
+config.ltnc_ltn_signal_count      = 15
 ---@type uint
 config.ltnc_misc_signal_count = 10 * startup_settings["ltnc-misc-signal-rows"].value --[[@as uint]]
 ---@type uint
@@ -30,6 +30,7 @@ config.old_high_threshold = 50000000
 ---| "ltn-locked-slots"
 ---| "ltn-depot"
 ---| "ltn-depot-priority"
+---| "ltn-fuel-station"
 
 ---@alias LTNGroups
 ---| "network"
@@ -54,6 +55,7 @@ config.ltn_signals = {
   ["ltn-locked-slots"]              = {group = "provider", default = 0, slot = 12, min = 0, max = 40},
   ["ltn-depot"]                     = {group = "depot", default = 0, slot = 13, min = 0, max = 1},
   ["ltn-depot-priority"]            = {group = "depot", default = 0, slot = 14, min = math.min_int, max = math.max_int},
+  ["ltn-fuel-station"]              = {group = "depot", default = 0, slot = 15, min = 0, max = 1},
 }
 
 ---@enum BadSignals

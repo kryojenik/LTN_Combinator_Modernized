@@ -70,6 +70,11 @@ local function is_depot(ctl)
   return get_ltn_signal_from_control(ctl, "ltn-depot").value > 0 and true or false
 end -- is_depot()
 
+--- @param ctl LuaConstantCombinatorControlBehavior
+local function is_fuel_station(ctl)
+  return get_ltn_signal_from_control(ctl, "ltn-fuel-station").value > 0 and true or false
+end -- is_fuel_station()
+
 --- Enable or disable the edit elements in the provider / requester sections.
 ---@param self LTNC
 ---@param set_enable boolean
@@ -131,6 +136,7 @@ end -- update_ui_network_id_buttons()
 --- @param is_default boolean # Is the named signal the default value
 local function update_ui_signal_reset(self, ltn_signal_name, is_default)
   if ltn_signal_name == "ltn-depot"
+  or ltn_signal_name == "ltn-fuel-station"
   or ltn_signal_name == "ltn-network-id"
   or ltn_signal_name == "ltn-depot-priority" then
     return
@@ -155,7 +161,9 @@ local function update_ui_ltn_signal(self, ltn_signal_name)
   --- @type LuaGuiElement
   local elem
 
-  if ltn_signal_name == "ltn-depot" or ltn_signal_name == "ltn-disable-warnings" then
+  if ltn_signal_name == "ltn-depot"
+    or ltn_signal_name == "ltn-disable-warnings"
+    or ltn_signal_name == "ltn-fuel-station" then
     elem = self.elems["check__" .. ltn_signal_name]
     elem.state = ret.value > 0 and true or false
     update_ui_signal_reset(self, ltn_signal_name, ret.is_default)
@@ -163,6 +171,11 @@ local function update_ui_ltn_signal(self, ltn_signal_name)
   end
 
   elem = self.elems["text_entry__" .. ltn_signal_name]
+  -- TODO: Remove this (maybe) - used during Development.
+  if not elem then
+    return
+  end
+
   elem.style = "ltnc_entry_text"
 
   -- Handle threshold values that are maintained even when Request Provide is disabled
@@ -252,7 +265,7 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
       cd[ltn_signal_name] = nil
     end
 
-    if not is_depot(ctl) then
+    if not (is_depot(ctl) or is_fuel_station(ctl)) then
       value = get_threshold_from_storage(ctl.entity, value, ltn_signal_name)
     end
   end
@@ -480,8 +493,14 @@ local function update_ui(self)
   local cd = get_or_create_combinator_data(self.entity)
   self.elems.check__provider.state = cd.provider
   self.elems.check__requester.state = cd.requester
-  if is_depot(self.control) then
+  if is_depot(self.control) or is_fuel_station(self.control) then
     toggle_ui_req_prov_panels(self, false)
+    if is_fuel_station(self.control) then
+      self.elems["check__ltn-depot"].enabled = false
+    end
+    if is_depot(self.control) then
+      self.elems["check__ltn-fuel-station"].enabled = false
+    end
   end
 end -- update_ui()
 
@@ -673,308 +692,341 @@ end -- toggle_network_config()
 --#region Handlers
 
 local handlers = {
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  network_id_config = function(self, e)
+    toggle_network_config(self)
+  end, -- network_id_config()
 
---- @param e EventData.on_gui_click
---- @param self LTNC
-network_id_config = function(self, e)
-  toggle_network_config(self)
-end, -- network_id_config()
-
---- @param e EventData.on_gui_click
---- @param self LTNC
-network_id_toggle = function (self, e)
-  local elem = e.element
-  local netid_textbox = self.elems["text_entry__ltn-network-id"]
-  netid_textbox.style = "ltnc_entry_text"
-  if elem.name == "net_id_all" then
-    update_ui_network_id_buttons(self, tt.on)
-  elseif elem.name == "net_id_none" then
-    update_ui_network_id_buttons(self, tt.off)
-  elseif e.shift then
-    netui.open_single(e, update_ui_network_id_buttons)
-  else
-    if elem.style.name == "ltnc_net_id_button_pressed" then
-      elem.style = "ltnc_net_id_button"
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  network_id_toggle = function (self, e)
+    local elem = e.element
+    local netid_textbox = self.elems["text_entry__ltn-network-id"]
+    netid_textbox.style = "ltnc_entry_text"
+    if elem.name == "net_id_all" then
+      update_ui_network_id_buttons(self, tt.on)
+    elseif elem.name == "net_id_none" then
+      update_ui_network_id_buttons(self, tt.off)
+    elseif e.shift then
+      netui.open_single(e, update_ui_network_id_buttons)
     else
-      elem.style = "ltnc_net_id_button_pressed"
-    end
-  end
-  util.from_netid_buttons(self.player)
-  local value = tonumber(netid_textbox.text) --[[@as integer]]
-  set_ltn_signal(self, value, "ltn-network-id")
-  update_ui_ltn_signal(self, "ltn-network-id")
-end, -- network_id_toggle()
-
---- @param e EventData.on_gui_click
---- @param self LTNC
-misc_signal_confirm = function(self, e)
-  local ws = storage.players[e.player_index].working_slot
-  local loc_settings = settings.get_player_settings(e.player_index)
-  -- Prevent a crash is somehow the working slot becomes invalid 
-  if not ws then
-    close_ui_misc_signal_edit_controls(self)
-    return
-  end
-  
-  local value = tonumber(ws.items.text)
-  if not value or value < math.min_int or value > math.max_int then
-    return
-  end
-
-  local elem = self.elems["misc_signal_slot__" .. ws.index]
-  -- Prevent a crash if somehow the element is no longer valid and the edit controls are still open
-  if not elem or not elem.elem_value then
-    close_ui_misc_signal_edit_controls(self)
-    return
-  end
-
-  local name = elem.elem_value.name
-  local type = elem.elem_value.type or "item"
-  local quality = "normal"
-  if type == "item" and elem.elem_value.quality then
-    quality = elem.elem_value.quality
-  end
-
-  if (type == "item" or type == "fluid")
-  and value > 0
-  and (
-    loc_settings["ltnc-negative-signals"].value and not e.shift
-    or e.shift and not loc_settings["ltnc-negative-signals"].value
-  ) then
-      value = value * -1
-  end
-
-  set_misc_signal(
-    self,
-    {min = value, value = { name = name, type = type, quality = quality}},
-    ws.index + config.ltnc_ltn_signal_count
-  )
-  update_ui_misc_signal(self, ws.index)
-  close_ui_misc_signal_edit_controls(self)
-end, -- misc_signal_confirm()
-
---- @param e EventData.on_gui_click
---- @param self LTNC
-misc_signal_cancel = function(self, e)
-  local ws = storage.players[e.player_index].working_slot
-  if ws then
-    update_ui_misc_signal(self, ws.index)
-  end
-  close_ui_misc_signal_edit_controls(self)
-end, -- misc_signal_cancel
-
---- @param e EventData.on_gui_text_changed
---- @param self LTNC
-misc_signal_stacks_text_changed = function(self, e)
-  util.from_stacks(self.player)
-end, -- misc_signal_stacks_text_changed()
-
---- @param e EventData.on_gui_text_changed
---- @param self LTNC
-misc_signal_items_text_changed = function(self, e)
-  if not e.element or not e.element.text then
-    return
-  end
-
-  local value = tonumber(e.element.text)
-  if not value then
-    return
-  end
-
-  if value < math.min_int or value > math.max_int then
-    e.element.style = "ltnc_entry_text_invalid_value"
-  else
-    e.element.style = "ltnc_entry_text"
-  end
-
-  util.from_items(self.player)
-end, -- misc_signal_items_text_changed()
-
---- @param e EventData.on_gui_value_changed
---- @param self LTNC
-misc_signal_slider_changed = function(self, e)
-  util.from_slider(self.player)
-end, -- misc_signal_slider_changed()
-
---- @param e EventData.on_gui_elem_changed
---- @param self LTNC
-misc_signal_elem_changed = function(self, e)
-  local elem = e.element
-  if not elem.elem_value then
-    return
-  end
-
-  if table.find(config.bad_signals, elem.elem_value.name) then
-    game.print({"ltnc.bad-signal", elem.elem_value.name})
-    elem.elem_value = nil
-    return
-  end
-
-  local _, _, slot = string.find(elem.name, "__(%d+)")
-  slot = tonumber(slot) --[[@as uint]]
-  open_ui_misc_signal_edit_controls(self, slot)
-end, -- misc_signal_elem_changed()
-
---- @param e EventData.on_gui_click
---- @param self LTNC
-misc_signal_clicked = function(self, e)
-  local elem = e.element
-  local _, _, slot = string.find(elem.name, "__(%d+)")
-  slot = tonumber(slot) --[[@as uint]]
-  if e.button == defines.mouse_button_type.right then
-    -- Right click, clear the slot
-    elem.locked = false
-    clear_misc_signal(self, slot)
-    update_ui_misc_signal(self, slot)
-    close_ui_misc_signal_edit_controls(self)
-  elseif e.button == defines.mouse_button_type.left then
-    -- Left click.  If the slot has a signal we don't want choose a new one, just update the value.
-    if not elem.locked then
-    return
-  end
-    open_ui_misc_signal_edit_controls(self, slot)
-  end
-end, -- misc_signal_clicked()
-
---- @param e EventData.on_gui_switch_state_changed
---- @param self LTNC
-enable_disable_combinator = function(self, e)
-  local ctl = self.control
-  if not ctl.valid then
-    return
-  end
-  if e.element.switch_state == "left" then
-    ctl.enabled = false
-  else
-    ctl.enabled = true
-  end
-  update_ui(self)
-end, -- enable_disable_combinator()
-
---- @param e EventData.on_gui_checked_state_changed
---- @param self LTNC
-provide_request_state_changed = function(self, e)
-  local elem = e.element
-  local name = string.match(elem.name, "__(.*)")
-  toggle_service(self, name, elem.state)
-  update_ui(self)
-end, -- ltnc_ui:provide_request()
-
---- @param e EventData.on_gui_checked_state_changed
---- @param self LTNC
-ltn_checkbox_state_change = function(self, e)
-  local elem = e.element
-  if not elem then
-    return
-  end
-
-  local name = string.match(elem.name, "__(.*)$")
-  local value = 0
-  if elem.state then
-    value = 1
-  end
-  
-  set_ltn_signal(self, value, name)
-  update_ui_signal_reset(self, name, get_ltn_signal(self, name).is_default)
-end, -- ltn_checkbox_state_change()
-
---- @param e EventData.on_gui_click
---- @param self LTNC
-ltn_depot_toggle = function(self, e)
-  if not e.element then
-    return
-  end
-
-  if e.shift then
-    -- Remove and disable signals associated with requesters and providers
-    for signal, details in pairs(config.ltn_signals) do
-      if details.group == "provider" or details.group == "requester" then
-        set_ltn_signal(self, 0, signal )
+      if elem.style.name == "ltnc_net_id_button_pressed" then
+        elem.style = "ltnc_net_id_button"
+      else
+        elem.style = "ltnc_net_id_button_pressed"
       end
     end
-    e.element.state = true
-  end
+    util.from_netid_buttons(self.player)
+    local value = tonumber(netid_textbox.text) --[[@as integer]]
+    set_ltn_signal(self, value, "ltn-network-id")
+    update_ui_ltn_signal(self, "ltn-network-id")
+  end, -- network_id_toggle()
 
-  local value = 0
-  if e.element.state then
-    value = 1
-    toggle_service(self, "provider", false)
-    toggle_service(self, "requester", false)
-  end
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  misc_signal_confirm = function(self, e)
+    local ws = storage.players[e.player_index].working_slot
+    local loc_settings = settings.get_player_settings(e.player_index)
+    -- Prevent a crash is somehow the working slot becomes invalid 
+    if not ws then
+      close_ui_misc_signal_edit_controls(self)
+      return
+    end
+    
+    local value = tonumber(ws.items.text)
+    if not value or value < math.min_int or value > math.max_int then
+      return
+    end
 
-  set_ltn_signal(self, value, "ltn-depot")
-  -- element.state is true if we made the station a depot.  Therefore the req/prov panels should
-  -- be disabled (not e.element.state)
-  toggle_ui_req_prov_panels(self, not e.element.state)
+    local elem = self.elems["misc_signal_slot__" .. ws.index]
+    -- Prevent a crash if somehow the element is no longer valid and the edit controls are still open
+    if not elem or not elem.elem_value then
+      close_ui_misc_signal_edit_controls(self)
+      return
+    end
 
-  update_ui(self)
-end, -- ltn_depot_toggle()
+    local name = elem.elem_value.name
+    local type = elem.elem_value.type or "item"
+    local quality = "normal"
+    if type == "item" and elem.elem_value.quality then
+      quality = elem.elem_value.quality
+    end
 
---- @param e EventData.on_gui_text_changed
---- @param self LTNC
-ltn_signal_textbox_changed = function(self, e)
-  local elem = e.element
-  local value = tonumber(e.text)
-  local name = string.match(elem.name, "__(.*)$")
-  -- value == nil is still valid - results in removing the signal and reverting to LTN default
-  if not util.is_valid(name, value) then
-    elem.style = "ltnc_entry_text_invalid_value"
-    return
-  end
+    if (type == "item" or type == "fluid")
+    and value > 0
+    and (
+      loc_settings["ltnc-negative-signals"].value and not e.shift
+      or e.shift and not loc_settings["ltnc-negative-signals"].value
+    ) then
+        value = value * -1
+    end
 
-  elem.style = "ltnc_entry_text"
-  update_ui_signal_reset(self, name, false)
-  -- Do not remove signal while typing if they only deleted the text before typing
-  -- If player explicitly types '0' remove the signal as typed
-  if value then
+    set_misc_signal(
+      self,
+      {min = value, value = { name = name, type = type, quality = quality}},
+      ws.index + config.ltnc_ltn_signal_count
+    )
+    update_ui_misc_signal(self, ws.index)
+    close_ui_misc_signal_edit_controls(self)
+  end, -- misc_signal_confirm()
+
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  misc_signal_cancel = function(self, e)
+    local ws = storage.players[e.player_index].working_slot
+    if ws then
+      update_ui_misc_signal(self, ws.index)
+    end
+    close_ui_misc_signal_edit_controls(self)
+  end, -- misc_signal_cancel
+
+  --- @param e EventData.on_gui_text_changed
+  --- @param self LTNC
+  misc_signal_stacks_text_changed = function(self, e)
+    util.from_stacks(self.player)
+  end, -- misc_signal_stacks_text_changed()
+
+  --- @param e EventData.on_gui_text_changed
+  --- @param self LTNC
+  misc_signal_items_text_changed = function(self, e)
+    if not e.element or not e.element.text then
+      return
+    end
+
+    local value = tonumber(e.element.text)
+    if not value then
+      return
+    end
+
+    if value < math.min_int or value > math.max_int then
+      e.element.style = "ltnc_entry_text_invalid_value"
+    else
+      e.element.style = "ltnc_entry_text"
+    end
+
+    util.from_items(self.player)
+  end, -- misc_signal_items_text_changed()
+
+  --- @param e EventData.on_gui_value_changed
+  --- @param self LTNC
+  misc_signal_slider_changed = function(self, e)
+    util.from_slider(self.player)
+  end, -- misc_signal_slider_changed()
+
+  --- @param e EventData.on_gui_elem_changed
+  --- @param self LTNC
+  misc_signal_elem_changed = function(self, e)
+    local elem = e.element
+    if not elem.elem_value then
+      return
+    end
+
+    if table.find(config.bad_signals, elem.elem_value.name) then
+      game.print({"ltnc.bad-signal", elem.elem_value.name})
+      elem.elem_value = nil
+      return
+    end
+
+    local _, _, slot = string.find(elem.name, "__(%d+)")
+    slot = tonumber(slot) --[[@as uint]]
+    open_ui_misc_signal_edit_controls(self, slot)
+  end, -- misc_signal_elem_changed()
+
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  misc_signal_clicked = function(self, e)
+    local elem = e.element
+    local _, _, slot = string.find(elem.name, "__(%d+)")
+    slot = tonumber(slot) --[[@as uint]]
+    if e.button == defines.mouse_button_type.right then
+      -- Right click, clear the slot
+      elem.locked = false
+      clear_misc_signal(self, slot)
+      update_ui_misc_signal(self, slot)
+      close_ui_misc_signal_edit_controls(self)
+    elseif e.button == defines.mouse_button_type.left then
+      -- Left click.  If the slot has a signal we don't want choose a new one, just update the value.
+      if not elem.locked then
+      return
+    end
+      open_ui_misc_signal_edit_controls(self, slot)
+    end
+  end, -- misc_signal_clicked()
+
+  --- @param e EventData.on_gui_switch_state_changed
+  --- @param self LTNC
+  enable_disable_combinator = function(self, e)
+    local ctl = self.control
+    if not ctl.valid then
+      return
+    end
+    if e.element.switch_state == "left" then
+      ctl.enabled = false
+    else
+      ctl.enabled = true
+    end
+    update_ui(self)
+  end, -- enable_disable_combinator()
+
+  --- @param e EventData.on_gui_checked_state_changed
+  --- @param self LTNC
+  provide_request_state_changed = function(self, e)
+    local elem = e.element
+    local name = string.match(elem.name, "__(.*)")
+    toggle_service(self, name, elem.state)
+    update_ui(self)
+  end, -- ltnc_ui:provide_request()
+
+  --- @param e EventData.on_gui_checked_state_changed
+  --- @param self LTNC
+  ltn_checkbox_state_change = function(self, e)
+    local elem = e.element
+    if not elem then
+      return
+    end
+
+    local name = string.match(elem.name, "__(.*)$")
+    local value = 0
+    if elem.state then
+      value = 1
+    end
+    
     set_ltn_signal(self, value, name)
-  end
+    update_ui_signal_reset(self, name, get_ltn_signal(self, name).is_default)
+  end, -- ltn_checkbox_state_change()
 
-  if name == "ltn-network-id" then
-    update_ui_network_id_buttons(self)
-  end
-end, -- ltn_signal_textbox_click()
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  ltn_depot_toggle = function(self, e)
+    if not e.element then
+      return
+    end
 
---- @param e EventData.on_gui_click
---- @param self LTNC
-ltn_signal_textbox_click = function(self, e)
-  e.element.select_all()
-  --e.element.style = "ltnc_entry_text"
-end, -- ltn_signal_textbox_click()
+    if e.shift then
+      -- Remove and disable signals associated with requesters and providers
+      for signal, details in pairs(config.ltn_signals) do
+        if details.group == "provider" or details.group == "requester" then
+          set_ltn_signal(self, 0, signal )
+        end
+      end
+      e.element.state = true
+    end
 
---- @param e EventData.on_gui_confirmed
---- @param self LTNC
-ltn_signal_textbox_confirmed = function(self, e)
-  local elem = e.element
-  --- @type LTNSignals
-  local name = string.match(elem.name, "__(.*)$")
-  local value = tonumber(elem.text) --[[@as integer]]
-  if not util.is_valid(name, value) then
-    elem.focus()
-    return
-  end
-  -- If the player is CONFIRMING an empty edit box, remove the signal
-  if not value then
-    set_ltn_signal(self, value, name)
-  end
-  update_ui_ltn_signal(self, name)
-end, -- ltn_signal_textbox_confirmed()
+    local value = 0
+    if e.element.state then
+      value = 1
+      toggle_service(self, "provider", false)
+      toggle_service(self, "requester", false)
+    end
 
---- @param e EventData.on_gui_click
---- @param self LTNC
-reset_ltn_signal = function(self, e)
-  local name = string.match(e.element.name, "__(.*)$")
-  set_ltn_signal(self, 0, name)
-  update_ui_ltn_signal(self, name)
-  update_ui_signal_reset(self, name, true)
-end,  -- reset_ltn_signal()
+    set_ltn_signal(self, value, "ltn-depot")
+    -- element.state is true if we made the station a depot.  Therefore the req/prov panels should
+    -- be disabled (not e.element.state)
+    toggle_ui_req_prov_panels(self, not e.element.state)
+    self.elems["check__ltn-fuel-station"].enabled = not e.element.state
 
---- @param e EventData.CustomInputEvent
---- @param self LTNC
-close_ltnc_ui = function(self, e)
-  close(e)
-end, -- close_ltnc_ui()
-}
+    update_ui(self)
+  end, -- ltn_depot_toggle()
+
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  ltn_fuel_toggle = function(self, e)
+    if not e.element then
+      return
+    end
+
+    if e.shift then
+      -- Remove and disable signals associated with requesters and providers
+      for signal, details in pairs(config.ltn_signals) do
+        if details.group == "provider" or details.group == "requester" then
+          set_ltn_signal(self, 0, signal )
+        end
+      end
+      e.element.state = true
+    end
+
+    local value = 0
+    if e.element.state then
+      value = 1
+      toggle_service(self, "provider", false)
+      toggle_service(self, "requester", false)
+    end
+
+    set_ltn_signal(self, value, "ltn-fuel-station")
+    -- element.state is true if we made this a fuel station.  Therefore the req/prov panels should
+    -- be disabled (not e.element.state)
+    toggle_ui_req_prov_panels(self, not e.element.state)
+    self.elems["check__ltn-depot"].enabled = not e.element.state
+
+    update_ui(self)
+  end, -- ltn_fuel_toggle()
+
+  --- @param e EventData.on_gui_text_changed
+  --- @param self LTNC
+  ltn_signal_textbox_changed = function(self, e)
+    local elem = e.element
+    local value = tonumber(e.text)
+    local name = string.match(elem.name, "__(.*)$")
+    -- value == nil is still valid - results in removing the signal and reverting to LTN default
+    if not util.is_valid(name, value) then
+      elem.style = "ltnc_entry_text_invalid_value"
+      return
+    end
+
+    elem.style = "ltnc_entry_text"
+    update_ui_signal_reset(self, name, false)
+    -- Do not remove signal while typing if they only deleted the text before typing
+    -- If player explicitly types '0' remove the signal as typed
+    if value then
+      set_ltn_signal(self, value, name)
+    end
+
+    if name == "ltn-network-id" then
+      update_ui_network_id_buttons(self)
+    end
+  end, -- ltn_signal_textbox_click()
+
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  ltn_signal_textbox_click = function(self, e)
+    e.element.select_all()
+    --e.element.style = "ltnc_entry_text"
+  end, -- ltn_signal_textbox_click()
+
+  --- @param e EventData.on_gui_confirmed
+  --- @param self LTNC
+  ltn_signal_textbox_confirmed = function(self, e)
+    local elem = e.element
+    --- @type LTNSignals
+    local name = string.match(elem.name, "__(.*)$")
+    local value = tonumber(elem.text) --[[@as integer]]
+    if not util.is_valid(name, value) then
+      elem.focus()
+      return
+    end
+    -- If the player is CONFIRMING an empty edit box, remove the signal
+    if not value then
+      set_ltn_signal(self, value, name)
+    end
+    update_ui_ltn_signal(self, name)
+  end, -- ltn_signal_textbox_confirmed()
+
+  --- @param e EventData.on_gui_click
+  --- @param self LTNC
+  reset_ltn_signal = function(self, e)
+    local name = string.match(e.element.name, "__(.*)$")
+    set_ltn_signal(self, 0, name)
+    update_ui_ltn_signal(self, name)
+    update_ui_signal_reset(self, name, true)
+  end,  -- reset_ltn_signal()
+
+  --- @param e EventData.CustomInputEvent
+  --- @param self LTNC
+  close_ltnc_ui = function(self, e)
+    close(e)
+  end, -- close_ltnc_ui()
+} -- handlers
 
 flib_gui.add_handlers(handlers, function(e, handler)
   local self = storage.players[e.player_index].uis.main
@@ -1361,13 +1413,18 @@ local function build(player)
                 { "ltnc.requester" },
                 { "ltnc.requester-tip" }
               ),
-              check_box(
-                "ltn-depot",
-                { [defines.events.on_gui_click] = handlers.ltn_depot_toggle },
-                --{ [defines.events.on_gui_checked_state_changed] = handlers.ltn_depot_toggle },
-                { "ltnc.depot" },
-                { "ltnc-signal-tips.ltn-depot" }
-              ),
+              {
+                type = "table",
+                column_count = 2,
+                style_mods = { horizontally_stretchable = true },
+                check_box(
+                  "ltn-fuel-station",
+                  { [defines.events.on_gui_click] = handlers.ltn_fuel_toggle },
+                  --{ [defines.events.on_gui_checked_state_changed] = handlers.ltn_depot_toggle },
+                  { "ltnc.ltn-fuel-station" },
+                  { "ltnc-signal-tips.ltn-fuel-station" }
+                ),
+              },
             },
             { -- Depot Priority
               type = "flow",
@@ -1382,12 +1439,18 @@ local function build(player)
                   sprite = "virtual-signal/ltn-depot-priority",
                   style = "ltnc_entry_sprite"
                 },
+                check_box(
+                  "ltn-depot",
+                  { [defines.events.on_gui_click] = handlers.ltn_depot_toggle },
+                  --{ [defines.events.on_gui_checked_state_changed] = handlers.ltn_depot_toggle },
+                  { "ltnc.depot" },
+                  { "ltnc-signal-tips.ltn-depot" }
+                ),
                 {
                   type = "label",
-                  caption = { "virtual-signal-name.ltn-depot-priority" },
+                  caption = { "ltnc.priority" },
                   style = "caption_label",
                 },
-                { type = "empty-widget" },
                 ltn_signal_edit_box("ltn-depot-priority"),
               },
             },
@@ -1712,7 +1775,7 @@ local function create_storage_data_from_combinator(entity)
 
   -- If depot is set, all provider and requester signals are ignored.
   -- Disable requester and provider and clear requester provider signals
-  if is_depot(ctl) then
+  if is_depot(ctl) or is_fuel_station(ctl) then
     toggle_service_by_ctl(ctl, "provider", false)
     toggle_service_by_ctl(ctl, "requester", false)
   end
