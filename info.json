@@ -8,7 +8,7 @@
     "homepage": "https://github.com/kryojenik/LTN_Combinator_Modernized",
     "factorio_version": "2.0",
     "dependencies": [
-        "base >= 2.0.32",
+        "base >= 2.0.35",
         "flib >= 0.16.2",
         "LogisticTrainNetwork >= 2.0.3"
     ],
