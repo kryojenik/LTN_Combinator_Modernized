@@ -1665,70 +1665,6 @@ local function reset_reach(player)
   pt.original_reach_bonus = nil
 end -- reset_reach()
 
---- Open GUI if on the map or temporarily increase reach if trying to open and LTNC
---- out of normal reach range since this is a train control system.
---- Similar behavior as train-stops.
---- @param e EventData.CustomInputEvent
-local function on_linked_open_gui(e)
-  if not e.selected_prototype
-  or e.selected_prototype.base_type ~= "entity"
-  or e.selected_prototype.name ~= "ltn-combinator" then
-    return
-  end
-
-  local player = game.get_player(e.player_index)
-  if not player or not player.valid then
-    return
-  end
-
-  local entity = player.selected
-  if not entity or not entity.valid or entity.name ~= "ltn-combinator" then
-    -- There may be a latency related race in multi-player where a player tries
-    -- to open an LTNC but the selected entity changes before getting here?
-    -- If that happens, log it and abort.  They'll click again.
-    log(string.format(
-      "E: %d, G: %d - E.Selected: %s, P.Selected: %s.  Selected changed - Latency?\n",
-      e.tick,
-      game.tick,
-      e.selected_prototype.name,
-      entity and entity.name or "<no entity>"
-    ))
-    return
-  end
-
-  --local lamp = util.find_connected_entity("logistic-train-stop-input", {[entity.unit_number] = entity}, 10)
-  if player.render_mode == defines.render_mode.chart_zoomed_in then
-    if player.cursor_stack and player.cursor_stack.valid_for_read then
-      return
-    end
-
-    --[[
-    if not lamp or not lamp.valid then
-      player.create_local_flying_text({ text = {"ltnc.not-connected"}, create_at_cursor = true })
-      return
-    end
-    ]]
-
-    open_gui(player, entity)
-    return
-  end
-
-  -- Increase the players reach if they are not in map mode and the LTN Combinator is out of
-  -- their reach.  Then let the game open the gui.  Reach needs to be reset in the open function.
-  if player.render_mode == defines.render_mode.game and not player.can_reach_entity(entity) then
-    if player.cursor_stack and player.cursor_stack.valid_for_read then
-      return
-    end
-
-    if not lamp or not lamp.valid then
-      player.create_local_flying_text({ text = {"ltnc.not-connected"}, create_at_cursor = true })
-      return
-    end
-
-    increase_reach(player, entity)
-  end
-end -- on_linked_open_gui()
-
 --- Handle opening the custom GUI to replace the builtin one when it opens.
 --- @param e EventData.on_gui_opened
 local function on_gui_opened(e)
@@ -2372,7 +2308,6 @@ ltnc.events = {
   [defines.events.on_player_mined_entity] = on_destroy,
   [defines.events.script_raised_destroy] = on_destroy,
   [defines.events.on_post_entity_died] = on_post_died,
-  ["ltnc-linked-open-gui"] = on_linked_open_gui,
   ["ltnc-linked-paste-settings"] = on_linked_paste_settings,
   [defines.events.on_gui_closed] = on_closed,
 }
