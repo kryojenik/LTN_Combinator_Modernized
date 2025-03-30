@@ -464,7 +464,12 @@ end -- clear_misc_signal()
 local function set_misc_signal(self, filter, slot)
   local ctl = self.control
   local section = ctl.get_section(1)
-  section.set_slot(slot, filter)
+  -- TODO: This probably is a deficiency in the API.  Submitting a bug.
+  -- Update with bug information and / or fix later.
+  local success, error = pcall(function() section.set_slot(slot, filter) end)
+  if not success then
+    self.player.create_local_flying_text{text = error, create_at_cursor = true}
+  end
 end -- set_misc_signal()
 
 --- Refresh the entire UI with current data

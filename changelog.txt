@@ -4,6 +4,7 @@ Date: ????
   Bugfixes:
     - Get rid of spurious "Not connected to an LTN Train Stop input" left over from pre-port remote
       control capabilities.
+    - Fix crash and provide feedback when trying to set signals that collide with existing signals.
   Features:
     - Add support for the ltn-fuel-station signal
 ---------------------------------------------------------------------------------------------------
