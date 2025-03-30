@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.5
-Date: ????
+Date: 2025-03-30
   Bugfixes:
     - Get rid of spurious "Not connected to an LTN Train Stop input" left over from pre-port remote
       control capabilities.
