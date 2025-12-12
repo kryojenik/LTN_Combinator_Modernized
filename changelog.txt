@@ -1,8 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.6
 Date: ????
+  Bugfixes:
+    - Fix crash when changing network icon that was a virtual signal.
   Changes:
-    - Update dependency version on base to 2.0.35.
+    - Update dependency versions.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.5
 Date: 2025-03-30

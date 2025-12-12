@@ -12,6 +12,7 @@ local function update_ui(self)
   if gni then
     if gni.icon and helpers.is_valid_sprite_path(gni.icon) then
       local _, _, type, name = string.find(gni.icon, "(.*)/(.*)")
+      type = type == "virtual-signal" and "virtual" or type
 
       ---@type SignalID
       local signal = {type = type, name = name}
