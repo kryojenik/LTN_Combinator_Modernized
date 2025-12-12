@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.6
-Date: ????
+Date: 2025-12-12
   Bugfixes:
     - Fix crash when changing network icon that was a virtual signal.
   Changes:
