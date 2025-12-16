@@ -117,7 +117,7 @@ function M.get_blueprint(player)
     end
 
     while bp.type == "blueprint-book" do
-      bp = bp.contents[bp.get_active_index(player)]
+      bp = bp.get_selected_record(player)
     end
 
     return bp
