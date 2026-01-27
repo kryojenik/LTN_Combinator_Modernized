@@ -1,7 +1,7 @@
 ---Table of specific LTN Combinators open indexed by player.
 ---@class PlayerTable
----@field uis {main: LTNC, netui: NetUI} @ Custom UIs for the mod
----@field settings table @ State of settings
+---@field uis? {main: LTNC, netui: NetUI} @ Custom UIs for the mod
+---@field settings? table @ State of settings
 ---@field unit_number? uint
 ---@field main_elems? table<string, LuaGuiElement> @ GuiElemDef Elems of LtncUI
 ---@field working_slot? WorkingSlot @ Current miscellaneous signal slot player is working with
@@ -10,7 +10,7 @@
 ---@class WorkingSlot
 ---@field index uint
 ---@field panel LuaGuiElement
----@field stack_size integer
+---@field stack_size? integer
 ---@field confirm LuaGuiElement
 ---@field cancel LuaGuiElement
 ---@field items LuaGuiElement
