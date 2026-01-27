@@ -10,7 +10,7 @@
 ---@class WorkingSlot
 ---@field index uint
 ---@field panel LuaGuiElement
----@field stack_size? integer
+---@field stack_size integer
 ---@field confirm LuaGuiElement
 ---@field cancel LuaGuiElement
 ---@field items LuaGuiElement

@@ -29,7 +29,7 @@ local handlers = {
   ---@param e EventData.on_gui_click
   ---@param self NetUI
   netui_close = function(self, e)
-    net_ui.close(self, e)
+    net_ui.close(self, e.player_index)
   end,
 
   ---@param e EventData.on_gui_click
@@ -90,7 +90,7 @@ end)
 ---Create the Network Description Editor for a single network
 ---@param player LuaPlayer
 ---@param self NetUI
----@return GuiElemDef
+---@return flib.GuiElemDef
 ---@diagnostic disable:missing-fields
 local function build_single_description(self, player)
   local elems = libgui.add(player.gui.screen, {
@@ -199,13 +199,9 @@ end
 
 ---Close the description editor
 ---@param self NetUI
----@param input uint | GuiEventData
-function net_ui.close(self, input)
-  local ndx = input
-  if type(input) == "table" then
-    ndx = input.player_index
-  end
-  local pt = storage.players[ndx]
+---@param player_index uint
+function net_ui.close(self, player_index)
+  local pt = storage.players[player_index]
 
   if pt.uis.netui and pt.uis.netui.elems then
     pt.uis.netui.elems.net_config_main.destroy()

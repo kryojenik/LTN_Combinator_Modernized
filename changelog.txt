@@ -3,6 +3,7 @@ Version: 2.2.8
 Date: ????
   Bugfixes:
     - Fixed icon image in upgrade / destruction planners and blueprints
+    - Fixed /ltnc-unset-requester command
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.7
 Date: 2025-12-16

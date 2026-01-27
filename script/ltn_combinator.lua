@@ -47,8 +47,8 @@ local function get_ltn_signal_from_control(ctl, ltn_signal_name)
   local slot = config.ltn_signals[ltn_signal_name].slot
   local default = config.ltn_signals[ltn_signal_name].default
   local section = ctl.get_section(1)
-  local filter = section.get_slot(slot)
-  if filter.value then
+  local filter = section and section.get_slot(slot) or nil
+  if filter and filter.min and filter.value then
     return { value = filter.min, is_default = false }
   else
     return { value = default, is_default = true }
@@ -252,7 +252,9 @@ local function set_ltn_signal_by_control(ctl, value, ltn_signal_name)
   local explicit_default = loc_settings["ltnc-emit-explicit-default"].value
   local signal_data = config.ltn_signals[ltn_signal_name]
   local section = ctl.get_section(1)
-
+  if not section then
+    return
+  end
 
   -- Need to store thresholds in storage and set the correct values on the combinator
   -- dependant on provider/requester states
@@ -305,7 +307,7 @@ end -- set_ltn_signal()
 --- Retrieve a miscellaneous signal from the combinator
 --- @param slot uint @ The slot to get data from
 --- @param self LTNC
---- @return Signal
+--- @return LogisticFilter
 local function get_misc_signal(self, slot)
   local ctl = self.control
   return ctl.sections[1].get_slot(slot + config.ltnc_ltn_signal_count)
@@ -337,12 +339,12 @@ end -- close_misc_signal_edit_controls()
 local function update_ui_misc_signal(self, slot)
   local ctl = self.control
   local section = ctl.get_section(1)
-  local ret = section.get_slot(slot + config.ltnc_ltn_signal_count)
+  local ret = section and section.get_slot(slot + config.ltnc_ltn_signal_count) or nil
   local button = self.elems["misc_signal_slot__" .. slot]
   local value = button.children[1]
-  if ret.value then
+  if ret and ret.value then
     value.caption = flib_format.number(ret.min, true)
-    button.elem_value = ret.value
+    button.elem_value = ret.value --[[@as SignalID]]
     button.locked = true
   else
     value.caption = ""
@@ -388,7 +390,8 @@ local function open_ui_misc_signal_edit_controls(self, slot)
     stacks = self.elems.text_entry__stacks,
     items = self.elems.text_entry__item_fluid,
     confirm = self.elems.signal_quantity_confirm,
-    cancel = self.elems.signal_quantity_cancel
+    cancel = self.elems.signal_quantity_cancel,
+    stack_size = 1
   }
   pt.working_slot = ws
   local slider_max
@@ -455,15 +458,20 @@ end -- open_misc_signal_edit_controls()
 local function clear_misc_signal(self, slot)
   local ctl = self.control
   local section = ctl.get_section(1)
-  section.clear_slot(slot + config.ltnc_ltn_signal_count)
+  if section then
+    section.clear_slot(slot + config.ltnc_ltn_signal_count)
+  end
 end -- clear_misc_signal()
 
---- @param filter Signal
+--- @param filter LogisticFilter
 --- @param slot uint
 --- @param self LTNC
 local function set_misc_signal(self, filter, slot)
   local ctl = self.control
   local section = ctl.get_section(1)
+  if not section then
+    return
+  end
   -- TODO: This probably is a deficiency in the API.  Submitting a bug.
   -- Update with bug information and / or fix later.
   local success, error = pcall(function() section.set_slot(slot, filter) end)
@@ -515,6 +523,13 @@ local function sort_signals(entity)
   local needs_sorting = false
   local cb = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
   local section = cb.get_section(1)
+  if not section then
+    section = cb.add_section()
+  end
+
+  if not section then
+    return
+  end
 
   -- Validate signal slot locations, If sorting is not needed skip it.
   --- @type uint
@@ -751,8 +766,10 @@ local handlers = {
       return
     end
 
+    ---@type string
     local name = elem.elem_value.name
     local type = elem.elem_value.type or "item"
+    ---@type string|LuaQualityPrototype
     local quality = "normal"
     if type == "item" and elem.elem_value.quality then
       quality = elem.elem_value.quality
@@ -1073,7 +1090,7 @@ end -- signal_tooltip()
 --- @param handler function|function[] @ Handler(s) for the checkbox
 --- @param caption LocalisedString? @ Optional: Text next to the checkbox
 --- @param tooltip LocalisedString? @ Optional: Checkbox's tooltip
---- @return GuiElemDef
+--- @return flib.GuiElemDef
 local function check_box(name, handler, caption, tooltip)
   return
   {
@@ -1088,7 +1105,7 @@ end -- check_box()
 
 --- Render LTN Signal textbox
 --- @param name LTNSignals
---- @return GuiElemDef
+--- @return flib.GuiElemDef
 local function ltn_signal_edit_box(name)
   local handler = {
     [defines.events.on_gui_text_changed] = handlers.ltn_signal_textbox_changed,
@@ -1116,7 +1133,7 @@ end -- ltn_signal_edit_box()
 
 --- Render GuiElemDef for LTN signals in the given group
 --- @param group LTNGroups @ Group to build signals for
---- @return GuiElemDef
+--- @return flib.GuiElemDef
 local function ltn_signals_by_group(group)
   local group_signals =
       table.filter(
@@ -1166,7 +1183,7 @@ end -- ltn_signals_by_group()
 
 --- Render a panel of LTN signal for the given group
 --- @param group LTNGroups @ The group of signals desired
---- @return GuiElemDef
+--- @return flib.GuiElemDef
 local function ltn_signal_panel(group)
   return {
     type = "flow",
@@ -1190,7 +1207,7 @@ end -- ltn_signal_panel()
 
 --- Render GuiElemDef for the miscellaneous signal slot buttons
 --- @param slot_count integer @ Number of signal slots to build
---- @return GuiElemDef
+--- @return flib.GuiElemDef
 local function misc_signal_buttons(slot_count)
   local buttons = {}
 
@@ -1217,7 +1234,7 @@ end -- misc_signal_button()
 
 --- Generate the buttons for the network encoder UI
 --- @param buttons uint
---- @return GuiElemDef
+--- @return flib.GuiElemDef
 local function net_encode_toggle_buttons(buttons)
   local t =
   {
@@ -1249,7 +1266,7 @@ end
 
 --- Build the LTN Main UI window
 --- @param player LuaPlayer @ Player object that is opening the combinator
---- @return GuiElemDef
+--- @return flib.GuiElemDef
 ---@diagnostic disable:missing-fields
 local function build(player)
   local elems = flib_gui.add(player.gui.screen, {
@@ -1727,7 +1744,7 @@ end -- create_storage_data_from_combinator()
 --- When building a new entity set defaults according to mod settings
 --- @param e BuildEvent
 local function on_built(e)
-  local entity = e.created_entity or e.entity or e.destination
+  local entity = e.entity or e.destination
   if not entity or not entity.valid then
     return
   end
@@ -2071,7 +2088,7 @@ local function on_pre_build(e)
   local entities = {}
   local cs = player.cursor_stack
   if cs and cs.valid and cs.valid_for_read and cs.name == "ltn-combinator" then
-    if not e.shift_build then
+    if e.build_mode == defines.build_mode.normal then
       goto constant_only
     end
   else
@@ -2188,8 +2205,9 @@ function ltnc.add_commands()
       local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
       for i = config.ltnc_ltn_signal_count + 1, config.ltnc_slot_count do
         --- @cast i uint
-        local signal = ctl.get_signal(i)
-        if signal.signal and signal.count < 0 then
+        local section = ctl.get_section(1)
+        local filter = section and section.get_slot(i) or nil
+        if filter and filter.min and filter.min < 0 then
           goto continue
         end
       end
