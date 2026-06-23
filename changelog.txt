@@ -6,6 +6,7 @@ Date: ????
   Bugfixes:
     - Fixed icon image in upgrade / destruction planners and blueprints
     - Fixed /ltnc-unset-requester command
+    - Fixed signal count turning black when hovering over button.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.7
 Date: 2025-12-16

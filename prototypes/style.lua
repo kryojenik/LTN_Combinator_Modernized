@@ -90,6 +90,7 @@ styles.ltnc_entry_text_invalid_value = {
 styles.signal_count = {
   type = "label_style",
   parent = "count_label",
+  parent_hovered_font_color = {1, 1, 1},
   size = 36,
   width = 36,
   horizontal_align = "right",
