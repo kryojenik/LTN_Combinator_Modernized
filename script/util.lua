@@ -1,9 +1,7 @@
-local math = require("__flib__.math")
+local flib_math = require("__flib__.math")
 
 local config = require("script.config")
 local flib_box = require("__flib__.bounding-box")
-local table = require("__flib__.table")
-local migration = require("__flib__.migration")
 
 local M = {}
 
@@ -43,8 +41,8 @@ function M.from_stacks(player)
     return
   end
 
-  value = math.clamp(value * ws.stack_size, math.min_int, math.max_int)
-  value = value < 0 and math.ceiled(value, ws.stack_size) or  math.floored(value, ws.stack_size)
+  value = flib_math.clamp(value * ws.stack_size, flib_math.min_int, flib_math.max_int)
+  value = value < 0 and flib_math.ceiled(value, ws.stack_size) or  flib_math.floored(value, ws.stack_size)
   ws.items.text = tostring(value)
   ws.items.style = "ltnc_entry_text"
   ws.slider.slider_value = math.abs(value)
@@ -107,14 +105,18 @@ function M.get_blueprint(player)
 
     return bp
   end
-  
+
   bp = player.cursor_record
   if bp then
-    if not migration.is_newer_version("2.0.34", script.active_mods["base"])
+    -- Check not needed anymore.  Version is at least 2.1 when this is run.
+    -- Leaving here during porting process.
+    --[[
+    if helpers.compare_versions(script.active_mods["base"], "2.0.35")
     and bp.type == "blueprint-book" then
       game.print("Factorio version 2.0.35 required for this to work properly.  Please copy BP book to your inventory, or select the specific BP from your book.")
       return
     end
+    ]]
 
     while bp.type == "blueprint-book" do
       bp = bp.get_selected_record(player)

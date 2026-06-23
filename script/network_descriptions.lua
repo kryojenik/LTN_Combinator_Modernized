@@ -1,4 +1,4 @@
-local libgui = require("__flib__.gui")
+local flib_gui = require("__flib__.gui")
 
 ---@class NetUI
 ---@field elems? table<string, LuaGuiElement>
@@ -58,7 +58,7 @@ local handlers = {
     else
       desc.tip = nil
     end
-  
+
     nd[self.network] = desc
 
     if self.update_ui_network_id_buttons_callback then
@@ -80,7 +80,7 @@ local handlers = {
   end
 }
 
-libgui.add_handlers(handlers, function(e, handler)
+flib_gui.add_handlers(handlers, function(e, handler)
   local self = storage.players[e.player_index].uis.netui
   if self then
     handler(self, e)
@@ -93,7 +93,7 @@ end)
 ---@return flib.GuiElemDef
 ---@diagnostic disable:missing-fields
 local function build_single_description(self, player)
-  local elems = libgui.add(player.gui.screen, {
+  local elems = flib_gui.add(player.gui.screen, {
     {
       type = "frame",
       name = "net_config_main",

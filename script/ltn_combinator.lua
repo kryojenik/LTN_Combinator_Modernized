@@ -2,8 +2,9 @@ local flib_gui = require("__flib__.gui")
 local flib_format = require("__flib__.format")
 local flib_position = require("__flib__.position")
 local flib_box = require("__flib__.bounding-box")
-local table = require("__flib__.table")
-local math = require("__flib__.math")
+local flib_table = require("__flib__.table")
+local flib_array = require("__flib__.array")
+local flib_math = require("__flib__.math")
 
 local util = require("script.util")
 local netui = require("script.network_descriptions")
@@ -22,7 +23,7 @@ local tt = {
 }
 
 --- Get the combinator data from storage.  Create it if it doesn't exist
----@param entity LuaEntity 
+---@param entity LuaEntity
 ---@return CombinatorData
 local function get_or_create_combinator_data(entity)
   local default_cd = { provider = true, requester = true }
@@ -38,7 +39,7 @@ local function get_or_create_combinator_data(entity)
   return storage.combinators[entity.unit_number]
 end -- get_combinator_data()
 
---- Retrieve an LTN signal from specified entity 
+--- Retrieve an LTN signal from specified entity
 --- If it is not set, return the default value
 --- @param ltn_signal_name LTNSignals @ The signal name being retrieved
 --- @param ctl LuaConstantCombinatorControlBehavior
@@ -55,7 +56,7 @@ local function get_ltn_signal_from_control(ctl, ltn_signal_name)
   end
 end -- get_ltn_signal_from_control()
 
---- Retrieve an LTN signal from combinator represented by this table 
+--- Retrieve an LTN signal from combinator represented by this table
 --- If it is not set, return the default value
 --- @param ltn_signal_name LTNSignals @ The signal name being retrieved
 --- @param self LTNC
@@ -198,12 +199,12 @@ local function update_ui_ltn_signal(self, ltn_signal_name)
 
   elem.text = tostring(ret.value)
   update_ui_signal_reset(self, ltn_signal_name, ret.is_default)
-  
+
   -- Set text box style
   if ret.is_default then
     elem.style = "ltnc_entry_text_default_value"
   end
-  
+
   -- Special style for Thresholds that are saved, but not emitted on the signal wire because the
   -- Request or Provide service is disabled for the combinator.  MAX_INT is emitted instead.
   if not transmitted then
@@ -235,7 +236,7 @@ local function get_threshold_from_storage(entity, value, name)
   or (string.match(name, "ltn%-provider") and cd.provider) then
     return value
   end
-  
+
   if (string.match(name,"stack")) then
     return 0
   else
@@ -630,7 +631,7 @@ local function runtime_setting_changed(name)
   then
     storage.built_disabled = nil
   end
-  
+
 end -- runtime_setting_changed()
 
 --- Update the player runtime setting cache in storage if the player changes their settings
@@ -748,14 +749,14 @@ local handlers = {
   misc_signal_confirm = function(self, e)
     local ws = storage.players[e.player_index].working_slot
     local loc_settings = settings.get_player_settings(e.player_index)
-    -- Prevent a crash is somehow the working slot becomes invalid 
+    -- Prevent a crash is somehow the working slot becomes invalid
     if not ws then
       close_ui_misc_signal_edit_controls(self)
       return
     end
-    
+
     local value = tonumber(ws.items.text)
-    if not value or value < math.min_int or value > math.max_int then
+    if not value or value < flib_math.min_int or value > flib_math.max_int then
       return
     end
 
@@ -821,7 +822,7 @@ local handlers = {
       return
     end
 
-    if value < math.min_int or value > math.max_int then
+    if value < flib_math.min_int or value > flib_math.max_int then
       e.element.style = "ltnc_entry_text_invalid_value"
     else
       e.element.style = "ltnc_entry_text"
@@ -844,7 +845,7 @@ local handlers = {
       return
     end
 
-    if table.find(config.bad_signals, elem.elem_value.name) then
+    if flib_table.find(config.bad_signals, elem.elem_value.name) then
       game.print({"ltnc.bad-signal", elem.elem_value.name})
       elem.elem_value = nil
       return
@@ -913,7 +914,7 @@ local handlers = {
     if elem.state then
       value = 1
     end
-    
+
     set_ltn_signal(self, value, name)
     update_ui_signal_reset(self, name, get_ltn_signal(self, name).is_default)
   end, -- ltn_checkbox_state_change()
@@ -1135,11 +1136,13 @@ end -- ltn_signal_edit_box()
 --- @param group LTNGroups @ Group to build signals for
 --- @return flib.GuiElemDef
 local function ltn_signals_by_group(group)
-  local group_signals =
-      table.filter(
-        config.ltn_signals,
-        function(v) return v.group == group end
-      )
+  local group_signals = {}
+  for k,v in pairs(config.ltn_signals) do
+    if v.group == group then
+      group_signals[k] = v
+    end
+  end
+
   local elems = {}
   local function text_or_check(name)
     if group == "requester" and name == "ltn-disable-warnings" then
@@ -1150,7 +1153,7 @@ local function ltn_signals_by_group(group)
   end
 
   for ltn_signal_name, _ in pairs(group_signals) do
-    elems = table.array_merge { elems, {
+    elems = flib_array.flatten { elems, {
       {
         type = "sprite-button",
         style = "ltnc_cancel_button",
@@ -1991,7 +1994,7 @@ local function on_settings_pasted(e)
   end
 
   local cd = storage.combinators
-  cd[destination.unit_number] = table.deep_copy(cd[source.unit_number])
+  cd[destination.unit_number] = flib_table.deep_copy(cd[source.unit_number])
 end -- on_settings_pasted()
 
 ---@param e EventData.CustomInputEvent
@@ -2041,13 +2044,13 @@ local function on_pre_build(e)
       return
     end
 
-    local combinators = table.filter(
-      entities,
-      function(v)
-        return v.name == "ltn-combinator"
-      end,
-      false
-    )
+    local combinators = {}
+    for k, v in pairs(entities) do
+      if v.name == "ltn-combinator" then
+        combinators[k] = v
+      end
+    end
+
     if not next(combinators) then
       return
     end
@@ -2199,7 +2202,7 @@ function ltnc.add_commands()
   commands.add_command("ltnc-unset-requester", {"ltnc.unset-requester-help"}, function()
     local entities = {}
     for _, surface in pairs(game.surfaces) do
-      entities = table.array_merge({entities, surface.find_entities_filtered({name = "ltn-combinator"})})
+      entities = flib_array.flatten({entities, surface.find_entities_filtered({name = "ltn-combinator"})})
     end
     for _, entity in ipairs(entities) do
       local ctl = entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
@@ -2294,7 +2297,7 @@ ltnc.on_nth_tick = {
     if not next(storage.replacements) then
       return
     end
-    
+
     for surface_index, reps in pairs(storage.replacements) do
       for pos_int, rep in pairs(reps) do
         local tick = game.tick

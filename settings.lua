@@ -1,4 +1,4 @@
-local math = require("__flib__.math")
+local flib_math = require("__flib__.math")
 
 data:extend({
   -- STARTUP SETTINGS
@@ -15,9 +15,9 @@ data:extend({
     name = "ltnc-high-threshold",
     order = "sb",
     setting_type = "startup",
-    default_value = math.max_int,
+    default_value = flib_math.max_int,
     minimum_value = 0,
-    maximum_value = math.max_int
+    maximum_value = flib_math.max_int
   },
   -- MAP SETTINGS
   {
