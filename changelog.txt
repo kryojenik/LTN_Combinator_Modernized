@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.0
-Date: ????
+Date: 2026-06-25
   Changes:
     - Updates for Factorio 2.1 and flib 0.17.0
     - Updated LTN dependency to 3.0.0
