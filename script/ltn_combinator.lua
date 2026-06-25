@@ -1924,7 +1924,7 @@ end -- add_replacement()
 
 --- @param e DestroyEvent
 local function on_destroy(e)
-local entity = e.entity
+  local entity = e.entity
   if not entity or not entity.valid then
     return
   end
@@ -2098,7 +2098,7 @@ local function on_pre_build(e)
     cs = nil
   end
 
-  if not cs and not player.cursor_ghost and player.cursor_ghost ~= "ltn-combinator" then
+  if not cs and (not player.cursor_ghost or player.cursor_ghost.name ~= "ltn-combinator") then
     return
   end
 

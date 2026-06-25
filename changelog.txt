@@ -3,6 +3,7 @@ Version: 2.5.0
 Date: ????
   Changes:
     - Updates for Factorio 2.1 and flib 0.17.0
+    - Updated LTN dependency to 3.0.0
   Bugfixes:
     - Fixed icon image in upgrade / destruction planners and blueprints
     - Fixed /ltnc-unset-requester command

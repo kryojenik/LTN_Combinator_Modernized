@@ -10,10 +10,10 @@
     "dependencies": [
         "base >= 2.1.0",
         "flib >= 0.17.0",
-        "LogisticTrainNetwork >= 2.5.1"
+        "LogisticTrainNetwork >= 3.0.0"
     ],
     "package": {
-        "git_publish_branch": "main",
+        "git_publish_branch": "Factorio-2.1",
         "ignore": [
             "types.lua",
             "screenshots/*",
