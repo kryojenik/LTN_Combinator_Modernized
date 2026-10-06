@@ -157,7 +157,7 @@ function M.get_blueprint_bounding_box(entities)
   local protos = prototypes.get_entity_filtered{{filter = "name", name = name_filter}}
   for _, entity in pairs(entities) do
     local collision_box = protos[entity.name].collision_box
-    grid_size = math.max(grid_size, protos[entity.name].building_grid_bit_shift)
+    grid_size = math.max(grid_size, protos[entity.name].build_grid_size)
     box = flib_box.expand_to_contain_box(
       box,
       flib_box.from_dimensions(

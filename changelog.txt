@@ -2,6 +2,7 @@
 Version: 2.5.1
 Date: ????
   Changes:
+    - Changed building_grid_bit_shift to build_grid_size for Factorio 2.1.21 change.
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2026-06-25
